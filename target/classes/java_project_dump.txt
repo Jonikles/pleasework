@@ -1,0 +1,4298 @@
+======================================================================
+// FILE: com\tutoringplatform\TutoringPlatformApplication.java
+======================================================================
+
+package com.tutoringplatform;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+
+@SpringBootApplication
+public class TutoringPlatformApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(TutoringPlatformApplication.class, args);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\command\ProcessPaymentCommand.java
+======================================================================
+
+package com.tutoringplatform.command;
+
+import com.tutoringplatform.models.Payment;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.repositories.interfaces.IPaymentCommand;
+import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+
+public class ProcessPaymentCommand implements IPaymentCommand {
+    private Payment payment;
+    private Student student;
+    private double amount;
+    private IPaymentRepository paymentRepository;
+    private IStudentRepository studentRepository;
+
+    public ProcessPaymentCommand(Payment payment, Student student, double amount, IPaymentRepository paymentRepository, IStudentRepository studentRepository) {
+        this.payment = payment;
+        this.student = student;
+        this.amount = amount;
+        this.paymentRepository = paymentRepository;
+        this.studentRepository = studentRepository;
+    }
+
+    @Override
+    public void execute() throws Exception {
+        student.deductFunds(amount);
+        payment.setStatus(Payment.PaymentStatus.COMPLETED);
+        paymentRepository.save(payment);
+        studentRepository.update(student);
+    }
+
+    @Override
+    public void undo() throws Exception {
+        student.addFunds(amount);
+        payment.setStatus(Payment.PaymentStatus.REFUNDED);
+        paymentRepository.update(payment);
+        studentRepository.update(student);
+    }
+
+    @Override
+    public Payment getPayment() {
+        return payment;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\command\RefundPaymentCommand.java
+======================================================================
+
+package com.tutoringplatform.command;
+
+
+import com.tutoringplatform.models.Payment;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.repositories.interfaces.IPaymentCommand;
+import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+
+public class RefundPaymentCommand implements IPaymentCommand {
+    private Payment payment;
+    private Student student;
+    private double amount;
+    private IPaymentRepository paymentRepository;
+    private IStudentRepository studentRepository;
+
+    public RefundPaymentCommand(Payment payment, Student student, double amount, IPaymentRepository paymentRepository, IStudentRepository studentRepository) {
+        this.payment = payment;
+        this.student = student;
+        this.amount = amount;
+        this.paymentRepository = paymentRepository;
+        this.studentRepository = studentRepository;
+    }
+
+    @Override
+    public void execute() throws Exception {
+        if (payment.getStatus() != Payment.PaymentStatus.COMPLETED) {
+            throw new Exception("Can only refund completed payments");
+        }
+        student.addFunds(amount);
+        payment.setStatus(Payment.PaymentStatus.REFUNDED);
+        paymentRepository.update(payment);
+        studentRepository.update(student);
+    }
+
+    @Override
+    public void undo() throws Exception {
+        student.deductFunds(amount);
+        payment.setStatus(Payment.PaymentStatus.COMPLETED);
+        paymentRepository.update(payment);
+        studentRepository.update(student);
+    }
+
+    @Override
+    public Payment getPayment() {
+        return payment;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\config\BookingConfiguration.java
+======================================================================
+
+package com.tutoringplatform.config;
+
+import com.tutoringplatform.services.BookingService;
+import com.tutoringplatform.observer.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import javax.annotation.PostConstruct;
+
+@Configuration
+public class BookingConfiguration {
+
+    @Autowired
+    private BookingService bookingService;
+
+    @PostConstruct
+    public void setupObservers() {
+        BookingLogger bookingLogger = new BookingLogger();
+
+        bookingService.addObserver(bookingLogger);
+
+        System.out.println("Booking observers configured: Logger and TutorUpdater registered");
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\config\DataInitializationConfiguration.java
+======================================================================
+
+package com.tutoringplatform.config;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
+import com.tutoringplatform.services.BookingService;
+import com.tutoringplatform.services.PaymentService;
+import com.tutoringplatform.services.ReviewService;
+import com.tutoringplatform.services.StudentService;
+import com.tutoringplatform.services.SubjectService;
+import com.tutoringplatform.services.TutorService;
+@Configuration
+@Profile("!test")
+public class DataInitializationConfiguration {
+
+    @Bean
+    CommandLineRunner init(SubjectService subjectService, TutorService tutorService, StudentService studentService,
+            BookingService bookingService, PaymentService paymentService, ReviewService reviewService) {
+        return args -> {
+            System.out.println("Application started! Access at http://localhost:8080");
+        };
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\AuthenticationController.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/controllers/AuthController.java
+package com.tutoringplatform.controllers;
+
+import com.tutoringplatform.dto.request.LoginRequest;
+import com.tutoringplatform.dto.request.StudentSignupRequest;
+import com.tutoringplatform.dto.request.TutorSignupRequest;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.models.User;
+import com.tutoringplatform.services.AuthenticationService;
+import com.tutoringplatform.util.DTOMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
+public class AuthenticationController {
+
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            User user = authenticationService.login(request.getEmail(), request.getPassword());
+            return ResponseEntity.ok(dtoMapper.toUserResponse(user));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/signup/student")
+    public ResponseEntity<?> signupStudent(@RequestBody StudentSignupRequest request) {
+        try {
+            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(), request.getPassword());
+            return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/signup/tutor")
+    public ResponseEntity<?> signupTutor(@RequestBody TutorSignupRequest request) {
+        try {
+            Tutor tutor = authenticationService.signupTutor(request.getName(), request.getEmail(), request.getPassword(),
+                    request.getHourlyRate(), request.getDescription());
+            return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\BookingController.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/controllers/BookingController.java
+package com.tutoringplatform.controllers;
+
+import com.tutoringplatform.dto.request.BookingRequest;
+import com.tutoringplatform.dto.request.PaymentRequest;
+import com.tutoringplatform.dto.response.BookingResponse;
+import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.services.BookingService;
+import com.tutoringplatform.util.DTOMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/bookings")
+@CrossOrigin(origins = "*")
+public class BookingController {
+
+    @Autowired
+    private BookingService bookingService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
+    @PostMapping
+    public ResponseEntity<?> createBooking(@RequestBody BookingRequest request) {
+        try {
+            Booking booking = bookingService.createBooking(request.getStudentId(), request.getTutorId(),
+                    request.getSubjectId(), request.getDateTime(), request.getDurationHours());
+            return ResponseEntity.status(HttpStatus.CREATED).body(dtoMapper.toBookingResponse(booking));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getBooking(@PathVariable String id) {
+        try {
+            Booking booking = bookingService.findById(id);
+            return ResponseEntity.ok(dtoMapper.toBookingResponse(booking));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) {
+        List<Booking> bookings = bookingService.findByStudentId(studentId);
+        List<BookingResponse> responses = bookings.stream()
+                .map(dtoMapper::toBookingResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/tutor/{tutorId}")
+    public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) {
+        List<Booking> bookings = bookingService.findByTutorId(tutorId);
+        List<BookingResponse> responses = bookings.stream()
+                .map(dtoMapper::toBookingResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<?> confirmBooking(@PathVariable String id, @RequestBody PaymentRequest request) {
+        try {
+            Booking booking = bookingService.confirmBooking(id, request.getStudentId());
+            return ResponseEntity.ok(dtoMapper.toBookingResponse(booking));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelBooking(@PathVariable String id) {
+        try {
+            bookingService.cancelBooking(id);
+            return ResponseEntity.ok("Booking cancelled successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<?> completeBooking(@PathVariable String id) {
+        try {
+            bookingService.completeBooking(id);
+            return ResponseEntity.ok("Booking completed successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\DashboardController.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/controllers/DashboardController.java
+package com.tutoringplatform.controllers;
+
+import com.tutoringplatform.dto.response.*;
+import com.tutoringplatform.services.DashboardService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+
+@RestController
+@RequestMapping("/api/dashboard")
+@CrossOrigin(origins = "*")
+public class DashboardController {
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<?> getStudentDashboard(@PathVariable String studentId) {
+        try {
+            StudentDashboardResponse dashboard = dashboardService.getStudentDashboard(studentId);
+            return ResponseEntity.ok(dashboard);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // Future: Add tutor dashboard endpoint
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\ReviewController.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/controllers/ReviewController.java
+package com.tutoringplatform.controllers;
+
+import com.tutoringplatform.dto.request.ReviewRequest;
+import com.tutoringplatform.dto.response.ReviewResponse;
+import com.tutoringplatform.models.Review;
+import com.tutoringplatform.services.ReviewService;
+import com.tutoringplatform.util.DTOMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/reviews")
+@CrossOrigin(origins = "*")
+public class ReviewController {
+
+    @Autowired
+    private ReviewService reviewService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
+    @PostMapping
+    public ResponseEntity<?> createReview(@RequestBody ReviewRequest request) {
+        try {
+            Review review = reviewService.createReview(
+                    request.getBookingId(),
+                    request.getRating(),
+                    request.getComment());
+            return ResponseEntity.status(HttpStatus.CREATED).body(dtoMapper.toReviewResponse(review));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/tutor/{tutorId}")
+    public ResponseEntity<?> getTutorReviews(@PathVariable String tutorId) {
+        List<Review> reviews = reviewService.findByTutor(tutorId);
+        List<ReviewResponse> responses = reviews.stream()
+                .map(dtoMapper::toReviewResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<?> getStudentReviews(@PathVariable String studentId) {
+        List<Review> reviews = reviewService.findByStudent(studentId);
+        List<ReviewResponse> responses = reviews.stream()
+                .map(dtoMapper::toReviewResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\StudentController.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/controllers/StudentController.java
+package com.tutoringplatform.controllers;
+
+import com.tutoringplatform.dto.request.AddFundsRequest;
+import com.tutoringplatform.dto.response.StudentResponse;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.services.StudentService;
+import com.tutoringplatform.util.DTOMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/students")
+@CrossOrigin(origins = "*")
+public class StudentController {
+
+    @Autowired
+    private StudentService studentService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getStudent(@PathVariable String id) {
+        try {
+            Student student = studentService.findById(id);
+            return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateStudent(@PathVariable String id, @RequestBody Student student) {
+        try {
+            studentService.update(student);
+            return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/add-funds")
+    public ResponseEntity<?> addFunds(@PathVariable String id, @RequestBody AddFundsRequest request) {
+        try {
+            double balance = studentService.addFunds(id, request.getAmount());
+            return ResponseEntity.ok(dtoMapper.toBalanceResponse(balance));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/balance")
+    public ResponseEntity<?> getBalance(@PathVariable String id) {
+        try {
+            double balance = studentService.getBalance(id);
+            return ResponseEntity.ok(dtoMapper.toBalanceResponse(balance));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchByName(@RequestParam String name) {
+        List<Student> students = studentService.searchByName(name);
+        List<StudentResponse> responses = students.stream()
+                .map(dtoMapper::toStudentResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\SubjectController.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/controllers/SubjectController.java
+package com.tutoringplatform.controllers;
+
+import com.tutoringplatform.dto.request.SubjectRequest;
+import com.tutoringplatform.dto.response.SubjectResponse;
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.services.SubjectService;
+import com.tutoringplatform.util.DTOMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/subjects")
+@CrossOrigin(origins = "*")
+public class SubjectController {
+
+    @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
+    @GetMapping
+    public ResponseEntity<?> getAllSubjects() {
+        List<Subject> subjects = subjectService.findAll();
+        List<SubjectResponse> responses = subjects.stream()
+                .map(dtoMapper::toSubjectResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getSubjectById(@PathVariable String id) {
+        try {
+            Subject subject = subjectService.findById(id);
+            return ResponseEntity.ok(dtoMapper.toSubjectResponse(subject));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<?> getSubjectByName(@PathVariable String name) {
+        try {
+            Subject subject = subjectService.findByName(name);
+            return ResponseEntity.ok(dtoMapper.toSubjectResponse(subject));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<?> getSubjectsByCategory(@PathVariable String category) {
+        List<Subject> subjects = subjectService.findByCategory(category);
+        List<SubjectResponse> responses = subjects.stream()
+            .map(dtoMapper::toSubjectResponse)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createSubject(@RequestBody SubjectRequest request) {
+        try {
+            Subject subject = subjectService.createSubject(request.getName(), request.getCategory());
+            return ResponseEntity.status(HttpStatus.CREATED).body(dtoMapper.toSubjectResponse(subject));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\TutorController.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/controllers/TutorController.java
+package com.tutoringplatform.controllers;
+
+import com.tutoringplatform.dto.request.AvailabilityRequest;
+import com.tutoringplatform.dto.response.TutorResponse;
+import com.tutoringplatform.dto.response.SubjectResponse;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.models.availability.TutorAvailability;
+import com.tutoringplatform.services.AvailabilityService;
+import com.tutoringplatform.services.TutorService;
+import com.tutoringplatform.util.DTOMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/tutors")
+@CrossOrigin(origins = "*")
+public class TutorController {
+
+    @Autowired
+    private TutorService tutorService;
+
+    @Autowired
+    private AvailabilityService availabilityService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getTutor(@PathVariable String id) {
+        try {
+            Tutor tutor = tutorService.findById(id);
+            return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllTutors() {
+        List<Tutor> tutors = tutorService.findAll();
+        List<TutorResponse> responses = tutors.stream()
+                .map(dtoMapper::toTutorResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateTutor(@PathVariable String id, @RequestBody Tutor tutor) {
+        try {
+            tutorService.update(tutor);
+            return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
+    @PostMapping("/{id}/availability")
+    public ResponseEntity<?> addAvailability(
+            @PathVariable String id,
+            @RequestBody AvailabilityRequest request) {
+        try {
+            availabilityService.addRecurringAvailability(
+                    id,
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime());
+
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            return ResponseEntity.ok(availability.getRecurringSlots());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/availability")
+    public ResponseEntity<?> removeAvailability(
+            @PathVariable String id,
+            @RequestBody AvailabilityRequest request) {
+        try {
+            availabilityService.removeRecurringAvailability(
+                    id,
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime());
+
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            return ResponseEntity.ok(availability.getRecurringSlots());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/availability")
+    public ResponseEntity<?> updateAvailability(
+            @PathVariable String id,
+            @RequestBody AvailabilityRequest request) {
+        try {
+            availabilityService.addRecurringAvailability(
+                    id,
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime());
+
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            return ResponseEntity.ok(availability.getRecurringSlots());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+
+    @GetMapping("/{id}/availability")
+    public ResponseEntity<?> getTutorAvailability(@PathVariable String id) {
+        try {
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            // Convert to a response DTO
+            return ResponseEntity.ok(availability);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/subjects/{subjectId}")
+    public ResponseEntity<?> addSubject(@PathVariable String id, @PathVariable String subjectId) {
+        try {
+            List<Subject> subjects = tutorService.addSubjectToTutor(id, subjectId);
+            List<SubjectResponse> responses = subjects.stream()
+                    .map(dtoMapper::toSubjectResponse)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/subjects/{subjectId}")
+    public ResponseEntity<?> removeSubject(@PathVariable String id, @PathVariable String subjectId) {
+        try {
+            List<Subject> subjects = tutorService.removeSubjectFromTutor(id, subjectId);
+            List<SubjectResponse> responses = subjects.stream()
+                    .map(dtoMapper::toSubjectResponse)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/earnings")
+    public ResponseEntity<?> getEarnings(@PathVariable String id) {
+        try {
+            double earnings = tutorService.getEarnings(id);
+            return ResponseEntity.ok(dtoMapper.toEarningsResponse(earnings));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/average-rating")
+    public ResponseEntity<?> getAverageRating(@PathVariable String id) {
+        try {
+            double averageRating = tutorService.getAverageRating(id);
+            return ResponseEntity.ok(dtoMapper.toAverageRatingResponse(averageRating));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\controllers\UserController.java
+======================================================================
+
+package com.tutoringplatform.controllers;
+
+
+import com.tutoringplatform.models.User;
+import com.tutoringplatform.services.UserService;
+
+public abstract class UserController<T extends User> {
+    protected UserService<T> userService;
+
+    public UserController(UserService<T> userService) {
+        this.userService = userService;
+    }
+
+    public T getUser(String id) throws Exception {
+        return userService.findById(id);
+    }
+
+    public T getUserByEmail(String email) throws Exception {
+        return userService.findByEmail(email);
+    }
+
+    public void updateUser(T user) throws Exception {
+        userService.update(user);
+    }
+
+    public void deleteUser(String id) throws Exception {
+        userService.delete(id);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\AddFundsRequest.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/request/AddFundsRequest.java
+package com.tutoringplatform.dto.request;
+
+public class AddFundsRequest {
+    private double amount;
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\AvailabilityRequest.java
+======================================================================
+
+package com.tutoringplatform.dto.request;
+
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+
+public class AvailabilityRequest {
+    private DayOfWeek dayOfWeek;
+    private LocalTime startTime;
+    private LocalTime endTime;
+
+    // Getters and setters
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\BookingRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+import java.time.LocalDateTime;
+
+public class BookingRequest {
+    private String studentId;
+    private String tutorId;
+    private String subjectId;
+    private LocalDateTime dateTime;
+    private int durationHours;
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public void setDurationHours(int durationHours) {
+        this.durationHours = durationHours;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\LoginRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class LoginRequest {
+    private String email;
+    private String password;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\PaymentRequest.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/request/PaymentRequest.java
+package com.tutoringplatform.dto.request;
+
+public class PaymentRequest {
+    private String studentId;
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\ReviewRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class ReviewRequest {
+    private String bookingId;
+    private int rating;
+    private String comment;
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\StudentSignupRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class StudentSignupRequest {
+    private String name;
+    private String email;
+    private String password;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\SubjectRequest.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/request/SubjectRequest.java
+package com.tutoringplatform.dto.request;
+
+public class SubjectRequest {
+    private String name;
+    private String category;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\request\TutorSignupRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class TutorSignupRequest {
+    private String name;
+    private String email;
+    private String password;
+    private double hourlyRate;
+    private String description;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\AverageRatingResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+public class AverageRatingResponse {
+    private double averageRating;
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\BalanceResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+public class BalanceResponse {
+    private double balance;
+
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\BookingResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/BookingResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.time.LocalDateTime;
+
+public class BookingResponse {
+    private String id;
+    private String studentId;
+    private String tutorId;
+    private SubjectResponse subject;
+    private LocalDateTime dateTime;
+    private int durationHours;
+    private double totalCost;
+    private String status;
+
+    // All getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public SubjectResponse getSubject() {
+        return subject;
+    }
+
+    public void setSubject(SubjectResponse subject) {
+        this.subject = subject;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public void setDurationHours(int durationHours) {
+        this.durationHours = durationHours;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(double totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\EarningsResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/EarningsResponse.java
+package com.tutoringplatform.dto.response;
+
+public class EarningsResponse {
+    private double earnings;
+
+    public double getEarnings() {
+        return earnings;
+    }
+
+    public void setEarnings(double earnings) {
+        this.earnings = earnings;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\EnrichedBookingResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/EnrichedBookingResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.time.LocalDateTime;
+
+public class EnrichedBookingResponse {
+    private String id;
+    private String studentId;
+    private String studentName;
+    private String tutorId;
+    private String tutorName;
+    private SubjectResponse subject;
+    private LocalDateTime dateTime;
+    private int durationHours;
+    private double totalCost;
+    private String status;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public String getTutorName() {
+        return tutorName;
+    }
+
+    public void setTutorName(String tutorName) {
+        this.tutorName = tutorName;
+    }
+
+    public SubjectResponse getSubject() {
+        return subject;
+    }
+
+    public void setSubject(SubjectResponse subject) {
+        this.subject = subject;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public void setDurationHours(int durationHours) {
+        this.durationHours = durationHours;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(double totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\ReviewResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+import java.time.LocalDateTime;
+
+public class ReviewResponse {
+    private String id;
+    private String studentId;
+    private String tutorId;
+    private String bookingId;
+    private int rating;
+    private String comment;
+    private LocalDateTime timestamp;
+
+    // All getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\StudentDashboardResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/StudentDashboardResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.util.List;
+
+public class StudentDashboardResponse {
+    private StudentResponse student;
+    private List<EnrichedBookingResponse> upcomingBookings;
+    private List<EnrichedBookingResponse> pastBookings;
+    private List<SubjectResponse> availableSubjects;
+
+    // Getters and setters
+    public StudentResponse getStudent() {
+        return student;
+    }
+
+    public void setStudent(StudentResponse student) {
+        this.student = student;
+    }
+
+    public List<EnrichedBookingResponse> getUpcomingBookings() {
+        return upcomingBookings;
+    }
+
+    public void setUpcomingBookings(List<EnrichedBookingResponse> upcomingBookings) {
+        this.upcomingBookings = upcomingBookings;
+    }
+
+    public List<EnrichedBookingResponse> getPastBookings() {
+        return pastBookings;
+    }
+
+    public void setPastBookings(List<EnrichedBookingResponse> pastBookings) {
+        this.pastBookings = pastBookings;
+    }
+
+    public List<SubjectResponse> getAvailableSubjects() {
+        return availableSubjects;
+    }
+
+    public void setAvailableSubjects(List<SubjectResponse> availableSubjects) {
+        this.availableSubjects = availableSubjects;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\StudentResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/StudentResponse.java
+package com.tutoringplatform.dto.response;
+
+import com.tutoringplatform.models.UserType;
+
+public class StudentResponse {
+    private String id;
+    private String name;
+    private String email;
+    private UserType userType = UserType.STUDENT;
+    private double balance;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\SubjectResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/SubjectResponse.java
+package com.tutoringplatform.dto.response;
+
+public class SubjectResponse {
+    private String id;
+    private String name;
+    private String category;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\TutorResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/TutorResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.util.List;
+import com.tutoringplatform.models.UserType;
+import com.tutoringplatform.models.availability.RecurringAvailability;
+
+public class TutorResponse {
+    private String id;
+    private String name;
+    private String email;
+    private UserType userType = UserType.TUTOR;
+    private double hourlyRate;
+    private String description;
+    private double averageRating;
+    private double earnings;
+    private List<SubjectResponse> subjects;
+    private String timeZoneId;
+    private List<RecurringAvailability> availability;
+
+    // All getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    public double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public double getEarnings() {
+        return earnings;
+    }
+
+    public void setEarnings(double earnings) {
+        this.earnings = earnings;
+    }
+
+    public List<SubjectResponse> getSubjects() {
+        return subjects;
+    }
+
+    public void setSubjects(List<SubjectResponse> subjects) {
+        this.subjects = subjects;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+
+    public List<RecurringAvailability> getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(List<RecurringAvailability> availability) {
+        this.availability = availability;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\dto\response\UserResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+public class UserResponse {
+    private String id;
+    private String name;
+    private String email;
+    private String userType;
+
+    public UserResponse(String id, String name, String email, String userType) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.userType = userType;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\factory\UserFactory.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/factory/UserFactory.java
+package com.tutoringplatform.factory;
+
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Tutor;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UserFactory {
+
+    public enum UserType {
+        STUDENT,
+        TUTOR
+    }
+
+    public Student createStudent(String name, String email, String password) {
+        return new Student(name, email, password);
+    }
+
+    public Tutor createTutor(String name, String email, String password, double hourlyRate, String description) {
+        return new Tutor(name, email, password, hourlyRate, description);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\Booking.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public class Booking {
+    private String id;
+    private String studentId;
+    private String tutorId;
+    private Subject subject;
+    private LocalDateTime dateTime;
+    private int durationHours;
+    private double totalCost;
+    private BookingStatus status;
+    private Payment payment;
+
+    public enum BookingStatus {
+        PENDING, CONFIRMED, COMPLETED, CANCELLED
+    }
+
+    public Booking(String studentId, String tutorId, Subject subject, LocalDateTime dateTime, int durationHours, double hourlyRate) {
+        this.id = UUID.randomUUID().toString();
+        this.studentId = studentId;
+        this.tutorId = tutorId;
+        this.subject = subject;
+        this.dateTime = dateTime;
+        this.durationHours = durationHours;
+        this.totalCost = hourlyRate * durationHours;
+        this.status = BookingStatus.PENDING;
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getStudentId() { return studentId; }
+    public void setStudentId(String studentId) { this.studentId = studentId; }
+
+    public String getTutorId() { return tutorId; }
+    public void setTutorId(String tutorId) { this.tutorId = tutorId; }
+
+    public Subject getSubject() { return subject; }
+    public void setSubject(Subject subject) { this.subject = subject; }
+
+    public LocalDateTime getDateTime() { return dateTime; }
+    public void setDateTime(LocalDateTime dateTime) { this.dateTime = dateTime; }
+
+    public int getDurationHours() { return durationHours; }
+    public void setDurationHours(int durationHours) { this.durationHours = durationHours; }
+
+    public double getTotalCost() { return totalCost; }
+    public void setTotalCost(double totalCost) { this.totalCost = totalCost; }
+
+    public BookingStatus getStatus() { return status; }
+    public void setStatus(BookingStatus status) { this.status = status; }
+
+    public Payment getPayment() { return payment; }
+    public void setPayment(Payment payment) { this.payment = payment; }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\Payment.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public class Payment {
+    private String id;
+    private String bookingId;
+    private double amount;
+    private PaymentStatus status;
+    private LocalDateTime timestamp;
+    private String transactionId;
+
+    public enum PaymentStatus {
+        PENDING, COMPLETED, FAILED, REFUNDED
+    }
+
+    public Payment(String bookingId, double amount) {
+        this.id = UUID.randomUUID().toString();
+        this.bookingId = bookingId;
+        this.amount = amount;
+        this.status = PaymentStatus.PENDING;
+        this.timestamp = LocalDateTime.now();
+        this.transactionId = UUID.randomUUID().toString();
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getBookingId() { return bookingId; }
+    public void setBookingId(String bookingId) { this.bookingId = bookingId; }
+
+    public double getAmount() { return amount; }
+    public void setAmount(double amount) { this.amount = amount; }
+
+    public PaymentStatus getStatus() { return status; }
+    public void setStatus(PaymentStatus status) { this.status = status; }
+
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\Review.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public class Review {
+    private String id;
+    private String studentId;
+    private String tutorId;
+    private String bookingId;
+    private int rating;
+    private String comment;
+    private LocalDateTime timestamp;
+
+    public Review(String studentId, String tutorId, String bookingId, int rating, String comment) {
+        this.id = UUID.randomUUID().toString();
+        this.studentId = studentId;
+        this.tutorId = tutorId;
+        this.bookingId = bookingId;
+        setRating(rating);
+        this.comment = comment;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getStudentId() { return studentId; }
+    public void setStudentId(String studentId) { this.studentId = studentId; }
+
+    public String getTutorId() { return tutorId; }
+    public void setTutorId(String tutorId) { this.tutorId = tutorId; }
+
+    public String getBookingId() { return bookingId; }
+    public void setBookingId(String bookingId) { this.bookingId = bookingId; }
+
+    public int getRating() { return rating; }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public String getComment() { return comment; }
+    public void setComment(String comment) { this.comment = comment; }
+
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\Student.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Student extends User {
+    private List<Review> reviewsGiven;
+    private double balance;
+
+    public Student(String name, String email, String password) {
+        super(name, email, password, UserType.STUDENT);
+        this.reviewsGiven = new ArrayList<>();
+        this.balance = 0.0;
+    }
+
+
+    public List<Review> getReviewsGiven() {
+        return reviewsGiven;
+    }
+
+    public void addReview(Review review) {
+        reviewsGiven.add(review);
+    }
+
+    public void addFunds(double amount) {
+        this.balance += amount;}
+
+    public void deductFunds(double amount) throws Exception {
+        this.balance -= amount;
+    }
+
+    public double getBalance() { return balance; }
+    public void setBalance(double balance) { this.balance = balance; }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\Subject.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+import java.util.UUID;
+
+public class Subject {
+    private String id;
+    private String name;
+    private String category;
+
+    public Subject(String name, String category) {
+        this.id = UUID.randomUUID().toString();
+        this.name = name;
+        this.category = category;
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        Subject subject = (Subject) obj;
+        return id.equals(subject.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\Tutor.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+import java.util.*;
+import java.time.ZoneId;
+
+public class Tutor extends User {
+    private List<Subject> subjects;
+    private double hourlyRate;
+    private String description;
+    private List<Review> reviewsReceived;
+    private double earnings;
+    private String timeZoneId;
+
+    public Tutor(String name, String email, String password, double hourlyRate, String description) {
+        super(name, email, password, UserType.TUTOR);
+        this.subjects = new ArrayList<>();
+        this.hourlyRate = hourlyRate;
+        this.description = description;
+        this.reviewsReceived = new ArrayList<>();
+        this.earnings = 0.0;
+        this.timeZoneId = ZoneId.systemDefault().getId();
+    }
+
+    public double getAverageRating() {
+        if (reviewsReceived.isEmpty())
+            return 0.0;
+        return reviewsReceived.stream()
+                .mapToDouble(Review::getRating)
+                .average()
+                .orElse(0.0);
+    }
+
+    public List<Subject> getSubjects() {
+        return subjects;
+    }
+
+    public void addSubject(Subject subject) {
+        if (!subjects.contains(subject))
+            subjects.add(subject);
+    }
+
+    public void removeSubject(Subject subject) {
+        subjects.remove(subject);
+    }
+
+    public void addEarnings(double amount) {
+        this.earnings += amount;
+    }
+    
+    public List<Review> getReviewsReceived() {
+        return reviewsReceived;
+    }
+
+    public void addReview(Review review) {
+        reviewsReceived.add(review);
+    }
+
+    public double getHourlyRate() { return hourlyRate; }
+    public void setHourlyRate(double hourlyRate) { this.hourlyRate = hourlyRate; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public double getEarnings() { return earnings; }
+    public void setEarnings(double earnings) { this.earnings = earnings; }
+
+    public ZoneId getTimeZone() { return ZoneId.of(timeZoneId); }
+    public void setTimeZone(ZoneId timeZone) { this.timeZoneId = timeZone.getId(); }
+
+    public String getTimeZoneId() { return timeZoneId; }
+    public void setTimeZoneId(String timeZoneId) { this.timeZoneId = timeZoneId; }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\User.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public abstract class User {
+    protected String id;
+    protected String name;
+    protected String email;
+    protected String password;
+    protected UserType userType;
+    protected List<Booking> bookings;
+
+    public User(String name, String email, String password, UserType userType) {
+        this.id = UUID.randomUUID().toString();
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.userType = userType;
+        this.bookings = new ArrayList<>();
+    }
+
+    public void addBooking(Booking booking) {
+        bookings.add(booking);
+    }
+
+    public void removeBooking(Booking booking) {
+        bookings.remove(booking);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    public List<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(List<Booking> bookings) {
+        this.bookings = bookings;
+    }
+
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\UserType.java
+======================================================================
+
+package com.tutoringplatform.models;
+
+public enum UserType {
+    STUDENT,
+    TUTOR
+    // Add Admin
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\availability\AvailabilityException.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/models/availability/AvailabilityException.java
+package com.tutoringplatform.models.availability;
+
+import java.time.*;
+
+public class AvailabilityException {
+    private Long id;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private LocalTime startTime; // null means all day
+    private LocalTime endTime; // null means all day
+    private boolean available; // true = extra availability, false = blackout
+
+    public boolean covers(ZonedDateTime start, ZonedDateTime end) {
+        LocalDate date = start.toLocalDate();
+
+        // Check if date is in range
+        if (date.isBefore(startDate) || date.isAfter(endDate)) {
+            return false;
+        }
+
+        // If all-day exception
+        if (startTime == null || endTime == null) {
+            return true;
+        }
+
+        // Check time overlap
+        LocalTime requestStart = start.toLocalTime();
+        LocalTime requestEnd = end.toLocalTime();
+
+        return !requestEnd.isBefore(startTime) && !requestStart.isAfter(endTime);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\availability\RecurringAvailability.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/models/availability/RecurringAvailability.java
+package com.tutoringplatform.models.availability;
+
+import java.time.*;
+
+public class RecurringAvailability {
+    private Long id;
+    private DayOfWeek dayOfWeek;
+    private LocalTime startTime;
+    private LocalTime endTime;
+
+    public RecurringAvailability(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        this.dayOfWeek = dayOfWeek;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    public boolean contains(LocalTime requestStart, LocalTime requestEnd) {
+        return !requestStart.isBefore(startTime) && !requestEnd.isAfter(endTime);
+    }
+
+    // Getters/setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\models\availability\TutorAvailability.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/models/availability/TutorAvailability.java
+package com.tutoringplatform.models.availability;
+
+import java.time.*;
+import java.util.*;
+
+public class TutorAvailability {
+    private String tutorId;
+    private ZoneId timeZone; // Tutor's time zone
+    private List<RecurringAvailability> recurringSlots;
+    private List<AvailabilityException> exceptions;
+
+    public TutorAvailability(String tutorId, ZoneId timeZone) {
+        this.tutorId = tutorId;
+        this.timeZone = timeZone;
+        this.recurringSlots = new ArrayList<>();
+        this.exceptions = new ArrayList<>();
+    }
+
+    // Check availability in the STUDENT's timezone
+    public boolean isAvailable(ZonedDateTime requestedStart, ZonedDateTime requestedEnd, ZoneId studentTimeZone) {
+        // Convert student's request to tutor's timezone
+        ZonedDateTime tutorStart = requestedStart.withZoneSameInstant(timeZone);
+        ZonedDateTime tutorEnd = requestedEnd.withZoneSameInstant(timeZone);
+
+        // Check exceptions first (vacations, special unavailability)
+        for (AvailabilityException exception : exceptions) {
+            if (exception.covers(tutorStart, tutorEnd)) {
+                return exception.isAvailable();
+            }
+        }
+
+        // Check recurring availability
+        DayOfWeek dayOfWeek = tutorStart.getDayOfWeek();
+        LocalTime startTime = tutorStart.toLocalTime();
+        LocalTime endTime = tutorEnd.toLocalTime();
+
+        // Handle sessions that cross midnight
+        if (!tutorEnd.toLocalDate().equals(tutorStart.toLocalDate())) {
+            // Session spans multiple days - need more complex logic
+            return false; // For now, don't allow cross-day bookings
+        }
+
+        for (RecurringAvailability slot : recurringSlots) {
+            if (slot.getDayOfWeek() == dayOfWeek &&
+                    slot.contains(startTime, endTime)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public ZoneId getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(ZoneId timeZone) {
+        this.timeZone = timeZone;
+    }
+
+    public List<RecurringAvailability> getRecurringSlots() {
+        return recurringSlots;
+    }
+
+    public List<AvailabilityException> getExceptions() {
+        return exceptions;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\observer\BookingEvent.java
+======================================================================
+
+package com.tutoringplatform.observer;
+
+import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Tutor;
+
+public class BookingEvent {
+    private EventType eventType;
+    private Booking booking;
+    private Student student;
+    private Tutor tutor;
+
+    public enum EventType {
+        CREATED, CONFIRMED, CANCELLED, COMPLETED
+    }
+
+    public BookingEvent(EventType eventType, Booking booking, Student student, Tutor tutor) {
+        this.eventType = eventType;
+        this.booking = booking;
+        this.student = student;
+        this.tutor = tutor;
+    }
+
+    public EventType getEventType() { return eventType; }
+
+    public Booking getBooking() { return booking; }
+
+    public Student getStudent() { return student; }
+
+    public Tutor getTutor() { return tutor; }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\observer\BookingLogger.java
+======================================================================
+
+package com.tutoringplatform.observer;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+public class BookingLogger implements BookingObserver {
+    private List<String> logs;
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public BookingLogger() {
+        this.logs = new ArrayList<>();
+    }
+
+    @Override
+    public void update(BookingEvent event) {
+        String logEntry = String.format("[%s] Booking %s: %s - Student: %s, Tutor: %s, Subject: %s",
+                LocalDateTime.now().format(formatter),
+                event.getEventType(),
+                event.getBooking().getId(),
+                event.getStudent().getName(),
+                event.getTutor().getName(),
+                event.getBooking().getSubject().getName());
+
+        logs.add(logEntry);
+        System.out.println("LOG: " + logEntry);
+    }
+
+    public List<String> getLogs() {
+        return new ArrayList<>(logs);
+    }
+
+    public void printAllLogs() {
+        System.out.println("\n=== BOOKING LOGS ===");
+        for (String log : logs) {
+            System.out.println(log);
+        }
+        System.out.println("==================\n");
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\observer\BookingObserver.java
+======================================================================
+
+package com.tutoringplatform.observer;
+
+public interface BookingObserver {
+    void update(BookingEvent event);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\impl\AuthenticationRepository.java
+======================================================================
+
+
+package com.tutoringplatform.repositories.impl;
+
+import com.tutoringplatform.models.User;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.repositories.interfaces.IAuthenticationRepository;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class AuthenticationRepository implements IAuthenticationRepository {
+
+    @Autowired
+    private IStudentRepository studentRepository;
+
+    @Autowired
+    private ITutorRepository tutorRepository;
+
+    @Override
+    public User findByEmail(String email) {
+        Student student = studentRepository.findByEmail(email);
+        if (student != null)
+            return student;
+
+        return tutorRepository.findByEmail(email);
+    }
+
+    @Override
+    public void saveUser(User user) {
+        if (user instanceof Student) {
+            studentRepository.save((Student) user);
+        } else if (user instanceof Tutor) {
+            tutorRepository.save((Tutor) user);
+        } else {
+            throw new IllegalArgumentException("Unknown user type");
+        }
+    }
+
+    @Override
+    public boolean emailExists(String email) {
+        return findByEmail(email) != null;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\impl\BookingRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+
+import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.repositories.interfaces.IBookingRepository;
+
+@Repository
+public class BookingRepository implements IBookingRepository {
+    private Map<String, Booking> bookings = new HashMap<>();
+
+    @Override
+    public Booking findById(String id) {
+        return bookings.get(id);
+    }
+
+    @Override
+    public List<Booking> findAll() {
+        return new ArrayList<>(bookings.values());
+    }
+
+    @Override
+    public List<Booking> findByStudentId(String studentId) {
+        return bookings.values().stream()
+                .filter(b -> b.getStudentId().equals(studentId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Booking> findByTutorId(String tutorId) {
+        return bookings.values().stream()
+                .filter(b -> b.getTutorId().equals(tutorId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Booking> findByStatus(Booking.BookingStatus status) {
+        return bookings.values().stream()
+                .filter(b -> b.getStatus() == status)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void save(Booking booking) {
+        bookings.put(booking.getId(), booking);
+    }
+
+    @Override
+    public void update(Booking booking) {
+        bookings.put(booking.getId(), booking);
+    }
+
+    @Override
+    public void delete(String id) {
+        bookings.remove(id);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\impl\PaymentRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tutoringplatform.models.Payment;
+import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
+
+@Repository
+public class PaymentRepository implements IPaymentRepository {
+    private Map<String, Payment> payments = new HashMap<>();
+
+    @Override
+    public Payment findById(String id) {
+        return payments.get(id);
+    }
+
+    @Override
+    public Payment findByBookingId(String bookingId) {
+        return payments.values().stream()
+                .filter(p -> p.getBookingId().equals(bookingId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<Payment> findAll() {
+        return new ArrayList<>(payments.values());
+    }
+
+    @Override
+    public void save(Payment payment) {
+        payments.put(payment.getId(), payment);
+    }
+
+    @Override
+    public void update(Payment payment) {
+        payments.put(payment.getId(), payment);
+    }
+
+    @Override
+    public void delete(String id) {
+        payments.remove(id);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\impl\ReviewRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+
+import com.tutoringplatform.models.Review;
+import com.tutoringplatform.repositories.interfaces.IReviewRepository;
+
+@Repository
+public class ReviewRepository implements IReviewRepository {
+    private Map<String, Review> reviews = new HashMap<>();
+
+    @Override
+    public Review findById(String id) {
+        return reviews.get(id);
+    }
+
+    @Override
+    public List<Review> findAll() {
+        return new ArrayList<>(reviews.values());
+    }
+
+    @Override
+    public List<Review> findByTutorId(String tutorId) {
+        return reviews.values().stream()
+                .filter(r -> r.getTutorId().equals(tutorId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Review> findByStudentId(String studentId) {
+        return reviews.values().stream()
+                .filter(r -> r.getStudentId().equals(studentId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Review findByBookingId(String bookingId) {
+        return reviews.values().stream()
+                .filter(r -> r.getBookingId().equals(bookingId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public void save(Review review) {
+        reviews.put(review.getId(), review);
+    }
+
+    @Override
+    public void update(Review review) {
+        reviews.put(review.getId(), review);
+    }
+
+    @Override
+    public void delete(String id) {
+        reviews.remove(id);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\impl\StudentRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+
+@Repository
+public class StudentRepository implements IStudentRepository {
+    private Map<String, Student> students = new HashMap<>();
+
+    @Override
+    public Student findById(String id) {
+        return students.get(id);
+    }
+
+    @Override
+    public Student findByEmail(String email) {
+        return students.values().stream()
+                .filter(s -> s.getEmail().equals(email))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<Student> findAll() {
+        return new ArrayList<>(students.values());
+    }
+
+    @Override
+    public void save(Student student) {
+        students.put(student.getId(), student);
+    }
+
+    @Override
+    public void update(Student student) {
+        students.put(student.getId(), student);
+    }
+
+    @Override
+    public void delete(String id) {
+        students.remove(id);
+    }
+
+    @Override
+    public List<Student> findByNameContaining(String name) {
+        return students.values().stream()
+                .filter(s -> s.getName().toLowerCase().contains(name.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\impl\SubjectRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
+
+@Repository
+
+public class SubjectRepository implements ISubjectRepository {
+    private Map<String, Subject> subjects = new HashMap<>();
+
+    @Override
+    public Subject findById(String id) {
+        return subjects.get(id);
+    }
+
+    @Override
+    public Subject findByName(String name) {
+        return subjects.values().stream()
+                .filter(s -> s.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<Subject> findAll() {
+        return new ArrayList<>(subjects.values());
+    }
+
+    @Override
+    public List<Subject> findByCategory(String category) {
+        return subjects.values().stream()
+                .filter(s -> s.getCategory().equalsIgnoreCase(category))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void save(Subject subject) {
+        subjects.put(subject.getId(), subject);
+    }
+
+    @Override
+    public void update(Subject subject) {
+        subjects.put(subject.getId(), subject);
+    }
+
+    @Override
+    public void delete(String id) {
+        subjects.remove(id);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\impl\TutorRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+
+import com.tutoringplatform.models.Review;
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+
+@Repository
+public class TutorRepository implements ITutorRepository {
+    private Map<String, Tutor> tutors = new HashMap<>();
+
+    @Override
+    public Tutor findById(String id) {
+        return tutors.get(id);
+    }
+
+    @Override
+    public Tutor findByEmail(String email) {
+        return tutors.values().stream()
+                .filter(t -> t.getEmail().equals(email))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<Tutor> findAll() {
+        return new ArrayList<>(tutors.values());
+    }
+
+    @Override
+    public void save(Tutor tutor) {
+        tutors.put(tutor.getId(), tutor);
+    }
+
+    @Override
+    public void update(Tutor tutor) {
+        tutors.put(tutor.getId(), tutor);
+    }
+
+    @Override
+    public void delete(String id) {
+        tutors.remove(id);
+    }
+
+    @Override
+    public List<Tutor> findBySubject(Subject subject) {
+        return tutors.values().stream()
+                .filter(t -> t.getSubjects().contains(subject))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Tutor> findByHourlyRateBetween(double min, double max) {
+        return tutors.values().stream()
+                .filter(t -> t.getHourlyRate() >= min && t.getHourlyRate() <= max)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Tutor> findByMinimumRating(double rating) {
+        return tutors.values().stream()
+                .filter(t -> t.getReviewsReceived().stream()
+                        .mapToInt(Review::getRating)
+                        .average()
+                        .orElse(0.0) >= rating)
+                .collect(Collectors.toList());
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\IAuthenticationRepository.java
+======================================================================
+
+
+package com.tutoringplatform.repositories.interfaces;
+
+import com.tutoringplatform.models.User;
+
+public interface IAuthenticationRepository {
+    User findByEmail(String email);
+
+    void saveUser(User user);
+
+    boolean emailExists(String email);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\IBookingRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Booking;
+
+public interface IBookingRepository {
+    Booking findById(String id);
+    List<Booking> findAll();
+    List<Booking> findByStudentId(String studentId);
+    List<Booking> findByTutorId(String tutorId);
+    List<Booking> findByStatus(Booking.BookingStatus status);
+    void save(Booking booking);
+    void update(Booking booking);
+    void delete(String id);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\IPaymentCommand.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import com.tutoringplatform.models.Payment;
+
+public interface IPaymentCommand {
+    void execute() throws Exception;
+    void undo() throws Exception;
+    Payment getPayment();
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\IPaymentRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Payment;
+
+public interface IPaymentRepository {
+    Payment findById(String id);
+
+    Payment findByBookingId(String bookingId);
+
+    List<Payment> findAll();
+
+    void save(Payment payment);
+
+    void update(Payment payment);
+
+    void delete(String id);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\IReviewRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Review;
+
+public interface IReviewRepository {
+    Review findById(String id);
+    List<Review> findAll();
+    List<Review> findByTutorId(String tutorId);
+    List<Review> findByStudentId(String studentId);
+    Review findByBookingId(String bookingId);
+    void save(Review review);
+    void update(Review review);
+    void delete(String id);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\IStudentRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Student;
+
+public interface IStudentRepository extends IUserRepository<Student> {
+    List<Student> findByNameContaining(String name);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\ISubjectRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Subject;
+
+public interface ISubjectRepository {
+    Subject findById(String id);
+    Subject findByName(String name);
+    List<Subject> findAll();
+    List<Subject> findByCategory(String category);
+    void save(Subject subject);
+    void update(Subject subject);
+    void delete(String id);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\ITutorRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.models.Tutor;
+
+public interface ITutorRepository extends IUserRepository<Tutor> {
+    List<Tutor> findBySubject(Subject subject);
+    List<Tutor> findByHourlyRateBetween(double min, double max);
+    List<Tutor> findByMinimumRating(double rating);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\repositories\interfaces\IUserRepository.java
+======================================================================
+
+package com.tutoringplatform.repositories.interfaces;
+
+import java.util.List;
+
+import com.tutoringplatform.models.User;
+
+public interface IUserRepository<T extends User> {
+    T findById(String id);
+    T findByEmail(String email);
+    List<T> findAll();
+    void save(T user);
+    void update(T user);
+    void delete(String id);
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\AuthenticationService.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/services/AuthService.java
+package com.tutoringplatform.services;
+
+import com.tutoringplatform.factory.UserFactory;
+import com.tutoringplatform.models.User;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.repositories.interfaces.IAuthenticationRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Service
+public class AuthenticationService {
+
+    @Autowired
+    private IAuthenticationRepository authenticationRepository;
+
+    @Autowired
+    private UserFactory userFactory;
+
+    public User login(String email, String password) throws Exception {
+        User user = authenticationRepository.findByEmail(email);
+        if (user == null || !user.getPassword().equals(password)) {
+            throw new Exception("Invalid email or password");
+        }
+        return user;
+    }
+
+    public Student signupStudent(String name, String email, String password) throws Exception {
+        validateSignup(email);
+
+        User user = userFactory.createStudent(name, email, password);
+        authenticationRepository.saveUser(user);
+        return (Student) user;
+    }
+
+    public Tutor signupTutor(String name, String email, String password,
+            double hourlyRate, String description) throws Exception {
+        validateSignup(email);
+
+        if (hourlyRate <= 0) {
+            throw new Exception("Hourly rate must be positive");
+        }
+
+        User user = userFactory.createTutor(name, email, password, hourlyRate, description);
+        authenticationRepository.saveUser(user);
+        return (Tutor) user;
+    }
+
+    private void validateSignup(String email) throws Exception {
+        if (authenticationRepository.emailExists(email)) {
+            throw new Exception("Email already exists");
+        }
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\AvailabilityService.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/services/AvailabilityService.java
+package com.tutoringplatform.services;
+
+import com.tutoringplatform.models.availability.TutorAvailability;
+import com.tutoringplatform.models.availability.RecurringAvailability;
+import com.tutoringplatform.models.availability.AvailabilityException;
+import com.tutoringplatform.models.Tutor;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.time.*;
+import java.util.*;
+
+@Service
+public class AvailabilityService {
+
+    // In-memory storage for now - should be in database
+    private Map<String, TutorAvailability> availabilityMap = new HashMap<>();
+
+    @Autowired
+    private TutorService tutorService;
+
+    public TutorAvailability getAvailability(String tutorId) throws Exception {
+        if (!availabilityMap.containsKey(tutorId)) {
+            Tutor tutor = tutorService.findById(tutorId);
+            TutorAvailability availability = new TutorAvailability(tutorId, tutor.getTimeZone());
+            availabilityMap.put(tutorId, availability);
+        }
+        return availabilityMap.get(tutorId);
+    }
+
+    public void addRecurringAvailability(String tutorId, DayOfWeek day, LocalTime start, LocalTime end)
+            throws Exception {
+        TutorAvailability availability = getAvailability(tutorId);
+
+        // Check for overlaps
+        for (RecurringAvailability existing : availability.getRecurringSlots()) {
+            if (existing.getDayOfWeek() == day) {
+                // Check time overlap
+                if (!(end.isBefore(existing.getStartTime()) || start.isAfter(existing.getEndTime()))) {
+                    throw new IllegalArgumentException("Time slot overlaps with existing availability");
+                }
+            }
+        }
+
+        availability.getRecurringSlots().add(new RecurringAvailability(day, start, end));
+    }
+
+    public void addException(String tutorId, LocalDate startDate, LocalDate endDate,
+            LocalTime startTime, LocalTime endTime, boolean available) throws Exception {
+        TutorAvailability availability = getAvailability(tutorId);
+        AvailabilityException exception = new AvailabilityException();
+        exception.setStartDate(startDate);
+        exception.setEndDate(endDate);
+        exception.setStartTime(startTime);
+        exception.setEndTime(endTime);
+        exception.setAvailable(available);
+        availability.getExceptions().add(exception);
+    }
+
+    public boolean isAvailable(String tutorId, ZonedDateTime start, ZonedDateTime end, ZoneId studentTimeZone)
+            throws Exception {
+        TutorAvailability availability = getAvailability(tutorId);
+        return availability.isAvailable(start, end, studentTimeZone);
+    }
+
+    // For searching available tutors efficiently (would be a database query in
+    // production)
+    public List<String> findAvailableTutors(List<String> tutorIds, ZonedDateTime start, ZonedDateTime end,
+            ZoneId studentTimeZone) {
+        List<String> available = new ArrayList<>();
+        for (String tutorId : tutorIds) {
+            try {
+                if (isAvailable(tutorId, start, end, studentTimeZone)) {
+                    available.add(tutorId);
+                }
+            } catch (Exception e) {
+                // Log error, skip this tutor
+            }
+        }
+        return available;
+    }
+
+    public void removeRecurringAvailability(String tutorId, DayOfWeek day, LocalTime start, LocalTime end)
+            throws Exception {
+        TutorAvailability availability = getAvailability(tutorId);
+
+        availability.getRecurringSlots().removeIf(slot -> slot.getDayOfWeek() == day &&
+                slot.getStartTime().equals(start) &&
+                slot.getEndTime().equals(end));
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\BookingService.java
+======================================================================
+
+package com.tutoringplatform.services;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
+import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.models.Payment;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.observer.BookingEvent;
+import com.tutoringplatform.observer.BookingObserver;
+import com.tutoringplatform.repositories.interfaces.IBookingRepository;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import javax.annotation.PostConstruct;
+
+@Service
+public class BookingService {
+    @Autowired
+    private IBookingRepository bookingRepository;
+    @Autowired
+    private IStudentRepository studentRepository;
+    @Autowired
+    private ITutorRepository tutorRepository;
+    @Autowired
+    private PaymentService paymentService;
+    @Autowired
+    private ISubjectRepository subjectRepository;
+    @Autowired
+    private AvailabilityService availabilityService;
+    private List<BookingObserver> observers;
+
+    @PostConstruct
+    public void init() {
+        this.observers = new ArrayList<>();
+    }
+
+    public BookingService(IBookingRepository bookingRepository,
+            IStudentRepository studentRepository,
+            ITutorRepository tutorRepository) {
+        this.bookingRepository = bookingRepository;
+        this.studentRepository = studentRepository;
+        this.tutorRepository = tutorRepository;
+        this.observers = new ArrayList<>();
+    }
+
+    public void addObserver(BookingObserver observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(BookingObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyObservers(BookingEvent event) {
+        for (BookingObserver observer : observers) {
+            observer.update(event);
+        }
+    }
+
+    public Booking createBooking(String studentId, String tutorId, String subjectId,
+            LocalDateTime dateTime, int durationHours) throws Exception {
+        Subject subject = subjectRepository.findById(subjectId);
+        Student student = studentRepository.findById(studentId);
+        Tutor tutor = tutorRepository.findById(tutorId);
+
+        if (!tutor.getSubjects().contains(subject)) {
+            throw new Exception("Tutor does not teach this subject");
+        }
+
+        // NEW: Use availability service with timezone support
+        // Assume student is in same timezone as server for now (should get from student
+        // profile)
+        ZoneId studentTimeZone = ZoneId.systemDefault();
+        ZonedDateTime startTime = dateTime.atZone(studentTimeZone);
+        ZonedDateTime endTime = startTime.plusHours(durationHours);
+
+        if (!availabilityService.isAvailable(tutorId, startTime, endTime, studentTimeZone)) {
+            throw new Exception("Tutor is not available at this time");
+        }
+
+        // Check for booking conflicts
+        List<Booking> tutorBookings = bookingRepository.findByTutorId(tutorId);
+        for (Booking b : tutorBookings) {
+            if (b.getStatus() != Booking.BookingStatus.CANCELLED &&
+                    isTimeConflict(b, dateTime, durationHours)) {
+                throw new Exception("Time slot already booked");
+            }
+        }
+
+        Booking booking = new Booking(studentId, tutorId, subject, dateTime, durationHours, tutor.getHourlyRate());
+        bookingRepository.save(booking);
+
+        notifyObservers(new BookingEvent(BookingEvent.EventType.CREATED, booking, student, tutor));
+
+        return booking;
+    }
+
+    private boolean isTimeConflict(Booking existing, LocalDateTime newTime, int newDuration) {
+        LocalDateTime existingStart = existing.getDateTime();
+        LocalDateTime existingEnd = existingStart.plusHours(existing.getDurationHours());
+
+        LocalDateTime newStart = newTime;
+        LocalDateTime newEnd = newStart.plusHours(newDuration);
+
+        return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+    }
+
+    public Booking confirmBooking(String bookingId, String studentId) throws Exception {
+        Booking booking = bookingRepository.findById(bookingId);
+        if (booking == null) {
+            throw new Exception("Booking not found");
+        }
+        if (booking.getStatus() != Booking.BookingStatus.PENDING) {
+            throw new Exception("Booking is not in pending status");
+        }
+        Payment payment = paymentService.processPayment(studentId, bookingId, booking.getTotalCost());
+
+        booking.setPayment(payment);
+        booking.setStatus(Booking.BookingStatus.CONFIRMED);
+
+        Student student = studentRepository.findById(booking.getStudentId());
+        Tutor tutor = tutorRepository.findById(booking.getTutorId());
+
+        if (student != null) {
+            student.addBooking(booking);
+            studentRepository.update(student);
+        } else {
+            System.err.println("Student with ID " + booking.getStudentId() + " not found during booking confirmation.");
+        }
+
+        if (tutor != null) {
+            tutor.addBooking(booking);
+            tutorRepository.update(tutor);
+        } else {
+            System.err.println("Tutor with ID " + booking.getTutorId() + " not found during booking confirmation.");
+        }
+
+        bookingRepository.update(booking);
+
+        notifyObservers(new BookingEvent(BookingEvent.EventType.CONFIRMED, booking, student, tutor));
+
+        return booking;
+    }
+
+    public void cancelBooking(String bookingId) throws Exception {
+        Booking booking = bookingRepository.findById(bookingId);
+        if (booking == null) {
+            throw new Exception("Booking not found");
+        }
+
+        if (booking.getStatus() == Booking.BookingStatus.COMPLETED) {
+            throw new Exception("Cannot cancel completed booking");
+        }
+
+        booking.setStatus(Booking.BookingStatus.CANCELLED);
+        bookingRepository.update(booking);
+
+        Student student = studentRepository.findById(booking.getStudentId());
+        Tutor tutor = tutorRepository.findById(booking.getTutorId());
+
+        if (student != null) {
+            student.removeBooking(booking);
+            studentRepository.update(student);
+        } else {
+            System.err.println("Student with ID " + booking.getStudentId() + " not found during booking cancellation.");
+        }
+
+        if (tutor != null) {
+            tutor.removeBooking(booking);
+            tutorRepository.update(tutor);
+        } else {
+            System.err.println("Tutor with ID " + booking.getTutorId() + " not found during booking cancellation.");
+        }
+
+        notifyObservers(new BookingEvent(BookingEvent.EventType.CANCELLED, booking, student, tutor));
+    }
+
+    public void completeBooking(String bookingId) throws Exception {
+        Booking booking = bookingRepository.findById(bookingId);
+        if (booking == null) {
+            throw new Exception("Booking not found");
+        }
+
+        if (booking.getStatus() != Booking.BookingStatus.CONFIRMED) {
+            throw new Exception("Booking must be confirmed first");
+        }
+
+        booking.setStatus(Booking.BookingStatus.COMPLETED);
+        bookingRepository.update(booking);
+
+        Tutor tutor = tutorRepository.findById(booking.getTutorId());
+        tutor.setEarnings(tutor.getEarnings() + booking.getTotalCost());
+        tutorRepository.update(tutor);
+
+        Student student = studentRepository.findById(booking.getStudentId());
+
+        notifyObservers(new BookingEvent(BookingEvent.EventType.COMPLETED, booking, student, tutor));
+    }
+
+    public Booking findById(String id) throws Exception {
+        Booking booking = bookingRepository.findById(id);
+        if (booking == null) {
+            throw new Exception("Booking not found");
+        }
+        return booking;
+    }
+
+    public List<Booking> findByStudentId(String studentId) {
+        return bookingRepository.findByStudentId(studentId);
+    }
+
+    public List<Booking> findByTutorId(String tutorId) {
+        return bookingRepository.findByTutorId(tutorId);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\DashboardService.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/services/DashboardService.java
+package com.tutoringplatform.services;
+
+import com.tutoringplatform.dto.response.*;
+import com.tutoringplatform.models.*;
+import com.tutoringplatform.util.DTOMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class DashboardService {
+
+    @Autowired
+    private StudentService studentService;
+
+    @Autowired
+    private BookingService bookingService;
+
+    @Autowired
+    private TutorService tutorService;
+
+    @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
+    public StudentDashboardResponse getStudentDashboard(String studentId) throws Exception {
+        StudentDashboardResponse dashboard = new StudentDashboardResponse();
+
+        // Get student info
+        Student student = studentService.findById(studentId);
+        dashboard.setStudent(dtoMapper.toStudentResponse(student));
+
+        // Get bookings with enriched data
+        List<Booking> allBookings = bookingService.findByStudentId(studentId);
+
+        LocalDateTime now = LocalDateTime.now();
+        List<EnrichedBookingResponse> upcomingBookings = new ArrayList<>();
+        List<EnrichedBookingResponse> pastBookings = new ArrayList<>();
+
+        for (Booking booking : allBookings) {
+            EnrichedBookingResponse enriched = enrichBooking(booking);
+
+            if (booking.getDateTime().isAfter(now) &&
+                    booking.getStatus() != Booking.BookingStatus.CANCELLED) {
+                upcomingBookings.add(enriched);
+            } else {
+                pastBookings.add(enriched);
+            }
+        }
+
+        dashboard.setUpcomingBookings(upcomingBookings);
+        dashboard.setPastBookings(pastBookings);
+
+        // Get all subjects
+        List<Subject> subjects = subjectService.findAll();
+        dashboard.setAvailableSubjects(subjects.stream()
+                .map(dtoMapper::toSubjectResponse)
+                .collect(Collectors.toList()));
+
+        return dashboard;
+    }
+
+    private EnrichedBookingResponse enrichBooking(Booking booking) throws Exception {
+        EnrichedBookingResponse enriched = new EnrichedBookingResponse();
+
+        // Copy basic booking data
+        enriched.setId(booking.getId());
+        enriched.setStudentId(booking.getStudentId());
+        enriched.setTutorId(booking.getTutorId());
+        enriched.setSubject(dtoMapper.toSubjectResponse(booking.getSubject()));
+        enriched.setDateTime(booking.getDateTime());
+        enriched.setDurationHours(booking.getDurationHours());
+        enriched.setTotalCost(booking.getTotalCost());
+        enriched.setStatus(booking.getStatus().toString());
+
+        // Enrich with names
+        try {
+            Student student = studentService.findById(booking.getStudentId());
+            enriched.setStudentName(student.getName());
+        } catch (Exception e) {
+            enriched.setStudentName("Unknown");
+        }
+
+        try {
+            Tutor tutor = tutorService.findById(booking.getTutorId());
+            enriched.setTutorName(tutor.getName());
+        } catch (Exception e) {
+            enriched.setTutorName("Unknown");
+        }
+
+        return enriched;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\PaymentService.java
+======================================================================
+
+package com.tutoringplatform.services;
+
+import java.util.Stack;
+
+import com.tutoringplatform.command.ProcessPaymentCommand;
+import com.tutoringplatform.command.RefundPaymentCommand;
+import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.models.Payment;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.repositories.interfaces.IBookingRepository;
+import com.tutoringplatform.repositories.interfaces.IPaymentCommand;
+import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import javax.annotation.PostConstruct;
+
+@Service
+public class PaymentService {
+    @Autowired
+    private IPaymentRepository paymentRepository;
+    @Autowired
+    private IStudentRepository studentRepository;
+    @Autowired
+    private IBookingRepository bookingRepository;
+    private Stack<IPaymentCommand> commandHistory;
+
+    @PostConstruct
+    public void init() {
+        this.commandHistory = new Stack<>();
+    }
+
+    public Payment processPayment(String studentId, String bookingId, double amount) throws Exception {
+        Student student = studentRepository.findById(studentId);
+        if (student == null) {
+            throw new Exception("Student not found");
+        }
+
+        Payment payment = new Payment(bookingId, amount);
+
+        ProcessPaymentCommand command = new ProcessPaymentCommand(
+                payment, student, amount, paymentRepository, studentRepository);
+
+        command.execute();
+        commandHistory.push(command);
+
+        return payment;
+    }
+
+    public void refundPayment(String paymentId) throws Exception {
+        Payment payment = paymentRepository.findById(paymentId);
+        if (payment == null) {
+            throw new Exception("Payment not found");
+        }
+
+        Booking booking = bookingRepository.findById(payment.getBookingId());
+        if (booking == null) {
+            throw new Exception("Booking not found");
+        }
+
+        Student student = studentRepository.findById(booking.getStudentId());
+        if (student == null) {
+            throw new Exception("Student not found");
+        }
+
+        RefundPaymentCommand command = new RefundPaymentCommand(
+                payment, student, payment.getAmount(), paymentRepository, studentRepository);
+
+        command.execute();
+        commandHistory.push(command);
+    }
+
+    public void undoLastPaymentAction() throws Exception {
+        if (commandHistory.isEmpty()) {
+            throw new Exception("No payment action to undo");
+        }
+
+        IPaymentCommand lastCommand = commandHistory.pop();
+        lastCommand.undo();
+    }
+
+    public Payment findById(String id) throws Exception {
+        Payment payment = paymentRepository.findById(id);
+        if (payment == null) {
+            throw new Exception("Payment not found");
+        }
+        return payment;
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\ReviewService.java
+======================================================================
+
+package com.tutoringplatform.services;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.models.Review;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.repositories.interfaces.IBookingRepository;
+import com.tutoringplatform.repositories.interfaces.IReviewRepository;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Service
+public class ReviewService {
+    @Autowired
+    private IReviewRepository reviewRepository;
+    @Autowired
+    private IBookingRepository bookingRepository;
+    @Autowired
+    private ITutorRepository tutorRepository;
+    @Autowired
+    private IStudentRepository studentRepository;
+
+    public Review createReview(String bookingId, int rating, String comment) throws Exception {
+        Booking booking = bookingRepository.findById(bookingId);
+        if (booking == null) {
+            throw new Exception("Booking not found");
+        }
+        validateRating(rating);
+
+        if (booking.getStatus() != Booking.BookingStatus.COMPLETED) {
+            throw new Exception("Can only review completed bookings");
+        }
+
+        if (reviewRepository.findByBookingId(bookingId) != null) {
+            throw new Exception("Review already exists for this booking");
+        }
+
+        Review review = new Review(booking.getStudentId(), booking.getTutorId(), bookingId, rating, comment);
+        reviewRepository.save(review);
+
+        Tutor tutor = tutorRepository.findById(booking.getTutorId());
+        if (tutor != null) {
+            tutor.addReview(review);
+            tutorRepository.update(tutor);
+        } else {
+            System.err.println("Tutor with ID " + booking.getTutorId() + " not found during review creation.");
+        }
+
+        Student student = studentRepository.findById(booking.getStudentId());
+        if (student != null) {
+            student.addReview(review);
+            studentRepository.update(student);
+        } else {
+            System.err.println("Student with ID " + booking.getStudentId() + " not found during review creation.");
+        }
+
+        return review;
+    }
+
+    public List<Review> findByTutor(String tutorId) {
+        return reviewRepository.findByTutorId(tutorId);
+    }
+
+    public List<Review> findByStudent(String studentId) {
+        return reviewRepository.findByStudentId(studentId);
+    }
+
+    private void validateRating(int rating) {
+        if (rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        }
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\StudentService.java
+======================================================================
+
+package com.tutoringplatform.services;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Service
+public class StudentService extends UserService<Student> {
+
+    @Autowired
+    public StudentService(IStudentRepository repository) {
+        super(repository);
+    }
+
+    public void register(Student student) throws Exception {
+        if (repository.findByEmail(student.getEmail()) != null) {
+            throw new Exception("Email already exists");
+        }
+        repository.save(student);
+    }
+
+
+    public double getBalance(String studentId) throws Exception {
+        Student student = findById(studentId);
+        return student.getBalance();
+    }
+
+    public double addFunds(String studentId, double amount) throws Exception {
+        Student student = findById(studentId);
+
+        if (amount <= 0) {
+            throw new Exception("Amount must be positive");
+        }
+        student.setBalance(student.getBalance() + amount);
+        repository.update(student);
+        return student.getBalance();
+    }
+
+    public void deductFunds(String studentId, double amount) throws Exception {
+        Student student = findById(studentId);
+        if (student.getBalance() < amount) {
+            throw new Exception("Insufficient funds");
+        }
+        student.setBalance(student.getBalance() - amount);
+        repository.update(student);
+    }
+
+    public List<Student> searchByName(String name) {
+        return ((IStudentRepository) repository).findByNameContaining(name);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\SubjectService.java
+======================================================================
+
+package com.tutoringplatform.services;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Service
+public class SubjectService {
+    @Autowired
+    private ISubjectRepository subjectRepository;
+
+    public Subject createSubject(String name, String category) throws Exception {
+        if (subjectRepository.findByName(name) != null) {
+            throw new Exception("Subject already exists");
+        }
+
+        Subject subject = new Subject(name, category);
+        subjectRepository.save(subject);
+        return subject;
+    }
+
+    public Subject findById(String id) throws Exception {
+        Subject subject = subjectRepository.findById(id);
+        if (subject == null) {
+            throw new Exception("Subject not found");
+        }
+        return subject;
+    }
+
+    public Subject findByName(String name) throws Exception {
+        Subject subject = subjectRepository.findByName(name);
+        if (subject == null) {
+            throw new Exception("Subject not found");
+        }
+        return subject;
+    }
+
+    public List<Subject> findAll() {
+        return subjectRepository.findAll();
+    }
+
+    public List<Subject> findByCategory(String category) {
+        return subjectRepository.findByCategory(category);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\TutorService.java
+======================================================================
+
+package com.tutoringplatform.services;
+
+import java.util.List;
+
+import com.tutoringplatform.models.Review;
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Service
+public class TutorService extends UserService<Tutor> {
+    @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
+    public TutorService(ITutorRepository repository) {
+        super(repository);
+    }
+
+    public void register(Tutor tutor) throws Exception {
+        if (repository.findByEmail(tutor.getEmail()) != null) {
+            throw new Exception("Email already exists");
+        }
+        if (tutor.getHourlyRate() <= 0) {
+            throw new Exception("Hourly rate must be positive");
+        }
+        repository.save(tutor);
+    }
+
+    public double getAverageRating(String tutorId) throws Exception {
+        Tutor tutor = findById(tutorId);
+        if (tutor.getReviewsReceived().isEmpty())
+            return 0.0;
+        return tutor.getReviewsReceived().stream()
+                .mapToDouble(Review::getRating)
+                .average()
+                .orElse(0.0);
+    }
+
+    public void addAvailability(String tutorId, String day, int hour) throws Exception {
+        Tutor tutor = findById(tutorId);
+        
+        repository.update(tutor);
+    }
+
+
+    public void addEarnings(String tutorId, double amount) throws Exception {
+        Tutor tutor = findById(tutorId);
+        tutor.setEarnings(tutor.getEarnings() + amount);
+        repository.update(tutor);
+    }
+
+    public double getAverageRating(Tutor tutor) {
+        if (tutor.getReviewsReceived().isEmpty())
+            return 0.0;
+        return tutor.getReviewsReceived().stream()
+                .mapToDouble(Review::getRating)
+                .average()
+                .orElse(0.0);
+    }
+
+    public double getEarnings(String tutorId) throws Exception {
+        Tutor tutor = findById(tutorId);
+        return tutor.getEarnings();
+    }
+
+    public List<Subject> addSubjectToTutor(String tutorId, String subjectId) throws Exception {
+        Tutor tutor = findById(tutorId);
+        Subject subject = subjectService.findById(subjectId);
+        tutor.addSubject(subject);
+        update(tutor);
+        return tutor.getSubjects();
+    }
+
+    public List<Subject> removeSubjectFromTutor(String tutorId, String subjectId) throws Exception {
+        Tutor tutor = findById(tutorId);
+        Subject subject = subjectService.findById(subjectId);
+        tutor.removeSubject(subject);
+        update(tutor);
+        return tutor.getSubjects();
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\services\UserService.java
+======================================================================
+
+package com.tutoringplatform.services;
+
+import java.util.List;
+
+import com.tutoringplatform.models.User;
+import com.tutoringplatform.repositories.interfaces.IUserRepository;
+
+public abstract class UserService<T extends User> {
+    protected IUserRepository<T> repository;
+
+    public UserService(IUserRepository<T> repository) {
+        this.repository = repository;
+    }
+
+    public T findById(String id) throws Exception {
+        T user = repository.findById(id);
+        if (user == null) {
+            throw new Exception("User not found with id: " + id);
+        }
+        return user;
+    }
+
+    public T findByEmail(String email) throws Exception {
+        T user = repository.findByEmail(email);
+        if (user == null) {
+            throw new Exception("User not found with email: " + email);
+        }
+        return user;
+    }
+
+    public List<T> findAll() {
+        return repository.findAll();
+    }
+
+    public void update(T user) throws Exception {
+        if (repository.findById(user.getId()) == null) {
+            throw new Exception("User not found");
+        }
+        repository.update(user);
+    }
+
+    public void delete(String id) throws Exception {
+        if (repository.findById(id) == null) {
+            throw new Exception("User not found");
+        }
+        repository.delete(id);
+    }
+}
+
+
+
+======================================================================
+// FILE: com\tutoringplatform\util\DTOMapper.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/util/DTOMapper.java
+package com.tutoringplatform.util;
+
+import com.tutoringplatform.dto.response.*;
+import com.tutoringplatform.models.*;
+import com.tutoringplatform.models.availability.TutorAvailability;
+import com.tutoringplatform.services.AvailabilityService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
+@Component
+public class DTOMapper {
+    @Autowired
+    private AvailabilityService availabilityService;
+
+    public StudentResponse toStudentResponse(Student student) {
+        StudentResponse response = new StudentResponse();
+        response.setId(student.getId());
+        response.setName(student.getName());
+        response.setEmail(student.getEmail());
+        response.setBalance(student.getBalance());
+        return response;
+    }
+
+    public TutorResponse toTutorResponse(Tutor tutor) {
+        TutorResponse response = new TutorResponse();
+        response.setId(tutor.getId());
+        response.setName(tutor.getName());
+        response.setEmail(tutor.getEmail());
+        response.setHourlyRate(tutor.getHourlyRate());
+        response.setDescription(tutor.getDescription());
+        response.setAverageRating(tutor.getAverageRating());
+        response.setEarnings(tutor.getEarnings());
+        response.setTimeZoneId(tutor.getTimeZoneId());
+
+        if (tutor.getSubjects() != null) {
+            response.setSubjects(tutor.getSubjects().stream()
+                    .map(this::toSubjectResponse)
+                    .collect(Collectors.toList()));
+        }
+
+        try {
+            TutorAvailability availability = availabilityService.getAvailability(tutor.getId());
+            response.setAvailability(availability.getRecurringSlots());
+        } catch (Exception e) {
+            response.setAvailability(new ArrayList<>());
+        }
+
+        return response;
+    }
+
+    public SubjectResponse toSubjectResponse(Subject subject) {
+        SubjectResponse response = new SubjectResponse();
+        response.setId(subject.getId());
+        response.setName(subject.getName());
+        response.setCategory(subject.getCategory());
+        return response;
+    }
+
+    public BookingResponse toBookingResponse(Booking booking) {
+        BookingResponse response = new BookingResponse();
+        response.setId(booking.getId());
+        response.setStudentId(booking.getStudentId());
+        response.setTutorId(booking.getTutorId());
+        response.setSubject(toSubjectResponse(booking.getSubject()));
+        response.setDateTime(booking.getDateTime());
+        response.setDurationHours(booking.getDurationHours());
+        response.setTotalCost(booking.getTotalCost());
+        response.setStatus(booking.getStatus().toString());
+        return response;
+    }
+
+    public ReviewResponse toReviewResponse(Review review) {
+        ReviewResponse response = new ReviewResponse();
+        response.setId(review.getId());
+        response.setStudentId(review.getStudentId());
+        response.setTutorId(review.getTutorId());
+        response.setBookingId(review.getBookingId());
+        response.setRating(review.getRating());
+        response.setComment(review.getComment());
+        response.setTimestamp(review.getTimestamp());
+        return response;
+    }
+
+    public AverageRatingResponse toAverageRatingResponse(double averageRating) {
+        AverageRatingResponse response = new AverageRatingResponse();
+        response.setAverageRating(averageRating);
+        return response;
+    }
+
+    public EarningsResponse toEarningsResponse(double earnings) {
+        EarningsResponse response = new EarningsResponse();
+        response.setEarnings(earnings);
+        return response;
+    }
+
+    public BalanceResponse toBalanceResponse(double balance) {
+        BalanceResponse response = new BalanceResponse();
+        response.setBalance(balance);
+        return response;
+    }
+
+    public Object toUserResponse(User user) {
+        if (user instanceof Student) {
+            return toStudentResponse((Student) user);
+        } else if (user instanceof Tutor) {
+            return toTutorResponse((Tutor) user);
+        }
+        throw new IllegalArgumentException("Unknown user type");
+    }
+}
+
+
+

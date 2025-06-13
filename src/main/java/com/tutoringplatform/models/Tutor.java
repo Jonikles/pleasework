@@ -21,15 +21,6 @@ public class Tutor extends User {
         this.timeZoneId = ZoneId.systemDefault().getId();
     }
 
-    public double getAverageRating() {
-        if (reviewsReceived.isEmpty())
-            return 0.0;
-        return reviewsReceived.stream()
-                .mapToDouble(Review::getRating)
-                .average()
-                .orElse(0.0);
-    }
-
     public List<Subject> getSubjects() {
         return subjects;
     }
@@ -41,10 +32,6 @@ public class Tutor extends User {
 
     public void removeSubject(Subject subject) {
         subjects.remove(subject);
-    }
-
-    public void addEarnings(double amount) {
-        this.earnings += amount;
     }
     
     public List<Review> getReviewsReceived() {

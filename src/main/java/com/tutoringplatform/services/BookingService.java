@@ -35,6 +35,8 @@ public class BookingService {
     private ISubjectRepository subjectRepository;
     @Autowired
     private AvailabilityService availabilityService;
+    @Autowired
+    private TutorService tutorService;
     private List<BookingObserver> observers;
 
     @PostConstruct
@@ -196,12 +198,11 @@ public class BookingService {
         booking.setStatus(Booking.BookingStatus.COMPLETED);
         bookingRepository.update(booking);
 
+        tutorService.addEarnings(booking.getTutorId(), booking.getTotalCost());
+
         Tutor tutor = tutorRepository.findById(booking.getTutorId());
-        tutor.setEarnings(tutor.getEarnings() + booking.getTotalCost());
-        tutorRepository.update(tutor);
-
         Student student = studentRepository.findById(booking.getStudentId());
-
+        
         notifyObservers(new BookingEvent(BookingEvent.EventType.COMPLETED, booking, student, tutor));
     }
 

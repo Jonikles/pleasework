@@ -2,16 +2,25 @@
 package com.tutoringplatform.dto.request;
 
 public class ReviewRequest {
-    private String bookingId;
+    private String studentId;
+    private String tutorId;
     private int rating;
     private String comment;
 
-    public String getBookingId() {
-        return bookingId;
+    public String getStudentId() {
+        return studentId;
     }
 
-    public void setBookingId(String bookingId) {
-        this.bookingId = bookingId;
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
     }
 
     public int getRating() {

@@ -27,7 +27,7 @@ public class RefundPaymentCommand implements IPaymentCommand {
         if (payment.getStatus() != Payment.PaymentStatus.COMPLETED) {
             throw new Exception("Can only refund completed payments");
         }
-        student.addFunds(amount);
+        student.setBalance(student.getBalance() + amount);
         payment.setStatus(Payment.PaymentStatus.REFUNDED);
         paymentRepository.update(payment);
         studentRepository.update(student);
@@ -35,7 +35,7 @@ public class RefundPaymentCommand implements IPaymentCommand {
 
     @Override
     public void undo() throws Exception {
-        student.deductFunds(amount);
+        student.setBalance(student.getBalance() - amount);
         payment.setStatus(Payment.PaymentStatus.COMPLETED);
         paymentRepository.update(payment);
         studentRepository.update(student);

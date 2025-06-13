@@ -27,8 +27,9 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<?> createReview(@RequestBody ReviewRequest request) {
         try {
-            Review review = reviewService.createReview(
-                    request.getBookingId(),
+            Review review = reviewService.createOrUpdateReview(
+                    request.getStudentId(),
+                    request.getTutorId(),
                     request.getRating(),
                     request.getComment());
             return ResponseEntity.status(HttpStatus.CREATED).body(dtoMapper.toReviewResponse(review));
@@ -39,7 +40,7 @@ public class ReviewController {
 
     @GetMapping("/tutor/{tutorId}")
     public ResponseEntity<?> getTutorReviews(@PathVariable String tutorId) {
-        List<Review> reviews = reviewService.findByTutor(tutorId);
+        List<Review> reviews = reviewService.getTutorReviews(tutorId);
         List<ReviewResponse> responses = reviews.stream()
                 .map(dtoMapper::toReviewResponse)
                 .collect(Collectors.toList());
@@ -48,7 +49,7 @@ public class ReviewController {
 
     @GetMapping("/student/{studentId}")
     public ResponseEntity<?> getStudentReviews(@PathVariable String studentId) {
-        List<Review> reviews = reviewService.findByStudent(studentId);
+        List<Review> reviews = reviewService.getStudentReviews(studentId);
         List<ReviewResponse> responses = reviews.stream()
                 .map(dtoMapper::toReviewResponse)
                 .collect(Collectors.toList());

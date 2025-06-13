@@ -6,7 +6,6 @@ public class ReviewResponse {
     private String id;
     private String studentId;
     private String tutorId;
-    private String bookingId;
     private int rating;
     private String comment;
     private LocalDateTime timestamp;
@@ -34,14 +33,6 @@ public class ReviewResponse {
 
     public void setTutorId(String tutorId) {
         this.tutorId = tutorId;
-    }
-
-    public String getBookingId() {
-        return bookingId;
-    }
-
-    public void setBookingId(String bookingId) {
-        this.bookingId = bookingId;
     }
 
     public int getRating() {

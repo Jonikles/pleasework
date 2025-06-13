@@ -29,11 +29,12 @@ public class StudentService extends UserService<Student> {
     }
 
     public double addFunds(String studentId, double amount) throws Exception {
-        Student student = findById(studentId);
 
         if (amount <= 0) {
             throw new Exception("Amount must be positive");
         }
+        Student student = findById(studentId);
+
         student.setBalance(student.getBalance() + amount);
         repository.update(student);
         return student.getBalance();

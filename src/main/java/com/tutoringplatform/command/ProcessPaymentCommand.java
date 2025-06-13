@@ -23,7 +23,8 @@ public class ProcessPaymentCommand implements IPaymentCommand {
 
     @Override
     public void execute() throws Exception {
-        student.deductFunds(amount);
+        Student student = studentRepository.findById(this.student.getId());
+        student.setBalance(student.getBalance() - amount);
         payment.setStatus(Payment.PaymentStatus.COMPLETED);
         paymentRepository.save(payment);
         studentRepository.update(student);
@@ -31,7 +32,7 @@ public class ProcessPaymentCommand implements IPaymentCommand {
 
     @Override
     public void undo() throws Exception {
-        student.addFunds(amount);
+        student.setBalance(student.getBalance() + amount);
         payment.setStatus(Payment.PaymentStatus.REFUNDED);
         paymentRepository.update(payment);
         studentRepository.update(student);

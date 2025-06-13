@@ -9,7 +9,7 @@ public class TutorResponse {
     private String id;
     private String name;
     private String email;
-    private UserType userType = UserType.TUTOR;
+    private String userType = UserType.TUTOR.getDisplayName();
     private double hourlyRate;
     private String description;
     private double averageRating;
@@ -43,11 +43,11 @@ public class TutorResponse {
         this.email = email;
     }
 
-    public UserType getUserType() {
+    public String getUserType() {
         return userType;
     }
 
-    public void setUserType(UserType userType) {
+    public void setUserType(String userType) {
         this.userType = userType;
     }
 

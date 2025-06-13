@@ -1,7 +1,17 @@
 package com.tutoringplatform.models;
 
 public enum UserType {
-    STUDENT,
-    TUTOR
-    // Add Admin
+    STUDENT("Student"),
+    TUTOR("Tutor");
+    // Future: ADMIN("Admin")
+    
+    private final String displayName;
+    
+    UserType(String displayName) {
+        this.displayName = displayName;
+    }
+    
+    public String getDisplayName() {
+        return displayName;
+    }
 }

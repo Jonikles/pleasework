@@ -7,16 +7,14 @@ public class Review {
     private String id;
     private String studentId;
     private String tutorId;
-    private String bookingId;
     private int rating;
     private String comment;
     private LocalDateTime timestamp;
 
-    public Review(String studentId, String tutorId, String bookingId, int rating, String comment) {
+    public Review(String studentId, String tutorId, int rating, String comment) {
         this.id = UUID.randomUUID().toString();
         this.studentId = studentId;
         this.tutorId = tutorId;
-        this.bookingId = bookingId;
         setRating(rating);
         this.comment = comment;
         this.timestamp = LocalDateTime.now();
@@ -31,11 +29,7 @@ public class Review {
     public String getTutorId() { return tutorId; }
     public void setTutorId(String tutorId) { this.tutorId = tutorId; }
 
-    public String getBookingId() { return bookingId; }
-    public void setBookingId(String bookingId) { this.bookingId = bookingId; }
-
     public int getRating() { return rating; }
-
     public void setRating(int rating) {
         this.rating = rating;
     }

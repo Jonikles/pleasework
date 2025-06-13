@@ -7,7 +7,7 @@ public class StudentResponse {
     private String id;
     private String name;
     private String email;
-    private UserType userType = UserType.STUDENT;
+    private String userType = UserType.STUDENT.getDisplayName();
     private double balance;
 
     public String getId() {
@@ -34,11 +34,11 @@ public class StudentResponse {
         this.email = email;
     }
 
-    public UserType getUserType() {
+    public String getUserType() {
         return userType;
     }
 
-    public void setUserType(UserType userType) {
+    public void setUserType(String userType) {
         this.userType = userType;
     }
 

@@ -1,6 +1,8 @@
 package com.tutoringplatform.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Review;
@@ -23,55 +25,57 @@ public class ReviewService {
     private ITutorRepository tutorRepository;
     @Autowired
     private IStudentRepository studentRepository;
+    @Autowired
+    private StudentService studentService;
+    @Autowired
+    private TutorService tutorService;
 
-    public Review createReview(String bookingId, int rating, String comment) throws Exception {
-        Booking booking = bookingRepository.findById(bookingId);
-        if (booking == null) {
-            throw new Exception("Booking not found");
+    public Review createOrUpdateReview(String studentId, String tutorId, int rating, String comment) throws Exception {
+        Student student = studentService.findById(studentId);
+        Tutor tutor = tutorService.findById(tutorId);
+
+        // Check if student has completed any bookings with this tutor
+        List<Booking> completedBookings = bookingRepository.findByStudentId(studentId).stream()
+                .filter(b -> b.getTutorId().equals(tutorId))
+                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
+                .collect(Collectors.toList());
+
+        if (completedBookings.isEmpty()) {
+            throw new Exception("Can only review tutors you've had completed sessions with");
         }
-        validateRating(rating);
 
-        if (booking.getStatus() != Booking.BookingStatus.COMPLETED) {
-            throw new Exception("Can only review completed bookings");
-        }
+        // Check if review already exists
+        Review existingReview = reviewRepository.findByStudentIdAndTutorId(studentId, tutorId);
 
-        if (reviewRepository.findByBookingId(bookingId) != null) {
-            throw new Exception("Review already exists for this booking");
-        }
+        if (existingReview != null) {
+            // Update existing review
+            existingReview.setRating(rating);
+            existingReview.setComment(comment);
+            existingReview.setTimestamp(LocalDateTime.now());
+            reviewRepository.update(existingReview);
+            return existingReview;
+        } else {
+            // Create new review
+            Review review = new Review(studentId, tutorId, rating, comment);
+            reviewRepository.save(review);
 
-        Review review = new Review(booking.getStudentId(), booking.getTutorId(), bookingId, rating, comment);
-        reviewRepository.save(review);
-
-        Tutor tutor = tutorRepository.findById(booking.getTutorId());
-        if (tutor != null) {
-            tutor.addReview(review);
+            // Update tutor's reviews list
+            tutor.getReviewsReceived().add(review);
             tutorRepository.update(tutor);
-        } else {
-            System.err.println("Tutor with ID " + booking.getTutorId() + " not found during review creation.");
-        }
 
-        Student student = studentRepository.findById(booking.getStudentId());
-        if (student != null) {
-            student.addReview(review);
+            // Update student's reviews list
+            student.getReviewsGiven().add(review);
             studentRepository.update(student);
-        } else {
-            System.err.println("Student with ID " + booking.getStudentId() + " not found during review creation.");
+
+            return review;
         }
-
-        return review;
     }
 
-    public List<Review> findByTutor(String tutorId) {
-        return reviewRepository.findByTutorId(tutorId);
+    public List<Review> getTutorReviews(String tutorId) {
+        return reviewRepository.getTutorReviews(tutorId);
     }
 
-    public List<Review> findByStudent(String studentId) {
-        return reviewRepository.findByStudentId(studentId);
-    }
-
-    private void validateRating(int rating) {
-        if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating must be between 1 and 5");
-        }
+    public List<Review> getStudentReviews(String studentId) {
+        return reviewRepository.getStudentReviews(studentId);
     }
 }

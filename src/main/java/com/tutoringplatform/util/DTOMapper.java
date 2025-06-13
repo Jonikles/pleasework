@@ -31,7 +31,6 @@ public class DTOMapper {
         response.setEmail(tutor.getEmail());
         response.setHourlyRate(tutor.getHourlyRate());
         response.setDescription(tutor.getDescription());
-        response.setAverageRating(tutor.getAverageRating());
         response.setEarnings(tutor.getEarnings());
         response.setTimeZoneId(tutor.getTimeZoneId());
 
@@ -39,6 +38,13 @@ public class DTOMapper {
             response.setSubjects(tutor.getSubjects().stream()
                     .map(this::toSubjectResponse)
                     .collect(Collectors.toList()));
+        }
+
+        if (tutor.getReviewsReceived() != null) {
+            response.setAverageRating(tutor.getReviewsReceived().stream()
+                    .mapToDouble(Review::getRating)
+                    .average()
+                    .orElse(0.0));
         }
 
         try {
@@ -77,7 +83,6 @@ public class DTOMapper {
         response.setId(review.getId());
         response.setStudentId(review.getStudentId());
         response.setTutorId(review.getTutorId());
-        response.setBookingId(review.getBookingId());
         response.setRating(review.getRating());
         response.setComment(review.getComment());
         response.setTimestamp(review.getTimestamp());
@@ -103,11 +108,11 @@ public class DTOMapper {
     }
 
     public Object toUserResponse(User user) {
-        if (user instanceof Student) {
+        if (user.getUserType() == UserType.STUDENT) {
             return toStudentResponse((Student) user);
-        } else if (user instanceof Tutor) {
+        } else if (user.getUserType() == UserType.TUTOR) {
             return toTutorResponse((Tutor) user);
         }
-        throw new IllegalArgumentException("Unknown user type");
+        throw new IllegalArgumentException("Unknown user type: " + user.getUserType());
     }
 }

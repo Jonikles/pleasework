@@ -22,13 +22,6 @@ public class Student extends User {
         reviewsGiven.add(review);
     }
 
-    public void addFunds(double amount) {
-        this.balance += amount;}
-
-    public void deductFunds(double amount) throws Exception {
-        this.balance -= amount;
-    }
-
     public double getBalance() { return balance; }
     public void setBalance(double balance) { this.balance = balance; }
 }

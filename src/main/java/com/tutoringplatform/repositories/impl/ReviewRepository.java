@@ -26,23 +26,23 @@ public class ReviewRepository implements IReviewRepository {
     }
 
     @Override
-    public List<Review> findByTutorId(String tutorId) {
+    public List<Review> getTutorReviews(String tutorId) {
         return reviews.values().stream()
                 .filter(r -> r.getTutorId().equals(tutorId))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Review> findByStudentId(String studentId) {
+    public List<Review> getStudentReviews(String studentId) {
         return reviews.values().stream()
                 .filter(r -> r.getStudentId().equals(studentId))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Review findByBookingId(String bookingId) {
+    public Review findByStudentIdAndTutorId(String studentId, String tutorId) {
         return reviews.values().stream()
-                .filter(r -> r.getBookingId().equals(bookingId))
+                .filter(r -> r.getStudentId().equals(studentId) && r.getTutorId().equals(tutorId))
                 .findFirst()
                 .orElse(null);
     }
