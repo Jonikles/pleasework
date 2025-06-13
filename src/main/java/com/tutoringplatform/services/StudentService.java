@@ -23,11 +23,21 @@ public class StudentService extends UserService<Student> {
     }
 
     public void addFunds(String studentId, double amount) throws Exception {
+        Student student = findById(studentId);
+
         if (amount <= 0) {
             throw new Exception("Amount must be positive");
         }
+        student.setBalance(student.getBalance() + amount);
+        repository.update(student);
+    }
+
+    public void deductFunds(String studentId, double amount) throws Exception {
         Student student = findById(studentId);
-        student.addFunds(amount);
+        if (student.getBalance() < amount) {
+            throw new Exception("Insufficient funds");
+        }
+        student.setBalance(student.getBalance() - amount);
         repository.update(student);
     }
 

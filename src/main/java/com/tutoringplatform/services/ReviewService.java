@@ -29,6 +29,7 @@ public class ReviewService {
         if (booking == null) {
             throw new Exception("Booking not found");
         }
+        validateRating(rating);
 
         if (booking.getStatus() != Booking.BookingStatus.COMPLETED) {
             throw new Exception("Can only review completed bookings");
@@ -38,9 +39,6 @@ public class ReviewService {
             throw new Exception("Review already exists for this booking");
         }
 
-        if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating must be between 1 and 5");
-        }
         Review review = new Review(booking.getStudentId(), booking.getTutorId(), bookingId, rating, comment);
         reviewRepository.save(review);
 
@@ -69,5 +67,11 @@ public class ReviewService {
 
     public List<Review> findByStudent(String studentId) {
         return reviewRepository.findByStudentId(studentId);
+    }
+
+    private void validateRating(int rating) {
+        if (rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        }
     }
 }

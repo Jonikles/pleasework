@@ -76,8 +76,10 @@ public class BookingService {
         String day = dateTime.getDayOfWeek().toString().substring(0, 1)
                 + dateTime.getDayOfWeek().toString().substring(1).toLowerCase();
         int hour = dateTime.getHour();
+
+        // Check availability using service logic instead of model method
         for (int i = 0; i < durationHours; i++) {
-            if (!tutor.isAvailable(day, hour + i)) {
+            if (!checkTutorAvailability(tutor, day, hour + i)) {
                 throw new Exception("Tutor is not available at this time");
             }
         }
@@ -189,7 +191,7 @@ public class BookingService {
         bookingRepository.update(booking);
 
         Tutor tutor = tutorRepository.findById(booking.getTutorId());
-        tutor.addEarnings(booking.getTotalCost());
+        tutor.setEarnings(tutor.getEarnings() + booking.getTotalCost());
         tutorRepository.update(tutor);
 
         Student student = studentRepository.findById(booking.getStudentId());
@@ -211,5 +213,10 @@ public class BookingService {
 
     public List<Booking> findByTutor(String tutorId) {
         return bookingRepository.findByTutorId(tutorId);
+    }
+
+    private boolean checkTutorAvailability(Tutor tutor, String day, int hour) {
+        return tutor.getAvailability().containsKey(day) &&
+                tutor.getAvailability().get(day).contains(hour);
     }
 }

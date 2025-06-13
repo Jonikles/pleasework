@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import com.tutoringplatform.models.Review;
 import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.Tutor;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
@@ -66,7 +67,10 @@ public class TutorRepository implements ITutorRepository {
     @Override
     public List<Tutor> findByMinimumRating(double rating) {
         return tutors.values().stream()
-                .filter(t -> t.getAverageRating() >= rating)
+                .filter(t -> t.getReviewsReceived().stream()
+                        .mapToInt(Review::getRating)
+                        .average()
+                        .orElse(0.0) >= rating)
                 .collect(Collectors.toList());
     }
 }

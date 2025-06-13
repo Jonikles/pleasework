@@ -1,14 +1,17 @@
+// FILE: src/main/java/com/tutoringplatform/controllers/StudentController.java
 package com.tutoringplatform.controllers;
 
+import com.tutoringplatform.dto.request.AddFundsRequest;
+import com.tutoringplatform.dto.response.*;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.services.StudentService;
+import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import java.util.List;
-import java.util.Map;
-
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/students")
@@ -18,11 +21,14 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private DTOMapper dtoMapper;
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getStudent(@PathVariable String id) {
         try {
             Student student = studentService.findById(id);
-            return ResponseEntity.ok(student);
+            return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
@@ -35,22 +41,21 @@ public class StudentController {
                 return ResponseEntity.badRequest().body("ID mismatch");
             }
             studentService.update(student);
-            return ResponseEntity.ok(student);
+            return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping("/{id}/add-funds")
-    public ResponseEntity<?> addFunds(@PathVariable String id, @RequestBody Map<String, Double> request) {
+    public ResponseEntity<?> addFunds(@PathVariable String id, @RequestBody AddFundsRequest request) {
         try {
-            Double amount = request.get("amount");
-            if (amount == null || amount <= 0) {
+            if (request.getAmount() <= 0) {
                 return ResponseEntity.badRequest().body("Invalid amount");
             }
-            studentService.addFunds(id, amount);
+            studentService.addFunds(id, request.getAmount());
             Student student = studentService.findById(id);
-            return ResponseEntity.ok(Map.of("balance", student.getBalance()));
+            return ResponseEntity.ok(new BalanceResponse(student.getBalance()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -60,7 +65,7 @@ public class StudentController {
     public ResponseEntity<?> getBalance(@PathVariable String id) {
         try {
             Student student = studentService.findById(id);
-            return ResponseEntity.ok(Map.of("balance", student.getBalance()));
+            return ResponseEntity.ok(new BalanceResponse(student.getBalance()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
@@ -69,6 +74,9 @@ public class StudentController {
     @GetMapping("/search")
     public ResponseEntity<?> searchByName(@RequestParam String name) {
         List<Student> students = studentService.searchByName(name);
-        return ResponseEntity.ok(students);
+        List<StudentResponse> responses = students.stream()
+                .map(dtoMapper::toStudentResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 }

@@ -21,8 +21,6 @@ public class DataInitializationConfiguration {
     CommandLineRunner init(SubjectService subjectService, TutorService tutorService, StudentService studentService,
             BookingService bookingService, PaymentService paymentService, ReviewService reviewService) {
         return args -> {
-            DataInitializer.initializeAllData(subjectService, tutorService, studentService, bookingService,
-                    paymentService, reviewService);
             System.out.println("Application started! Access at http://localhost:8080");
         };
     }

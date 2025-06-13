@@ -1,14 +1,18 @@
+// FILE: src/main/java/com/tutoringplatform/controllers/TutorController.java
 package com.tutoringplatform.controllers;
 
+import com.tutoringplatform.dto.request.AvailabilityRequest;
+import com.tutoringplatform.dto.response.*;
 import com.tutoringplatform.models.*;
 import com.tutoringplatform.services.TutorService;
 import com.tutoringplatform.services.SubjectService;
+import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tutors")
@@ -21,11 +25,14 @@ public class TutorController {
     @Autowired
     private SubjectService subjectService;
 
+    @Autowired
+    private DTOMapper dtoMapper;
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getTutor(@PathVariable String id) {
         try {
             Tutor tutor = tutorService.findById(id);
-            return ResponseEntity.ok(tutor);
+            return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
@@ -34,7 +41,10 @@ public class TutorController {
     @GetMapping
     public ResponseEntity<?> getAllTutors() {
         List<Tutor> tutors = tutorService.findAll();
-        return ResponseEntity.ok(tutors);
+        List<TutorResponse> responses = tutors.stream()
+                .map(dtoMapper::toTutorResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/{id}")
@@ -44,7 +54,7 @@ public class TutorController {
                 return ResponseEntity.badRequest().body("ID mismatch");
             }
             tutorService.update(tutor);
-            return ResponseEntity.ok(tutor);
+            return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -64,7 +74,10 @@ public class TutorController {
                 subject = subjectService.findById(subjectId);
             }
             List<Tutor> tutors = tutorService.searchTutors(subject, minPrice, maxPrice, minRating, day, hour);
-            return ResponseEntity.ok(tutors);
+            List<TutorResponse> responses = tutors.stream()
+                    .map(dtoMapper::toTutorResponse)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(responses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -75,7 +88,7 @@ public class TutorController {
             @PathVariable String id,
             @RequestBody AvailabilityRequest request) {
         try {
-            tutorService.updateAvailability(id, request.day, request.hour, request.add);
+            tutorService.updateAvailability(id, request.getDay(), request.getHour(), request.isAdd());
             Tutor tutor = tutorService.findById(id);
             return ResponseEntity.ok(tutor.getAvailability());
         } catch (Exception e) {
@@ -90,7 +103,10 @@ public class TutorController {
             Tutor tutor = tutorService.findById(id);
             tutor.addSubject(subject);
             tutorService.update(tutor);
-            return ResponseEntity.ok(tutor.getSubjects());
+            List<SubjectResponse> subjectResponses = tutor.getSubjects().stream()
+                    .map(dtoMapper::toSubjectResponse)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(subjectResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -103,7 +119,10 @@ public class TutorController {
             Tutor tutor = tutorService.findById(id);
             tutor.removeSubject(subject);
             tutorService.update(tutor);
-            return ResponseEntity.ok(tutor.getSubjects());
+            List<SubjectResponse> subjectResponses = tutor.getSubjects().stream()
+                    .map(dtoMapper::toSubjectResponse)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(subjectResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -113,15 +132,9 @@ public class TutorController {
     public ResponseEntity<?> getEarnings(@PathVariable String id) {
         try {
             Tutor tutor = tutorService.findById(id);
-            return ResponseEntity.ok(Map.of("earnings", tutor.getEarnings()));
+            return ResponseEntity.ok(new EarningsResponse(tutor.getEarnings()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-    }
-
-    static class AvailabilityRequest {
-        public String day;
-        public int hour;
-        public boolean add;
     }
 }

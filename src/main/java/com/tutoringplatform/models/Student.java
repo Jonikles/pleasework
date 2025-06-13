@@ -26,9 +26,6 @@ public class Student extends User {
         this.balance += amount;}
 
     public void deductFunds(double amount) throws Exception {
-        if (balance < amount) {
-            throw new Exception("Insufficient funds");
-        }
         this.balance -= amount;
     }
 

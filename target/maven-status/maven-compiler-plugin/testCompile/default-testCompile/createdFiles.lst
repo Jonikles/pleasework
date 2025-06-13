@@ -1,7 +1,1 @@
 com\tutoringplatform\TestSuiteRunner.class
-com\tutoringplatform\services\StudentServiceTest.class
-com\tutoringplatform\services\ReviewServiceTest.class
-com\tutoringplatform\services\BookingServiceTest.class
-com\tutoringplatform\services\AuthServiceTest.class
-com\tutoringplatform\services\TutorServiceTest.class
-com\tutoringplatform\services\PaymentServiceTest.class
