@@ -13,6 +13,7 @@ import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 
 @Service
@@ -30,6 +31,7 @@ public class PaymentService {
         this.commandHistory = new Stack<>();
     }
 
+    @Transactional
     public Payment processPayment(String studentId, String bookingId, double amount) throws Exception {
         Student student = studentRepository.findById(studentId);
         if (student == null) {
@@ -47,6 +49,7 @@ public class PaymentService {
         return payment;
     }
 
+    @Transactional
     public void refundPayment(String paymentId) throws Exception {
         Payment payment = paymentRepository.findById(paymentId);
         if (payment == null) {

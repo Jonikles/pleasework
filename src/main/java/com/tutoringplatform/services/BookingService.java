@@ -19,6 +19,7 @@ import com.tutoringplatform.repositories.interfaces.ITutorRepository;
 import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 
 @Service
@@ -115,6 +116,7 @@ public class BookingService {
         return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
     }
 
+    @Transactional
     public Booking confirmBooking(String bookingId, String studentId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId);
         if (booking == null) {
@@ -185,6 +187,7 @@ public class BookingService {
         notifyObservers(new BookingEvent(BookingEvent.EventType.CANCELLED, booking, student, tutor));
     }
 
+    @Transactional
     public void completeBooking(String bookingId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId);
         if (booking == null) {
