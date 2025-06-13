@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Service
 public class TutorService extends UserService<Tutor> {
     @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
     public TutorService(ITutorRepository repository) {
         super(repository);
     }
@@ -131,4 +134,21 @@ public class TutorService extends UserService<Tutor> {
         return tutor.getAvailability().containsKey(day) &&
                 tutor.getAvailability().get(day).contains(hour);
     }
+
+
+public List<Subject> addSubjectToTutor(String tutorId, String subjectId) throws Exception {
+    Tutor tutor = findById(tutorId);
+    Subject subject = subjectService.findById(subjectId);
+    tutor.addSubject(subject);
+    update(tutor);
+    return tutor.getSubjects();
+}
+
+public List<Subject> removeSubjectFromTutor(String tutorId, String subjectId) throws Exception {
+    Tutor tutor = findById(tutorId);
+    Subject subject = subjectService.findById(subjectId);
+    tutor.removeSubject(subject);
+    update(tutor);
+    return tutor.getSubjects();
+}
 }

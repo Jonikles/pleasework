@@ -1,58 +1,55 @@
+// FILE: src/main/java/com/tutoringplatform/services/AuthService.java
 package com.tutoringplatform.services;
 
+import com.tutoringplatform.factory.UserFactory;
+import com.tutoringplatform.models.User;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.models.User;
-import com.tutoringplatform.repositories.interfaces.IStudentRepository;
-import com.tutoringplatform.repositories.interfaces.ITutorRepository;
-
+import com.tutoringplatform.repositories.interfaces.IAuthRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class AuthService {
-    @Autowired
-    private IStudentRepository studentRepository;
-    @Autowired
-    private ITutorRepository tutorRepository;
 
+    @Autowired
+    private IAuthRepository authRepository;
+
+    @Autowired
+    private UserFactory userFactory;
 
     public User login(String email, String password) throws Exception {
-        Student student = studentRepository.findByEmail(email);
-        if (student != null && student.getPassword().equals(password)) {
-            return student;
+        User user = authRepository.findByEmail(email);
+        if (user == null || !user.getPassword().equals(password)) {
+            throw new Exception("Invalid email or password");
         }
-
-        Tutor tutor = tutorRepository.findByEmail(email);
-        if (tutor != null && tutor.getPassword().equals(password)) {
-            return tutor;
-        }
-
-        throw new Exception("Invalid email or password");
+        return user;
     }
 
     public Student signupStudent(String name, String email, String password) throws Exception {
-        if (studentRepository.findByEmail(email) != null || tutorRepository.findByEmail(email) != null) {
-            throw new Exception("Email already exists");
-        }
+        validateSignup(email);
 
-        Student student = new Student(name, email, password);
-        studentRepository.save(student);
-        return student;
+        User user = userFactory.createUser(UserFactory.UserType.STUDENT, name, email, password);
+        authRepository.saveUser(user);
+        return (Student) user;
     }
 
     public Tutor signupTutor(String name, String email, String password,
             double hourlyRate, String description) throws Exception {
-        if (studentRepository.findByEmail(email) != null || tutorRepository.findByEmail(email) != null) {
-            throw new Exception("Email already exists");
-        }
+        validateSignup(email);
 
         if (hourlyRate <= 0) {
             throw new Exception("Hourly rate must be positive");
         }
 
-        Tutor tutor = new Tutor(name, email, password, hourlyRate, description);
-        tutorRepository.save(tutor);
-        return tutor;
+        User user = userFactory.createUser(UserFactory.UserType.TUTOR, name, email, password, hourlyRate, description);
+        authRepository.saveUser(user);
+        return (Tutor) user;
+    }
+
+    private void validateSignup(String email) throws Exception {
+        if (authRepository.emailExists(email)) {
+            throw new Exception("Email already exists");
+        }
     }
 }

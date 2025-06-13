@@ -14,7 +14,6 @@ import com.tutoringplatform.observer.BookingObserver;
 import com.tutoringplatform.repositories.interfaces.IBookingRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
-
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
@@ -27,6 +26,10 @@ public class BookingService {
     private IStudentRepository studentRepository;
     @Autowired
     private ITutorRepository tutorRepository;
+    @Autowired
+    private PaymentService paymentService;
+    @Autowired
+    private SubjectService subjectService;
     private List<BookingObserver> observers;
 
     @PostConstruct
@@ -57,7 +60,7 @@ public class BookingService {
         }
     }
 
-    public Booking createBooking(String studentId, String tutorId, Subject subject,
+    public Booking createBooking(String studentId, String tutorId, String subjectId,
             LocalDateTime dateTime, int durationHours) throws Exception {
         Student student = studentRepository.findById(studentId);
         if (student == null) {
@@ -69,6 +72,7 @@ public class BookingService {
             throw new Exception("Tutor not found");
         }
 
+        Subject subject = subjectService.findById(subjectId);
         if (!tutor.getSubjects().contains(subject)) {
             throw new Exception("Tutor does not teach this subject");
         }
@@ -98,6 +102,13 @@ public class BookingService {
         notifyObservers(new BookingEvent(BookingEvent.EventType.CREATED, booking, student, tutor));
 
         return booking;
+    }
+
+    public Booking confirmBookingWithPayment(String bookingId, String studentId) throws Exception {
+        Booking booking = findById(bookingId);
+        Payment payment = paymentService.processPayment(studentId, bookingId, booking.getTotalCost());
+        confirmBooking(bookingId, payment);
+        return findById(bookingId);
     }
 
     private boolean isTimeConflict(Booking existing, LocalDateTime newTime, int newDuration) {

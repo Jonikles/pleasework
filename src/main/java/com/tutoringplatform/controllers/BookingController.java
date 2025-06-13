@@ -33,9 +33,8 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody BookingRequest request) {
         try {
-            Subject subject = subjectService.findById(request.getSubjectId());
             Booking booking = bookingService.createBooking(request.getStudentId(), request.getTutorId(),
-                    subject, request.getDateTime(), request.getDurationHours());
+                    request.getSubjectId(), request.getDateTime(), request.getDurationHours());
             return ResponseEntity.status(HttpStatus.CREATED).body(dtoMapper.toBookingResponse(booking));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -73,11 +72,8 @@ public class BookingController {
     @PostMapping("/{id}/confirm")
     public ResponseEntity<?> confirmBooking(@PathVariable String id, @RequestBody PaymentRequest request) {
         try {
-            Booking booking = bookingService.findById(id);
-            Payment payment = paymentService.processPayment(request.getStudentId(), id, booking.getTotalCost());
-            bookingService.confirmBooking(id, payment);
-            Booking updatedBooking = bookingService.findById(id);
-            return ResponseEntity.ok(dtoMapper.toBookingResponse(updatedBooking));
+            Booking booking = bookingService.confirmBookingWithPayment(id, request.getStudentId());
+            return ResponseEntity.ok(dtoMapper.toBookingResponse(booking));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

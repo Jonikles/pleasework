@@ -99,14 +99,11 @@ public class TutorController {
     @PostMapping("/{id}/subjects/{subjectId}")
     public ResponseEntity<?> addSubject(@PathVariable String id, @PathVariable String subjectId) {
         try {
-            Subject subject = subjectService.findById(subjectId);
-            Tutor tutor = tutorService.findById(id);
-            tutor.addSubject(subject);
-            tutorService.update(tutor);
-            List<SubjectResponse> subjectResponses = tutor.getSubjects().stream()
+            List<Subject> subjects = tutorService.addSubjectToTutor(id, subjectId);
+            List<SubjectResponse> responses = subjects.stream()
                     .map(dtoMapper::toSubjectResponse)
                     .collect(Collectors.toList());
-            return ResponseEntity.ok(subjectResponses);
+            return ResponseEntity.ok(responses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -115,14 +112,11 @@ public class TutorController {
     @DeleteMapping("/{id}/subjects/{subjectId}")
     public ResponseEntity<?> removeSubject(@PathVariable String id, @PathVariable String subjectId) {
         try {
-            Subject subject = subjectService.findById(subjectId);
-            Tutor tutor = tutorService.findById(id);
-            tutor.removeSubject(subject);
-            tutorService.update(tutor);
-            List<SubjectResponse> subjectResponses = tutor.getSubjects().stream()
+            List<Subject> subjects = tutorService.removeSubjectFromTutor(id, subjectId);
+            List<SubjectResponse> responses = subjects.stream()
                     .map(dtoMapper::toSubjectResponse)
                     .collect(Collectors.toList());
-            return ResponseEntity.ok(subjectResponses);
+            return ResponseEntity.ok(responses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
