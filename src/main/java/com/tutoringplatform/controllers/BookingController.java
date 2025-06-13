@@ -22,12 +22,6 @@ public class BookingController {
     private BookingService bookingService;
 
     @Autowired
-    private PaymentService paymentService;
-
-    @Autowired
-    private SubjectService subjectService;
-
-    @Autowired
     private DTOMapper dtoMapper;
 
     @PostMapping

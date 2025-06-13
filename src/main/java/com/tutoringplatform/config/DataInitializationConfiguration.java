@@ -11,8 +11,6 @@ import com.tutoringplatform.services.ReviewService;
 import com.tutoringplatform.services.StudentService;
 import com.tutoringplatform.services.SubjectService;
 import com.tutoringplatform.services.TutorService;
-import com.tutoringplatform.util.DataInitializer;
-
 @Configuration
 @Profile("!test")
 public class DataInitializationConfiguration {
