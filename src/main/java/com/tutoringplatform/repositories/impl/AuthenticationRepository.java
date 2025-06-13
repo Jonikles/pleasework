@@ -4,14 +4,14 @@ package com.tutoringplatform.repositories.impl;
 import com.tutoringplatform.models.User;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.repositories.interfaces.IAuthRepository;
+import com.tutoringplatform.repositories.interfaces.IAuthenticationRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class AuthRepository implements IAuthRepository {
+public class AuthenticationRepository implements IAuthenticationRepository {
 
     @Autowired
     private IStudentRepository studentRepository;

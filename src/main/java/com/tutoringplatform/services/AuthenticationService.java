@@ -13,13 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class AuthenticationService {
 
     @Autowired
-    private IAuthenticationRepository authRepository;
+    private IAuthenticationRepository authenticationRepository;
 
     @Autowired
     private UserFactory userFactory;
 
     public User login(String email, String password) throws Exception {
-        User user = authRepository.findByEmail(email);
+        User user = authenticationRepository.findByEmail(email);
         if (user == null || !user.getPassword().equals(password)) {
             throw new Exception("Invalid email or password");
         }
@@ -30,7 +30,7 @@ public class AuthenticationService {
         validateSignup(email);
 
         User user = userFactory.createStudent(name, email, password);
-        authRepository.saveUser(user);
+        authenticationRepository.saveUser(user);
         return (Student) user;
     }
 
@@ -43,12 +43,12 @@ public class AuthenticationService {
         }
 
         User user = userFactory.createTutor(name, email, password, hourlyRate, description);
-        authRepository.saveUser(user);
+        authenticationRepository.saveUser(user);
         return (Tutor) user;
     }
 
     private void validateSignup(String email) throws Exception {
-        if (authRepository.emailExists(email)) {
+        if (authenticationRepository.emailExists(email)) {
             throw new Exception("Email already exists");
         }
     }

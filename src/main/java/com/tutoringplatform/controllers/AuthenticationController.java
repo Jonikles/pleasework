@@ -20,7 +20,7 @@ import org.springframework.http.HttpStatus;
 public class AuthenticationController {
 
     @Autowired
-    private AuthenticationService authService;
+    private AuthenticationService authenticationService;
 
     @Autowired
     private DTOMapper dtoMapper;
@@ -28,7 +28,7 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            User user = authService.login(request.getEmail(), request.getPassword());
+            User user = authenticationService.login(request.getEmail(), request.getPassword());
             return ResponseEntity.ok(dtoMapper.toUserResponse(user));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -38,7 +38,7 @@ public class AuthenticationController {
     @PostMapping("/signup/student")
     public ResponseEntity<?> signupStudent(@RequestBody StudentSignupRequest request) {
         try {
-            Student student = authService.signupStudent(request.getName(), request.getEmail(), request.getPassword());
+            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(), request.getPassword());
             return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -48,7 +48,7 @@ public class AuthenticationController {
     @PostMapping("/signup/tutor")
     public ResponseEntity<?> signupTutor(@RequestBody TutorSignupRequest request) {
         try {
-            Tutor tutor = authService.signupTutor(request.getName(), request.getEmail(), request.getPassword(),
+            Tutor tutor = authenticationService.signupTutor(request.getName(), request.getEmail(), request.getPassword(),
                     request.getHourlyRate(), request.getDescription());
             return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
         } catch (Exception e) {

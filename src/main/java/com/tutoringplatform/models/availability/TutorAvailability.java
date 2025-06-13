@@ -51,7 +51,11 @@ public class TutorAvailability {
         return false;
     }
 
-    // Getters/setters
+    
+    public String getTutorId() {
+        return tutorId;
+    }
+
     public ZoneId getTimeZone() {
         return timeZone;
     }
