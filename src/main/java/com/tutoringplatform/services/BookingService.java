@@ -3,6 +3,8 @@ package com.tutoringplatform.services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Payment;
@@ -14,6 +16,7 @@ import com.tutoringplatform.observer.BookingObserver;
 import com.tutoringplatform.repositories.interfaces.IBookingRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
@@ -29,7 +32,9 @@ public class BookingService {
     @Autowired
     private PaymentService paymentService;
     @Autowired
-    private SubjectService subjectService;
+    private ISubjectRepository subjectRepository;
+    @Autowired
+    private AvailabilityService availabilityService;
     private List<BookingObserver> observers;
 
     @PostConstruct
@@ -62,32 +67,26 @@ public class BookingService {
 
     public Booking createBooking(String studentId, String tutorId, String subjectId,
             LocalDateTime dateTime, int durationHours) throws Exception {
+        Subject subject = subjectRepository.findById(subjectId);
         Student student = studentRepository.findById(studentId);
-        if (student == null) {
-            throw new Exception("Student not found");
-        }
-
         Tutor tutor = tutorRepository.findById(tutorId);
-        if (tutor == null) {
-            throw new Exception("Tutor not found");
-        }
 
-        Subject subject = subjectService.findById(subjectId);
         if (!tutor.getSubjects().contains(subject)) {
             throw new Exception("Tutor does not teach this subject");
         }
 
-        String day = dateTime.getDayOfWeek().toString().substring(0, 1)
-                + dateTime.getDayOfWeek().toString().substring(1).toLowerCase();
-        int hour = dateTime.getHour();
+        // NEW: Use availability service with timezone support
+        // Assume student is in same timezone as server for now (should get from student
+        // profile)
+        ZoneId studentTimeZone = ZoneId.systemDefault();
+        ZonedDateTime startTime = dateTime.atZone(studentTimeZone);
+        ZonedDateTime endTime = startTime.plusHours(durationHours);
 
-        // Check availability using service logic instead of model method
-        for (int i = 0; i < durationHours; i++) {
-            if (!checkTutorAvailability(tutor, day, hour + i)) {
-                throw new Exception("Tutor is not available at this time");
-            }
+        if (!availabilityService.isAvailable(tutorId, startTime, endTime, studentTimeZone)) {
+            throw new Exception("Tutor is not available at this time");
         }
 
+        // Check for booking conflicts
         List<Booking> tutorBookings = bookingRepository.findByTutorId(tutorId);
         for (Booking b : tutorBookings) {
             if (b.getStatus() != Booking.BookingStatus.CANCELLED &&
@@ -104,13 +103,6 @@ public class BookingService {
         return booking;
     }
 
-    public Booking confirmBookingWithPayment(String bookingId, String studentId) throws Exception {
-        Booking booking = findById(bookingId);
-        Payment payment = paymentService.processPayment(studentId, bookingId, booking.getTotalCost());
-        confirmBooking(bookingId, payment);
-        return findById(bookingId);
-    }
-
     private boolean isTimeConflict(Booking existing, LocalDateTime newTime, int newDuration) {
         LocalDateTime existingStart = existing.getDateTime();
         LocalDateTime existingEnd = existingStart.plusHours(existing.getDurationHours());
@@ -121,19 +113,18 @@ public class BookingService {
         return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
     }
 
-    public void confirmBooking(String bookingId, Payment payment) throws Exception {
+    public Booking confirmBooking(String bookingId, String studentId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId);
         if (booking == null) {
             throw new Exception("Booking not found");
         }
-
         if (booking.getStatus() != Booking.BookingStatus.PENDING) {
             throw new Exception("Booking is not in pending status");
         }
+        Payment payment = paymentService.processPayment(studentId, bookingId, booking.getTotalCost());
 
         booking.setPayment(payment);
         booking.setStatus(Booking.BookingStatus.CONFIRMED);
-        bookingRepository.update(booking);
 
         Student student = studentRepository.findById(booking.getStudentId());
         Tutor tutor = tutorRepository.findById(booking.getTutorId());
@@ -152,7 +143,11 @@ public class BookingService {
             System.err.println("Tutor with ID " + booking.getTutorId() + " not found during booking confirmation.");
         }
 
+        bookingRepository.update(booking);
+
         notifyObservers(new BookingEvent(BookingEvent.EventType.CONFIRMED, booking, student, tutor));
+
+        return booking;
     }
 
     public void cancelBooking(String bookingId) throws Exception {
@@ -218,16 +213,11 @@ public class BookingService {
         return booking;
     }
 
-    public List<Booking> findByStudent(String studentId) {
+    public List<Booking> findByStudentId(String studentId) {
         return bookingRepository.findByStudentId(studentId);
     }
 
-    public List<Booking> findByTutor(String tutorId) {
+    public List<Booking> findByTutorId(String tutorId) {
         return bookingRepository.findByTutorId(tutorId);
-    }
-
-    private boolean checkTutorAvailability(Tutor tutor, String day, int hour) {
-        return tutor.getAvailability().containsKey(day) &&
-                tutor.getAvailability().get(day).contains(hour);
     }
 }

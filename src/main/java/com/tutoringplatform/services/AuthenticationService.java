@@ -5,15 +5,15 @@ import com.tutoringplatform.factory.UserFactory;
 import com.tutoringplatform.models.User;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.repositories.interfaces.IAuthRepository;
+import com.tutoringplatform.repositories.interfaces.IAuthenticationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
-public class AuthService {
+public class AuthenticationService {
 
     @Autowired
-    private IAuthRepository authRepository;
+    private IAuthenticationRepository authRepository;
 
     @Autowired
     private UserFactory userFactory;
@@ -29,7 +29,7 @@ public class AuthService {
     public Student signupStudent(String name, String email, String password) throws Exception {
         validateSignup(email);
 
-        User user = userFactory.createUser(UserFactory.UserType.STUDENT, name, email, password);
+        User user = userFactory.createStudent(name, email, password);
         authRepository.saveUser(user);
         return (Student) user;
     }
@@ -42,7 +42,7 @@ public class AuthService {
             throw new Exception("Hourly rate must be positive");
         }
 
-        User user = userFactory.createUser(UserFactory.UserType.TUTOR, name, email, password, hourlyRate, description);
+        User user = userFactory.createTutor(name, email, password, hourlyRate, description);
         authRepository.saveUser(user);
         return (Tutor) user;
     }

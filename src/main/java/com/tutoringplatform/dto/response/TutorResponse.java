@@ -2,19 +2,21 @@
 package com.tutoringplatform.dto.response;
 
 import java.util.List;
-import java.util.Map;
+import com.tutoringplatform.models.UserType;
+import com.tutoringplatform.models.availability.RecurringAvailability;
 
 public class TutorResponse {
     private String id;
     private String name;
     private String email;
-    private String userType = "TUTOR";
+    private UserType userType = UserType.TUTOR;
     private double hourlyRate;
     private String description;
     private double averageRating;
     private double earnings;
     private List<SubjectResponse> subjects;
-    private Map<String, List<Integer>> availability;
+    private String timeZoneId;
+    private List<RecurringAvailability> availability;
 
     // All getters and setters
     public String getId() {
@@ -41,11 +43,11 @@ public class TutorResponse {
         this.email = email;
     }
 
-    public String getUserType() {
+    public UserType getUserType() {
         return userType;
     }
 
-    public void setUserType(String userType) {
+    public void setUserType(UserType userType) {
         this.userType = userType;
     }
 
@@ -89,11 +91,19 @@ public class TutorResponse {
         this.subjects = subjects;
     }
 
-    public Map<String, List<Integer>> getAvailability() {
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+
+    public List<RecurringAvailability> getAvailability() {
         return availability;
     }
 
-    public void setAvailability(Map<String, List<Integer>> availability) {
+    public void setAvailability(List<RecurringAvailability> availability) {
         this.availability = availability;
     }
 }

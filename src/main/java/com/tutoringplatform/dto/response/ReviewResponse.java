@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/tutoringplatform/dto/response/ReviewResponse.java
 package com.tutoringplatform.dto.response;
 
 import java.time.LocalDateTime;

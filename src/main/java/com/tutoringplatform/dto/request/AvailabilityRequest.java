@@ -1,32 +1,35 @@
-// FILE: src/main/java/com/tutoringplatform/dto/request/AvailabilityRequest.java
 package com.tutoringplatform.dto.request;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+
 public class AvailabilityRequest {
-    private String day;
-    private int hour;
-    private boolean add;
+    private DayOfWeek dayOfWeek;
+    private LocalTime startTime;
+    private LocalTime endTime;
 
-    public String getDay() {
-        return day;
+    // Getters and setters
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
     }
 
-    public void setDay(String day) {
-        this.day = day;
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
     }
 
-    public int getHour() {
-        return hour;
+    public LocalTime getStartTime() {
+        return startTime;
     }
 
-    public void setHour(int hour) {
-        this.hour = hour;
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
     }
 
-    public boolean isAdd() {
-        return add;
+    public LocalTime getEndTime() {
+        return endTime;
     }
 
-    public void setAdd(boolean add) {
-        this.add = add;
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
     }
 }

@@ -12,10 +12,6 @@ public abstract class User {
     protected UserType userType;
     protected List<Booking> bookings;
 
-    public enum UserType {
-        STUDENT, TUTOR
-    }
-
     public User(String name, String email, String password, UserType userType) {
         this.id = UUID.randomUUID().toString();
         this.name = name;

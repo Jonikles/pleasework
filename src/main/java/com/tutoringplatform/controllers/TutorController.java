@@ -2,10 +2,13 @@
 package com.tutoringplatform.controllers;
 
 import com.tutoringplatform.dto.request.AvailabilityRequest;
-import com.tutoringplatform.dto.response.*;
-import com.tutoringplatform.models.*;
+import com.tutoringplatform.dto.response.TutorResponse;
+import com.tutoringplatform.dto.response.SubjectResponse;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.models.availability.TutorAvailability;
+import com.tutoringplatform.services.AvailabilityService;
 import com.tutoringplatform.services.TutorService;
-import com.tutoringplatform.services.SubjectService;
 import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +26,7 @@ public class TutorController {
     private TutorService tutorService;
 
     @Autowired
-    private SubjectService subjectService;
+    private AvailabilityService availabilityService;
 
     @Autowired
     private DTOMapper dtoMapper;
@@ -50,9 +53,6 @@ public class TutorController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTutor(@PathVariable String id, @RequestBody Tutor tutor) {
         try {
-            if (!id.equals(tutor.getId())) {
-                return ResponseEntity.badRequest().body("ID mismatch");
-            }
             tutorService.update(tutor);
             return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
         } catch (Exception e) {
@@ -60,24 +60,38 @@ public class TutorController {
         }
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<?> searchTutors(
-            @RequestParam(required = false) String subjectId,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) Double minRating,
-            @RequestParam(required = false) String day,
-            @RequestParam(required = false) Integer hour) {
+
+    @PostMapping("/{id}/availability")
+    public ResponseEntity<?> addAvailability(
+            @PathVariable String id,
+            @RequestBody AvailabilityRequest request) {
         try {
-            Subject subject = null;
-            if (subjectId != null) {
-                subject = subjectService.findById(subjectId);
-            }
-            List<Tutor> tutors = tutorService.searchTutors(subject, minPrice, maxPrice, minRating, day, hour);
-            List<TutorResponse> responses = tutors.stream()
-                    .map(dtoMapper::toTutorResponse)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(responses);
+            availabilityService.addRecurringAvailability(
+                    id,
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime());
+
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            return ResponseEntity.ok(availability.getRecurringSlots());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/availability")
+    public ResponseEntity<?> removeAvailability(
+            @PathVariable String id,
+            @RequestBody AvailabilityRequest request) {
+        try {
+            availabilityService.removeRecurringAvailability(
+                    id,
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime());
+
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            return ResponseEntity.ok(availability.getRecurringSlots());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -88,11 +102,28 @@ public class TutorController {
             @PathVariable String id,
             @RequestBody AvailabilityRequest request) {
         try {
-            tutorService.updateAvailability(id, request.getDay(), request.getHour(), request.isAdd());
-            Tutor tutor = tutorService.findById(id);
-            return ResponseEntity.ok(tutor.getAvailability());
+            availabilityService.addRecurringAvailability(
+                    id,
+                    request.getDayOfWeek(),
+                    request.getStartTime(),
+                    request.getEndTime());
+
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            return ResponseEntity.ok(availability.getRecurringSlots());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+
+    @GetMapping("/{id}/availability")
+    public ResponseEntity<?> getTutorAvailability(@PathVariable String id) {
+        try {
+            TutorAvailability availability = availabilityService.getAvailability(id);
+            // Convert to a response DTO
+            return ResponseEntity.ok(availability);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -125,8 +156,18 @@ public class TutorController {
     @GetMapping("/{id}/earnings")
     public ResponseEntity<?> getEarnings(@PathVariable String id) {
         try {
-            Tutor tutor = tutorService.findById(id);
-            return ResponseEntity.ok(new EarningsResponse(tutor.getEarnings()));
+            double earnings = tutorService.getEarnings(id);
+            return ResponseEntity.ok(dtoMapper.toEarningsResponse(earnings));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/average-rating")
+    public ResponseEntity<?> getAverageRating(@PathVariable String id) {
+        try {
+            double averageRating = tutorService.getAverageRating(id);
+            return ResponseEntity.ok(dtoMapper.toAverageRatingResponse(averageRating));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

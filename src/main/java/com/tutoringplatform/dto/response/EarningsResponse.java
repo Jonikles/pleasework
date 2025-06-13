@@ -4,10 +4,6 @@ package com.tutoringplatform.dto.response;
 public class EarningsResponse {
     private double earnings;
 
-    public EarningsResponse(double earnings) {
-        this.earnings = earnings;
-    }
-
     public double getEarnings() {
         return earnings;
     }

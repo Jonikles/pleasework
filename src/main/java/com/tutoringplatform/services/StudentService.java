@@ -22,7 +22,13 @@ public class StudentService extends UserService<Student> {
         repository.save(student);
     }
 
-    public void addFunds(String studentId, double amount) throws Exception {
+
+    public double getBalance(String studentId) throws Exception {
+        Student student = findById(studentId);
+        return student.getBalance();
+    }
+
+    public double addFunds(String studentId, double amount) throws Exception {
         Student student = findById(studentId);
 
         if (amount <= 0) {
@@ -30,6 +36,7 @@ public class StudentService extends UserService<Student> {
         }
         student.setBalance(student.getBalance() + amount);
         repository.update(student);
+        return student.getBalance();
     }
 
     public void deductFunds(String studentId, double amount) throws Exception {

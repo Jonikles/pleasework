@@ -1,10 +1,11 @@
 // FILE: src/main/java/com/tutoringplatform/controllers/BookingController.java
 package com.tutoringplatform.controllers;
 
-import com.tutoringplatform.dto.request.*;
-import com.tutoringplatform.dto.response.*;
-import com.tutoringplatform.models.*;
-import com.tutoringplatform.services.*;
+import com.tutoringplatform.dto.request.BookingRequest;
+import com.tutoringplatform.dto.request.PaymentRequest;
+import com.tutoringplatform.dto.response.BookingResponse;
+import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.services.BookingService;
 import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +48,7 @@ public class BookingController {
 
     @GetMapping("/student/{studentId}")
     public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) {
-        List<Booking> bookings = bookingService.findByStudent(studentId);
+        List<Booking> bookings = bookingService.findByStudentId(studentId);
         List<BookingResponse> responses = bookings.stream()
                 .map(dtoMapper::toBookingResponse)
                 .collect(Collectors.toList());
@@ -56,7 +57,7 @@ public class BookingController {
 
     @GetMapping("/tutor/{tutorId}")
     public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) {
-        List<Booking> bookings = bookingService.findByTutor(tutorId);
+        List<Booking> bookings = bookingService.findByTutorId(tutorId);
         List<BookingResponse> responses = bookings.stream()
                 .map(dtoMapper::toBookingResponse)
                 .collect(Collectors.toList());
@@ -66,7 +67,7 @@ public class BookingController {
     @PostMapping("/{id}/confirm")
     public ResponseEntity<?> confirmBooking(@PathVariable String id, @RequestBody PaymentRequest request) {
         try {
-            Booking booking = bookingService.confirmBookingWithPayment(id, request.getStudentId());
+            Booking booking = bookingService.confirmBooking(id, request.getStudentId());
             return ResponseEntity.ok(dtoMapper.toBookingResponse(booking));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

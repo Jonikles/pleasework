@@ -1,9 +1,13 @@
 // FILE: src/main/java/com/tutoringplatform/controllers/AuthController.java
 package com.tutoringplatform.controllers;
 
-import com.tutoringplatform.dto.request.*;
-import com.tutoringplatform.models.*;
-import com.tutoringplatform.services.AuthService;
+import com.tutoringplatform.dto.request.LoginRequest;
+import com.tutoringplatform.dto.request.StudentSignupRequest;
+import com.tutoringplatform.dto.request.TutorSignupRequest;
+import com.tutoringplatform.models.Student;
+import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.models.User;
+import com.tutoringplatform.services.AuthenticationService;
 import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +17,10 @@ import org.springframework.http.HttpStatus;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
-public class AuthController {
+public class AuthenticationController {
 
     @Autowired
-    private AuthService authService;
+    private AuthenticationService authService;
 
     @Autowired
     private DTOMapper dtoMapper;

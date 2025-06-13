@@ -2,7 +2,7 @@
 package com.tutoringplatform.controllers;
 
 import com.tutoringplatform.dto.request.AddFundsRequest;
-import com.tutoringplatform.dto.response.*;
+import com.tutoringplatform.dto.response.StudentResponse;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.services.StudentService;
 import com.tutoringplatform.util.DTOMapper;
@@ -37,9 +37,6 @@ public class StudentController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateStudent(@PathVariable String id, @RequestBody Student student) {
         try {
-            if (!id.equals(student.getId())) {
-                return ResponseEntity.badRequest().body("ID mismatch");
-            }
             studentService.update(student);
             return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
         } catch (Exception e) {
@@ -50,12 +47,8 @@ public class StudentController {
     @PostMapping("/{id}/add-funds")
     public ResponseEntity<?> addFunds(@PathVariable String id, @RequestBody AddFundsRequest request) {
         try {
-            if (request.getAmount() <= 0) {
-                return ResponseEntity.badRequest().body("Invalid amount");
-            }
-            studentService.addFunds(id, request.getAmount());
-            Student student = studentService.findById(id);
-            return ResponseEntity.ok(new BalanceResponse(student.getBalance()));
+            double balance = studentService.addFunds(id, request.getAmount());
+            return ResponseEntity.ok(dtoMapper.toBalanceResponse(balance));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -64,8 +57,8 @@ public class StudentController {
     @GetMapping("/{id}/balance")
     public ResponseEntity<?> getBalance(@PathVariable String id) {
         try {
-            Student student = studentService.findById(id);
-            return ResponseEntity.ok(new BalanceResponse(student.getBalance()));
+            double balance = studentService.getBalance(id);
+            return ResponseEntity.ok(dtoMapper.toBalanceResponse(balance));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

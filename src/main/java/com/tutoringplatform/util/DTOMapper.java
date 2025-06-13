@@ -3,11 +3,17 @@ package com.tutoringplatform.util;
 
 import com.tutoringplatform.dto.response.*;
 import com.tutoringplatform.models.*;
+import com.tutoringplatform.models.availability.TutorAvailability;
+import com.tutoringplatform.services.AvailabilityService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Component
 public class DTOMapper {
+    @Autowired
+    private AvailabilityService availabilityService;
 
     public StudentResponse toStudentResponse(Student student) {
         StudentResponse response = new StudentResponse();
@@ -27,12 +33,19 @@ public class DTOMapper {
         response.setDescription(tutor.getDescription());
         response.setAverageRating(tutor.getAverageRating());
         response.setEarnings(tutor.getEarnings());
-        response.setAvailability(tutor.getAvailability());
+        response.setTimeZoneId(tutor.getTimeZoneId());
 
         if (tutor.getSubjects() != null) {
             response.setSubjects(tutor.getSubjects().stream()
                     .map(this::toSubjectResponse)
                     .collect(Collectors.toList()));
+        }
+
+        try {
+            TutorAvailability availability = availabilityService.getAvailability(tutor.getId());
+            response.setAvailability(availability.getRecurringSlots());
+        } catch (Exception e) {
+            response.setAvailability(new ArrayList<>());
         }
 
         return response;
@@ -68,6 +81,24 @@ public class DTOMapper {
         response.setRating(review.getRating());
         response.setComment(review.getComment());
         response.setTimestamp(review.getTimestamp());
+        return response;
+    }
+
+    public AverageRatingResponse toAverageRatingResponse(double averageRating) {
+        AverageRatingResponse response = new AverageRatingResponse();
+        response.setAverageRating(averageRating);
+        return response;
+    }
+
+    public EarningsResponse toEarningsResponse(double earnings) {
+        EarningsResponse response = new EarningsResponse();
+        response.setEarnings(earnings);
+        return response;
+    }
+
+    public BalanceResponse toBalanceResponse(double balance) {
+        BalanceResponse response = new BalanceResponse();
+        response.setBalance(balance);
         return response;
     }
 

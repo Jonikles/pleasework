@@ -1,11 +1,13 @@
 // FILE: src/main/java/com/tutoringplatform/dto/response/StudentResponse.java
 package com.tutoringplatform.dto.response;
 
+import com.tutoringplatform.models.UserType;
+
 public class StudentResponse {
     private String id;
     private String name;
     private String email;
-    private String userType = "STUDENT";
+    private UserType userType = UserType.STUDENT;
     private double balance;
 
     public String getId() {
@@ -32,11 +34,11 @@ public class StudentResponse {
         this.email = email;
     }
 
-    public String getUserType() {
+    public UserType getUserType() {
         return userType;
     }
 
-    public void setUserType(String userType) {
+    public void setUserType(UserType userType) {
         this.userType = userType;
     }
 
