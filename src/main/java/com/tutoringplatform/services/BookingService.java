@@ -1,7 +1,6 @@
 package com.tutoringplatform.services;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -20,46 +19,30 @@ import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import javax.annotation.PostConstruct;
 
 @Service
 public class BookingService {
-    @Autowired
-    private IBookingRepository bookingRepository;
-    @Autowired
-    private IStudentRepository studentRepository;
-    @Autowired
-    private ITutorRepository tutorRepository;
-    @Autowired
-    private PaymentService paymentService;
-    @Autowired
-    private ISubjectRepository subjectRepository;
-    @Autowired
-    private AvailabilityService availabilityService;
-    @Autowired
-    private TutorService tutorService;
+    private final IBookingRepository bookingRepository;
+    private final IStudentRepository studentRepository;
+    private final ITutorRepository tutorRepository;
+    private final PaymentService paymentService;
+    private final ISubjectRepository subjectRepository;
+    private final AvailabilityService availabilityService;
+    private final TutorService tutorService;
     private List<BookingObserver> observers;
 
-    @PostConstruct
-    public void init() {
-        this.observers = new ArrayList<>();
-    }
-
-    public BookingService(IBookingRepository bookingRepository,
-            IStudentRepository studentRepository,
-            ITutorRepository tutorRepository) {
+    @Autowired 
+    public BookingService(IBookingRepository bookingRepository, IStudentRepository studentRepository,
+            ITutorRepository tutorRepository, PaymentService paymentService, ISubjectRepository subjectRepository,
+            AvailabilityService availabilityService, TutorService tutorService, List<BookingObserver> observers) {
         this.bookingRepository = bookingRepository;
         this.studentRepository = studentRepository;
         this.tutorRepository = tutorRepository;
-        this.observers = new ArrayList<>();
-    }
-
-    public void addObserver(BookingObserver observer) {
-        observers.add(observer);
-    }
-
-    public void removeObserver(BookingObserver observer) {
-        observers.remove(observer);
+        this.paymentService = paymentService;
+        this.subjectRepository = subjectRepository;
+        this.availabilityService = availabilityService;
+        this.tutorService = tutorService;
+        this.observers = observers;
     }
 
     private void notifyObservers(BookingEvent event) {
@@ -117,7 +100,7 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking confirmBooking(String bookingId, String studentId) throws Exception {
+    public Booking confirmBooking(String bookingId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId);
         if (booking == null) {
             throw new Exception("Booking not found");
@@ -125,21 +108,23 @@ public class BookingService {
         if (booking.getStatus() != Booking.BookingStatus.PENDING) {
             throw new Exception("Booking is not in pending status");
         }
-        Payment payment = paymentService.processPayment(studentId, bookingId, booking.getTotalCost());
-
-        booking.setPayment(payment);
-        booking.setStatus(Booking.BookingStatus.CONFIRMED);
-
         Student student = studentRepository.findById(booking.getStudentId());
-        Tutor tutor = tutorRepository.findById(booking.getTutorId());
 
         if (student != null) {
             student.addBooking(booking);
             studentRepository.update(student);
         } else {
             System.err.println("Student with ID " + booking.getStudentId() + " not found during booking confirmation.");
+            return null;
         }
 
+        Payment payment = paymentService.processPayment(student.getId(), bookingId, booking.getTotalCost());
+
+        booking.setPayment(payment);
+        booking.setStatus(Booking.BookingStatus.CONFIRMED);
+
+        Tutor tutor = tutorRepository.findById(booking.getTutorId());
+        
         if (tutor != null) {
             tutor.addBooking(booking);
             tutorRepository.update(tutor);

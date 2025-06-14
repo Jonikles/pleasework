@@ -2,7 +2,6 @@
 package com.tutoringplatform.controllers;
 
 import com.tutoringplatform.dto.request.BookingRequest;
-import com.tutoringplatform.dto.request.PaymentRequest;
 import com.tutoringplatform.dto.response.BookingResponse;
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.services.BookingService;
@@ -16,14 +15,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "*")
 public class BookingController {
 
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public BookingController(BookingService bookingService, DTOMapper dtoMapper) {
+        this.bookingService = bookingService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody BookingRequest request) {
@@ -65,9 +66,9 @@ public class BookingController {
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<?> confirmBooking(@PathVariable String id, @RequestBody PaymentRequest request) {
+    public ResponseEntity<?> confirmBooking(@PathVariable String id) {
         try {
-            Booking booking = bookingService.confirmBooking(id, request.getStudentId());
+            Booking booking = bookingService.confirmBooking(id);
             return ResponseEntity.ok(dtoMapper.toBookingResponse(booking));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

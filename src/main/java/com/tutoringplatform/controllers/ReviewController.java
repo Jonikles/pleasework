@@ -15,14 +15,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reviews")
-@CrossOrigin(origins = "*")
 public class ReviewController {
 
-    @Autowired
-    private ReviewService reviewService;
+    private final ReviewService reviewService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public ReviewController(ReviewService reviewService, DTOMapper dtoMapper) {
+        this.reviewService = reviewService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @PostMapping
     public ResponseEntity<?> createReview(@RequestBody ReviewRequest request) {

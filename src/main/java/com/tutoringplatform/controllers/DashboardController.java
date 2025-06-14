@@ -11,11 +11,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/dashboard")
-@CrossOrigin(origins = "*")
 public class DashboardController {
 
+    private final DashboardService dashboardService;
+
     @Autowired
-    private DashboardService dashboardService;
+    public DashboardController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
 
     @GetMapping("/student/{studentId}")
     public ResponseEntity<?> getStudentDashboard(@PathVariable String studentId) {

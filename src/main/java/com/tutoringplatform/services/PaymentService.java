@@ -14,20 +14,20 @@ import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import javax.annotation.PostConstruct;
 
 @Service
 public class PaymentService {
-    @Autowired
-    private IPaymentRepository paymentRepository;
-    @Autowired
-    private IStudentRepository studentRepository;
-    @Autowired
-    private IBookingRepository bookingRepository;
-    private Stack<IPaymentCommand> commandHistory;
+    private final IPaymentRepository paymentRepository;
+    private final IStudentRepository studentRepository;
+    private final IBookingRepository bookingRepository;
+    private final Stack<IPaymentCommand> commandHistory;
 
-    @PostConstruct
-    public void init() {
+    @Autowired
+    public PaymentService(IPaymentRepository paymentRepository, IStudentRepository studentRepository,
+            IBookingRepository bookingRepository) {
+        this.paymentRepository = paymentRepository;
+        this.studentRepository = studentRepository;
+        this.bookingRepository = bookingRepository;
         this.commandHistory = new Stack<>();
     }
 

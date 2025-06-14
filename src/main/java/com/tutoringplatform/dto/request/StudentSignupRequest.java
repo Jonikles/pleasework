@@ -35,7 +35,7 @@ public class StudentSignupRequest {
         return timeZoneId;
     }
 
-    public void setTimeZoneID(String timeZoneId) {
+    public void setTimeZoneId(String timeZoneId) {
         this.timeZoneId = timeZoneId;
     }
 }

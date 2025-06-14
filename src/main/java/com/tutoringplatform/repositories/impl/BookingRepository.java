@@ -47,6 +47,18 @@ public class BookingRepository implements IBookingRepository {
     }
 
     @Override
+    public boolean hasCompletedBooking(String studentId, String tutorId) {
+        for (Booking booking : bookings.values()) {
+            if (booking.getStudentId().equals(studentId) &&
+                    booking.getTutorId().equals(tutorId) &&
+                    booking.getStatus() == Booking.BookingStatus.COMPLETED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void save(Booking booking) {
         bookings.put(booking.getId(), booking);
     }

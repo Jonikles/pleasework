@@ -16,14 +16,16 @@ import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AuthenticationController {
 
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public AuthenticationController(AuthenticationService authenticationService, DTOMapper dtoMapper) {
+        this.authenticationService = authenticationService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {

@@ -12,11 +12,14 @@ import java.util.*;
 @Service
 public class AvailabilityService {
 
-    @Autowired
-    private IAvailabilityRepository availabilityRepository;
+    private final IAvailabilityRepository availabilityRepository;
+    private final TutorService tutorService;
 
     @Autowired
-    private TutorService tutorService;
+    public AvailabilityService(IAvailabilityRepository availabilityRepository, TutorService tutorService) {
+        this.availabilityRepository = availabilityRepository;
+        this.tutorService = tutorService;
+    }
 
     public TutorAvailability getAvailability(String tutorId) throws Exception {
         TutorAvailability availability = availabilityRepository.findByTutorId(tutorId);

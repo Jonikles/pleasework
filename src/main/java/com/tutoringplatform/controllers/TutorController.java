@@ -9,41 +9,34 @@ import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.availability.TutorAvailability;
 import com.tutoringplatform.services.AvailabilityService;
 import com.tutoringplatform.services.TutorService;
-import com.tutoringplatform.services.SearchService;
 import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import java.time.LocalDateTime;
-import java.time.DayOfWeek;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
 import com.tutoringplatform.services.FileService;
 import com.tutoringplatform.dto.request.UpdateTutorRequest;
 import org.springframework.web.multipart.MultipartFile;
-import com.tutoringplatform.dto.response.TutorSearchResponse;
 
 @RestController
 @RequestMapping("/api/tutors")
-@CrossOrigin(origins = "*")
 public class TutorController {
 
-    @Autowired
-    private TutorService tutorService;
+    private final TutorService tutorService;
+    private final AvailabilityService availabilityService;
+    private final FileService fileService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private AvailabilityService availabilityService;
-
-    @Autowired
-    private SearchService searchService;
-
-    @Autowired
-    private FileService fileService;
-
-    @Autowired
-    private DTOMapper dtoMapper;
+    public TutorController(TutorService tutorService, AvailabilityService availabilityService, FileService fileService, DTOMapper dtoMapper) {
+        this.tutorService = tutorService;
+        this.availabilityService = availabilityService;
+        this.fileService = fileService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getTutor(@PathVariable String id) {
@@ -195,47 +188,6 @@ public class TutorController {
             return ResponseEntity.ok(dtoMapper.toAverageRatingResponse(averageRating));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-    
-    @GetMapping("/search")
-    public ResponseEntity<?> searchTutors(
-            @RequestParam(required = false) String subjectId,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) Double minRating,
-            @RequestParam(required = false) String day,
-            @RequestParam(required = false) Integer hour) {
-        try {
-            // Convert day/hour to LocalDateTime if provided
-            LocalDateTime availableFrom = null;
-            LocalDateTime availableTo = null;
-
-            if (day != null && hour != null) {
-                // Find next occurrence of the day
-                LocalDateTime now = LocalDateTime.now();
-                DayOfWeek targetDay = DayOfWeek.valueOf(day.toUpperCase());
-                LocalDateTime target = now.with(targetDay).withHour(hour).withMinute(0);
-
-                if (target.isBefore(now)) {
-                    target = target.plusWeeks(1);
-                }
-
-                availableFrom = target;
-                availableTo = target.plusHours(1);
-            }
-
-            SearchService.TutorSearchCriteria criteria = new SearchService.TutorSearchCriteria.Builder()
-                    .withSubject(subjectId)
-                    .withPriceRange(minPrice, maxPrice)
-                    .withMinRating(minRating)
-                    .withAvailability(availableFrom, availableTo)
-                    .build();
-
-            List<TutorSearchResponse> results = searchService.searchTutors(criteria);
-            return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

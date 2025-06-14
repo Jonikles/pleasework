@@ -13,11 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Service
 public class AuthenticationService {
 
-    @Autowired
-    private IAuthenticationRepository authenticationRepository;
+    private final IAuthenticationRepository authenticationRepository;
+    private final UserFactory userFactory;
 
     @Autowired
-    private UserFactory userFactory;
+    public AuthenticationService(IAuthenticationRepository authenticationRepository, UserFactory userFactory) {
+        this.authenticationRepository = authenticationRepository;
+        this.userFactory = userFactory;
+    }
 
     public User login(String email, String password) throws Exception {
         User user = authenticationRepository.findByEmail(email);

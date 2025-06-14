@@ -11,11 +11,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/search")
-@CrossOrigin(origins = "*")
 public class SearchController {
 
+    private final SearchService searchService;
+
     @Autowired
-    private SearchService searchService;
+    public SearchController(SearchService searchService) {
+        this.searchService = searchService;
+    }
 
     @GetMapping("/tutors")
     public ResponseEntity<?> searchTutors(

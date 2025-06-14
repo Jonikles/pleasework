@@ -13,26 +13,26 @@ import java.util.stream.Collectors;
 @Service
 public class DashboardService {
 
-    @Autowired
-    private StudentService studentService;
+    private final StudentService studentService;
+    private final BookingService bookingService;
+    private final TutorService tutorService;
+    private final SubjectService subjectService;
+    private final ReviewService reviewService;
+    private final SearchService searchService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private BookingService bookingService;
-
-    @Autowired
-    private TutorService tutorService;
-
-    @Autowired
-    private SubjectService subjectService;
-
-    @Autowired
-    private ReviewService reviewService;
-
-    @Autowired
-    private SearchService searchService;
-
-    @Autowired
-    private DTOMapper dtoMapper;
+    public DashboardService(StudentService studentService, BookingService bookingService, TutorService tutorService,
+            SubjectService subjectService, ReviewService reviewService, SearchService searchService,
+            DTOMapper dtoMapper) {
+        this.studentService = studentService;
+        this.bookingService = bookingService;
+        this.tutorService = tutorService;
+        this.subjectService = subjectService;
+        this.reviewService = reviewService;
+        this.searchService = searchService;
+        this.dtoMapper = dtoMapper;
+    }
 
     public StudentDashboardResponse getStudentDashboard(String studentId) throws Exception {
         StudentDashboardResponse dashboard = new StudentDashboardResponse();

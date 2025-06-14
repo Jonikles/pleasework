@@ -2,9 +2,7 @@ package com.tutoringplatform.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Review;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Tutor;
@@ -17,30 +15,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class ReviewService {
+    private final IReviewRepository reviewRepository;
+    private final IBookingRepository bookingRepository;
+    private final ITutorRepository tutorRepository;
+    private final IStudentRepository studentRepository;
+    private final StudentService studentService;
+    private final TutorService tutorService;
+
     @Autowired
-    private IReviewRepository reviewRepository;
-    @Autowired
-    private IBookingRepository bookingRepository;
-    @Autowired
-    private ITutorRepository tutorRepository;
-    @Autowired
-    private IStudentRepository studentRepository;
-    @Autowired
-    private StudentService studentService;
-    @Autowired
-    private TutorService tutorService;
+    public ReviewService(IReviewRepository reviewRepository, IBookingRepository bookingRepository,
+            ITutorRepository tutorRepository, IStudentRepository studentRepository, StudentService studentService,
+            TutorService tutorService) {
+        this.reviewRepository = reviewRepository;
+        this.bookingRepository = bookingRepository;
+        this.tutorRepository = tutorRepository;
+        this.studentRepository = studentRepository;
+        this.studentService = studentService;
+        this.tutorService = tutorService;
+    }
 
     public Review createOrUpdateReview(String studentId, String tutorId, int rating, String comment) throws Exception {
         Student student = studentService.findById(studentId);
         Tutor tutor = tutorService.findById(tutorId);
 
         // Check if student has completed any bookings with this tutor
-        List<Booking> completedBookings = bookingRepository.findByStudentId(studentId).stream()
-                .filter(b -> b.getTutorId().equals(tutorId))
-                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
-                .collect(Collectors.toList());
-
-        if (completedBookings.isEmpty()) {
+        if (!bookingRepository.hasCompletedBooking(studentId, tutorId)) {
             throw new Exception("Can only review tutors you've had completed sessions with");
         }
 

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import com.tutoringplatform.config.AppProperties;
 
 @Component
 public class DTOMapper {
@@ -21,6 +22,8 @@ public class DTOMapper {
     private StudentService studentService;
     @Autowired
     private TutorService tutorService;
+    @Autowired
+    private AppProperties appProperties;
 
     public StudentResponse toStudentResponse(Student student) {
         StudentResponse response = new StudentResponse();
@@ -30,7 +33,7 @@ public class DTOMapper {
         response.setBalance(student.getBalance());
         response.setTimeZoneId(student.getTimeZoneId());
         if (student.getProfilePictureId() != null) {
-            response.setProfilePictureUrl("/api/files/" + student.getProfilePictureId());
+            response.setProfilePictureUrl(appProperties.getApi().getFilesBaseUrl() + student.getProfilePictureId());
         }
         return response;
     }
@@ -66,7 +69,7 @@ public class DTOMapper {
         }
 
         if (tutor.getProfilePictureId() != null) {
-            response.setProfilePictureUrl("/api/files/" + tutor.getProfilePictureId());
+            response.setProfilePictureUrl(appProperties.getApi().getFilesBaseUrl() + tutor.getProfilePictureId());
         }
 
         return response;

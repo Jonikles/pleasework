@@ -19,17 +19,18 @@ import com.tutoringplatform.dto.request.UpdateStudentRequest;
 
 @RestController
 @RequestMapping("/api/students")
-@CrossOrigin(origins = "*")
 public class StudentController {
 
-    @Autowired
-    private FileService fileService;
+    private final FileService fileService;
+    private final StudentService studentService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private DTOMapper dtoMapper;
+    public StudentController(FileService fileService, StudentService studentService, DTOMapper dtoMapper) {
+        this.fileService = fileService;
+        this.studentService = studentService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getStudent(@PathVariable String id) {

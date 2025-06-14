@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class SubjectService {
+    private final ISubjectRepository subjectRepository;
+
     @Autowired
-    private ISubjectRepository subjectRepository;
+    public SubjectService(ISubjectRepository subjectRepository) {
+        this.subjectRepository = subjectRepository;
+    }
 
     public Subject createSubject(String name, String category) throws Exception {
         if (subjectRepository.findByName(name) != null) {

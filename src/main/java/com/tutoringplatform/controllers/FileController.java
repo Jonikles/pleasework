@@ -13,11 +13,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "*")
 public class FileController {
 
+    private final FileService fileService;
+
     @Autowired
-    private FileService fileService;
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
+    }
 
     @PostMapping("/upload/{userId}")
     public ResponseEntity<?> uploadFile(

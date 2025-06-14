@@ -15,14 +15,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/subjects")
-@CrossOrigin(origins = "*")
 public class SubjectController {
 
-    @Autowired
-    private SubjectService subjectService;
+    private final SubjectService subjectService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public SubjectController(SubjectService subjectService, DTOMapper dtoMapper) {
+        this.subjectService = subjectService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllSubjects() {

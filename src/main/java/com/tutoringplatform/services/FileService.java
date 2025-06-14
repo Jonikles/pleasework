@@ -14,12 +14,12 @@ import java.util.*;
 @Service
 public class FileService {
 
-    @Autowired
-    private IFileRepository fileRepository;
-
+    private final IFileRepository fileRepository;
     private final Path fileStorageLocation = Paths.get("uploads").toAbsolutePath().normalize();
 
-    public FileService() {
+    @Autowired
+    public FileService(IFileRepository fileRepository) {
+        this.fileRepository = fileRepository;
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {

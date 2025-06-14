@@ -14,12 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class TutorService extends UserService<Tutor> {
-    @Autowired
-    private SubjectService subjectService;
+    private final SubjectService subjectService;
 
     @Autowired
-    public TutorService(ITutorRepository repository) {
+    public TutorService(ITutorRepository repository, SubjectService subjectService) {
         super(repository);
+        this.subjectService = subjectService;
     }
 
     public void register(Tutor tutor) throws Exception {
@@ -41,13 +41,6 @@ public class TutorService extends UserService<Tutor> {
                 .average()
                 .orElse(0.0);
     }
-
-    public void addAvailability(String tutorId, String day, int hour) throws Exception {
-        Tutor tutor = findById(tutorId);
-        
-        repository.update(tutor);
-    }
-
 
     public void addEarnings(String tutorId, double amount) throws Exception {
         Tutor tutor = findById(tutorId);
