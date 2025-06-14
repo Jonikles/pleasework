@@ -38,12 +38,21 @@ public class PaymentService {
             throw new Exception("Student not found");
         }
 
+        if (student.getBalance() < amount) {
+            throw new Exception("Student does not have enough balance");
+        }
+
         Payment payment = new Payment(bookingId, amount);
 
         ProcessPaymentCommand command = new ProcessPaymentCommand(
-                payment, student, amount, paymentRepository, studentRepository);
+                payment, student, amount);
+
 
         command.execute();
+
+        paymentRepository.save(payment);
+        studentRepository.update(student);
+
         commandHistory.push(command);
 
         return payment;
@@ -67,9 +76,13 @@ public class PaymentService {
         }
 
         RefundPaymentCommand command = new RefundPaymentCommand(
-                payment, student, payment.getAmount(), paymentRepository, studentRepository);
+                payment, student, payment.getAmount());
+
 
         command.execute();
+
+        paymentRepository.update(payment);
+        studentRepository.update(student);
         commandHistory.push(command);
     }
 
@@ -79,6 +92,14 @@ public class PaymentService {
         }
 
         IPaymentCommand lastCommand = commandHistory.pop();
+
+        Payment payment = lastCommand.getPayment();
+        Booking booking = bookingRepository.findById(payment.getBookingId());
+        Student student = studentRepository.findById(booking.getStudentId());
+
+        paymentRepository.update(payment);
+        studentRepository.update(student);
+
         lastCommand.undo();
     }
 
