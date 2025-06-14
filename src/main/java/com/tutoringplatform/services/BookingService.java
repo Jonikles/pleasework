@@ -59,6 +59,7 @@ public class BookingService {
         // Assume student is in same timezone as server for now (should get from student
         // profile)
         ZoneId studentTimeZone = student.getTimeZone();
+        ZoneId tutorTimeZone = tutor.getTimeZone();
         ZonedDateTime startTime = dateTime.atZone(studentTimeZone);
         ZonedDateTime endTime = startTime.plusHours(durationHours);
 
@@ -66,12 +67,22 @@ public class BookingService {
             throw new Exception("Tutor is not available at this time");
         }
 
+        ZonedDateTime newBookingStartInTutorTZ = startTime.withZoneSameInstant(tutorTimeZone);
+
         // Check for booking conflicts
         List<Booking> tutorBookings = bookingRepository.findByTutorId(tutorId);
-        for (Booking b : tutorBookings) {
-            if (b.getStatus() != Booking.BookingStatus.CANCELLED &&
-                    isTimeConflict(b, dateTime, durationHours)) {
-                throw new Exception("Time slot already booked");
+        for (Booking existingBooking : tutorBookings) {
+            if (existingBooking.getStatus() != Booking.BookingStatus.CANCELLED) {
+                // Also get the existing booking's start time, assuming it's stored relative to
+                // the tutor's timezone.
+                // The most robust way is to treat the stored LocalDateTime as being in the
+                // tutor's zone.
+                ZonedDateTime existingStartInTutorTZ = existingBooking.getDateTime().atZone(tutorTimeZone);
+
+                if (isTimeConflict(existingStartInTutorTZ, existingBooking.getDurationHours(), newBookingStartInTutorTZ,
+                        durationHours)) {
+                    throw new Exception("Time slot already booked");
+                }
             }
         }
 
@@ -83,13 +94,15 @@ public class BookingService {
         return booking;
     }
 
-    private boolean isTimeConflict(Booking existing, LocalDateTime newTime, int newDuration) {
-        LocalDateTime existingStart = existing.getDateTime();
-        LocalDateTime existingEnd = existingStart.plusHours(existing.getDurationHours());
+    private boolean isTimeConflict(ZonedDateTime existingStart, int existingDuration, ZonedDateTime newStart,
+            int newDuration) {
+        // Calculate the end times for both bookings.
+        ZonedDateTime existingEnd = existingStart.plusHours(existingDuration);
+        ZonedDateTime newEnd = newStart.plusHours(newDuration);
 
-        LocalDateTime newStart = newTime;
-        LocalDateTime newEnd = newStart.plusHours(newDuration);
-
+        // The classic interval overlap formula: (StartA < EndB) and (EndA > StartB).
+        // This works perfectly with ZonedDateTime because it compares exact moments in
+        // time.
         return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
     }
 
