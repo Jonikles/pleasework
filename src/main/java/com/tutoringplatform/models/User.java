@@ -3,6 +3,7 @@ package com.tutoringplatform.models;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.time.ZoneId;
 
 public abstract class User {
     protected String id;
@@ -11,6 +12,7 @@ public abstract class User {
     protected String password;
     protected UserType userType;
     protected List<Booking> bookings;
+    protected String timeZoneId;
 
     public User(String name, String email, String password, UserType userType) {
         this.id = UUID.randomUUID().toString();
@@ -19,6 +21,7 @@ public abstract class User {
         this.password = password;
         this.userType = userType;
         this.bookings = new ArrayList<>();
+        this.timeZoneId = ZoneId.systemDefault().getId();
     }
 
     public void addBooking(Booking booking) {
@@ -77,4 +80,19 @@ public abstract class User {
         this.bookings = bookings;
     }
 
+    public ZoneId getTimeZone() {
+        return ZoneId.of(timeZoneId);
+    }
+
+    public void setTimeZone(ZoneId timeZone) {
+        this.timeZoneId = timeZone.getId();
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
 }

@@ -9,6 +9,7 @@ public class StudentResponse {
     private String email;
     private String userType = UserType.STUDENT.getDisplayName();
     private double balance;
+    private String timeZoneId;
 
     public String getId() {
         return id;
@@ -48,5 +49,13 @@ public class StudentResponse {
 
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
     }
 }

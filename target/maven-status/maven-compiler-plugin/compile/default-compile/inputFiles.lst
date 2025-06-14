@@ -8,12 +8,16 @@ C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\com
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\config\DataInitializationConfiguration.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\response\StudentResponse.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\request\ReviewRequest.java
+C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\response\EnrichedBookingResponse.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\repositories\impl\BookingRepository.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\models\Tutor.java
-C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\controllers\UserController.java
+C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\repositories\interfaces\IAvailabilityRepository.java
+C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\repositories\impl\AvailabilityRepository.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\response\AverageRatingResponse.java
+C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\response\StudentDashboardResponse.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\response\UserResponse.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\response\BalanceResponse.java
+C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\controllers\DashboardController.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\repositories\interfaces\ITutorRepository.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\dto\request\PaymentRequest.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\repositories\interfaces\IPaymentRepository.java
@@ -56,6 +60,7 @@ C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\mod
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\services\TutorService.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\repositories\impl\TutorRepository.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\repositories\interfaces\ISubjectRepository.java
+C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\services\DashboardService.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\controllers\AuthenticationController.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\models\availability\AvailabilityException.java
 C:\Users\Joni\Desktop\Private Lessons App\src\main\java\com\tutoringplatform\models\availability\RecurringAvailability.java

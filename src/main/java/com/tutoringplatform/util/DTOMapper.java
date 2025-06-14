@@ -1,10 +1,13 @@
 // FILE: src/main/java/com/tutoringplatform/util/DTOMapper.java
 package com.tutoringplatform.util;
 
+import java.time.ZoneId;
 import com.tutoringplatform.dto.response.*;
 import com.tutoringplatform.models.*;
 import com.tutoringplatform.models.availability.TutorAvailability;
 import com.tutoringplatform.services.AvailabilityService;
+import com.tutoringplatform.services.StudentService;
+import com.tutoringplatform.services.TutorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
@@ -14,6 +17,10 @@ import java.util.stream.Collectors;
 public class DTOMapper {
     @Autowired
     private AvailabilityService availabilityService;
+    @Autowired
+    private StudentService studentService;
+    @Autowired
+    private TutorService tutorService;
 
     public StudentResponse toStudentResponse(Student student) {
         StudentResponse response = new StudentResponse();
@@ -21,6 +28,7 @@ public class DTOMapper {
         response.setName(student.getName());
         response.setEmail(student.getEmail());
         response.setBalance(student.getBalance());
+        response.setTimeZoneId(student.getTimeZoneId());
         return response;
     }
 
@@ -75,9 +83,26 @@ public class DTOMapper {
         response.setDurationHours(booking.getDurationHours());
         response.setTotalCost(booking.getTotalCost());
         response.setStatus(booking.getStatus().toString());
+    
+    // Add timezone info
+        try {
+            Student student = studentService.findById(booking.getStudentId());
+            response.setStudentTimeZoneId(student.getTimeZoneId());
+        } catch (Exception e) {
+            // Use default if not found
+            response.setStudentTimeZoneId(ZoneId.systemDefault().getId());
+        }
+        
+        try {
+            Tutor tutor = tutorService.findById(booking.getTutorId());
+            response.setTutorTimeZoneId(tutor.getTimeZoneId());
+        } catch (Exception e) {
+            // Use default if not found
+            response.setTutorTimeZoneId(ZoneId.systemDefault().getId());
+        }
+        
         return response;
     }
-
     public ReviewResponse toReviewResponse(Review review) {
         ReviewResponse response = new ReviewResponse();
         response.setId(review.getId());

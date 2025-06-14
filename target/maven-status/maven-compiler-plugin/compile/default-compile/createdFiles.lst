@@ -5,10 +5,10 @@ com\tutoringplatform\controllers\ReviewController.class
 com\tutoringplatform\repositories\impl\PaymentRepository.class
 com\tutoringplatform\dto\request\TutorSignupRequest.class
 com\tutoringplatform\services\SubjectService.class
-com\tutoringplatform\controllers\UserController.class
 com\tutoringplatform\observer\BookingEvent$EventType.class
 com\tutoringplatform\dto\request\LoginRequest.class
 com\tutoringplatform\observer\BookingObserver.class
+com\tutoringplatform\dto\response\EnrichedBookingResponse.class
 com\tutoringplatform\repositories\interfaces\ISubjectRepository.class
 com\tutoringplatform\controllers\SubjectController.class
 com\tutoringplatform\repositories\impl\AuthenticationRepository.class
@@ -26,6 +26,7 @@ com\tutoringplatform\services\AvailabilityService.class
 com\tutoringplatform\services\PaymentService.class
 com\tutoringplatform\repositories\interfaces\IBookingRepository.class
 com\tutoringplatform\observer\BookingEvent.class
+com\tutoringplatform\services\DashboardService.class
 com\tutoringplatform\repositories\interfaces\IStudentRepository.class
 com\tutoringplatform\services\UserService.class
 com\tutoringplatform\models\Subject.class
@@ -53,11 +54,15 @@ com\tutoringplatform\dto\request\ReviewRequest.class
 com\tutoringplatform\controllers\AuthenticationController.class
 com\tutoringplatform\services\BookingService.class
 com\tutoringplatform\controllers\TutorController.class
+com\tutoringplatform\repositories\impl\AvailabilityRepository.class
 com\tutoringplatform\dto\response\BookingResponse.class
+com\tutoringplatform\dto\response\StudentDashboardResponse.class
 com\tutoringplatform\controllers\BookingController.class
 com\tutoringplatform\models\Booking$BookingStatus.class
 com\tutoringplatform\factory\UserFactory.class
+com\tutoringplatform\controllers\DashboardController.class
 com\tutoringplatform\models\UserType.class
+com\tutoringplatform\repositories\interfaces\IAvailabilityRepository.class
 com\tutoringplatform\models\Review.class
 com\tutoringplatform\dto\request\BookingRequest.class
 com\tutoringplatform\config\BookingConfiguration.class

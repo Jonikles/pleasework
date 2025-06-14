@@ -78,7 +78,7 @@ public class TutorController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
+    
     @DeleteMapping("/{id}/availability")
     public ResponseEntity<?> removeAvailability(
             @PathVariable String id,
@@ -96,25 +96,6 @@ public class TutorController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-    @PostMapping("/{id}/availability")
-    public ResponseEntity<?> updateAvailability(
-            @PathVariable String id,
-            @RequestBody AvailabilityRequest request) {
-        try {
-            availabilityService.addRecurringAvailability(
-                    id,
-                    request.getDayOfWeek(),
-                    request.getStartTime(),
-                    request.getEndTime());
-
-            TutorAvailability availability = availabilityService.getAvailability(id);
-            return ResponseEntity.ok(availability.getRecurringSlots());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-    
 
     @GetMapping("/{id}/availability")
     public ResponseEntity<?> getTutorAvailability(@PathVariable String id) {

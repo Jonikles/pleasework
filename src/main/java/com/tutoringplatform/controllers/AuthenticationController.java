@@ -38,7 +38,7 @@ public class AuthenticationController {
     @PostMapping("/signup/student")
     public ResponseEntity<?> signupStudent(@RequestBody StudentSignupRequest request) {
         try {
-            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(), request.getPassword());
+            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(), request.getPassword(), request.getTimeZoneId());
             return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -49,7 +49,7 @@ public class AuthenticationController {
     public ResponseEntity<?> signupTutor(@RequestBody TutorSignupRequest request) {
         try {
             Tutor tutor = authenticationService.signupTutor(request.getName(), request.getEmail(), request.getPassword(),
-                    request.getHourlyRate(), request.getDescription());
+                    request.getHourlyRate(), request.getDescription(), request.getTimeZoneId());
             return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

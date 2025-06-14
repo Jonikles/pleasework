@@ -12,8 +12,9 @@ public class BookingResponse {
     private int durationHours;
     private double totalCost;
     private String status;
+    private String studentTimeZoneId;
+    private String tutorTimeZoneId;
 
-    // All getters and setters
     public String getId() {
         return id;
     }
@@ -76,5 +77,21 @@ public class BookingResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getStudentTimeZoneId() {
+        return studentTimeZoneId;
+    }
+
+    public void setStudentTimeZoneId(String studentTimeZoneId) {
+        this.studentTimeZoneId = studentTimeZoneId;
+    }
+
+    public String getTutorTimeZoneId() {
+        return tutorTimeZoneId;
+    }
+
+    public void setTutorTimeZoneId(String tutorTimeZoneId) {
+        this.tutorTimeZoneId = tutorTimeZoneId;
     }
 }

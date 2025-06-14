@@ -81,7 +81,7 @@ public class BookingService {
         // NEW: Use availability service with timezone support
         // Assume student is in same timezone as server for now (should get from student
         // profile)
-        ZoneId studentTimeZone = ZoneId.systemDefault();
+        ZoneId studentTimeZone = student.getTimeZone();
         ZonedDateTime startTime = dateTime.atZone(studentTimeZone);
         ZonedDateTime endTime = startTime.plusHours(durationHours);
 

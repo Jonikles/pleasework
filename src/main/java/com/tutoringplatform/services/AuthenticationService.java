@@ -1,6 +1,7 @@
 // FILE: src/main/java/com/tutoringplatform/services/AuthService.java
 package com.tutoringplatform.services;
 
+import java.time.ZoneId;
 import com.tutoringplatform.factory.UserFactory;
 import com.tutoringplatform.models.User;
 import com.tutoringplatform.models.Student;
@@ -26,25 +27,37 @@ public class AuthenticationService {
         return user;
     }
 
-    public Student signupStudent(String name, String email, String password) throws Exception {
+    public Student signupStudent(String name, String email, String password, String timeZoneId) throws Exception {
         validateSignup(email);
 
-        User user = userFactory.createStudent(name, email, password);
-        authenticationRepository.saveUser(user);
-        return (Student) user;
+        Student student = userFactory.createStudent(name, email, password);
+        
+        if (timeZoneId != null && !timeZoneId.isEmpty()) {
+            try {
+                ZoneId zone = ZoneId.of(timeZoneId);
+                student.setTimeZone(zone);
+            } catch (Exception e) {
+                // Invalid timezone, use default
+            }
+        }
+        authenticationRepository.saveUser(student);
+        return student;
     }
 
     public Tutor signupTutor(String name, String email, String password,
-            double hourlyRate, String description) throws Exception {
+            double hourlyRate, String description, String timeZoneId) throws Exception {
         validateSignup(email);
 
         if (hourlyRate <= 0) {
             throw new Exception("Hourly rate must be positive");
         }
 
-        User user = userFactory.createTutor(name, email, password, hourlyRate, description);
-        authenticationRepository.saveUser(user);
-        return (Tutor) user;
+        Tutor tutor = userFactory.createTutor(name, email, password, hourlyRate, description);
+
+    
+
+        authenticationRepository.saveUser(tutor);
+        return tutor;
     }
 
     private void validateSignup(String email) throws Exception {

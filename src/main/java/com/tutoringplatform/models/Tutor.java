@@ -1,7 +1,6 @@
 package com.tutoringplatform.models;
 
 import java.util.*;
-import java.time.ZoneId;
 
 public class Tutor extends User {
     private List<Subject> subjects;
@@ -9,7 +8,6 @@ public class Tutor extends User {
     private String description;
     private List<Review> reviewsReceived;
     private double earnings;
-    private String timeZoneId;
 
     public Tutor(String name, String email, String password, double hourlyRate, String description) {
         super(name, email, password, UserType.TUTOR);
@@ -18,7 +16,6 @@ public class Tutor extends User {
         this.description = description;
         this.reviewsReceived = new ArrayList<>();
         this.earnings = 0.0;
-        this.timeZoneId = ZoneId.systemDefault().getId();
     }
 
     public List<Subject> getSubjects() {
@@ -51,9 +48,4 @@ public class Tutor extends User {
     public double getEarnings() { return earnings; }
     public void setEarnings(double earnings) { this.earnings = earnings; }
 
-    public ZoneId getTimeZone() { return ZoneId.of(timeZoneId); }
-    public void setTimeZone(ZoneId timeZone) { this.timeZoneId = timeZone.getId(); }
-
-    public String getTimeZoneId() { return timeZoneId; }
-    public void setTimeZoneId(String timeZoneId) { this.timeZoneId = timeZoneId; }
 }

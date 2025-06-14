@@ -7,6 +7,7 @@ public class TutorSignupRequest {
     private String password;
     private double hourlyRate;
     private String description;
+    private String timeZoneId;
 
     public String getName() {
         return name;
@@ -46,5 +47,13 @@ public class TutorSignupRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
     }
 }
