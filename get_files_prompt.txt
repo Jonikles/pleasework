@@ -1,0 +1,24 @@
+# 1. Define the name of the file we want to create.
+$outputFile = "java_project_dump.txt"
+
+# 2. Create an empty file, or clear it if it already exists.
+Clear-Content -Path $outputFile -ErrorAction SilentlyContinue
+
+# 3. Find all .java files recursively and process each one.
+Get-ChildItem -Recurse -Filter "*.java" | ForEach-Object {
+    # Get the file's path relative to where you're running the script
+    $relativePath = $_.FullName.Substring($PWD.Path.Length + 1)
+
+    # Create a header for the file
+    $header = "======================================================================`n" +
+              "// FILE: $relativePath`n" +
+              "======================================================================`n"
+    
+    # Add the header and the file's content to our output file
+    Add-Content -Path $outputFile -Value $header
+    Add-Content -Path $outputFile -Value (Get-Content $_.FullName)
+    Add-Content -Path $outputFile -Value "`n`n" # Add two newlines for spacing
+}
+
+# 4. (Optional) Print a confirmation message.
+Write-Host "Done! All .java files have been combined into '$outputFile'"
