@@ -31,7 +31,8 @@ public class TutorController {
     private final DTOMapper dtoMapper;
 
     @Autowired
-    public TutorController(TutorService tutorService, AvailabilityService availabilityService, FileService fileService, DTOMapper dtoMapper) {
+    public TutorController(TutorService tutorService, AvailabilityService availabilityService, FileService fileService,
+            DTOMapper dtoMapper) {
         this.tutorService = tutorService;
         this.availabilityService = availabilityService;
         this.fileService = fileService;
@@ -97,7 +98,6 @@ public class TutorController {
         }
     }
 
-
     @PostMapping("/{id}/availability")
     public ResponseEntity<?> addAvailability(
             @PathVariable String id,
@@ -115,7 +115,7 @@ public class TutorController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+
     @DeleteMapping("/{id}/availability")
     public ResponseEntity<?> removeAvailability(
             @PathVariable String id,

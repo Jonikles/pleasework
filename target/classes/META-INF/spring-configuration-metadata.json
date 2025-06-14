@@ -1,0 +1,28 @@
+{
+  "groups": [
+    {
+      "name": "app",
+      "type": "com.tutoringplatform.config.AppProperties",
+      "sourceType": "com.tutoringplatform.config.AppProperties"
+    },
+    {
+      "name": "app.api",
+      "type": "com.tutoringplatform.config.AppProperties$Api",
+      "sourceType": "com.tutoringplatform.config.AppProperties",
+      "sourceMethod": "public com.tutoringplatform.config.AppProperties.Api getApi() "
+    }
+  ],
+  "properties": [
+    {
+      "name": "app.allowed-origins",
+      "type": "java.lang.String[]",
+      "sourceType": "com.tutoringplatform.config.AppProperties"
+    },
+    {
+      "name": "app.api.files-base-url",
+      "type": "java.lang.String",
+      "sourceType": "com.tutoringplatform.config.AppProperties$Api"
+    }
+  ],
+  "hints": []
+}
