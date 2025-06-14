@@ -10,6 +10,7 @@ public class StudentResponse {
     private String userType = UserType.STUDENT.getDisplayName();
     private double balance;
     private String timeZoneId;
+    private String profilePictureUrl;
 
     public String getId() {
         return id;
@@ -57,5 +58,13 @@ public class StudentResponse {
 
     public void setTimeZoneId(String timeZoneId) {
         this.timeZoneId = timeZoneId;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 }

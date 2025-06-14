@@ -26,6 +26,12 @@ public class DashboardService {
     private SubjectService subjectService;
 
     @Autowired
+    private ReviewService reviewService;
+
+    @Autowired
+    private SearchService searchService;
+
+    @Autowired
     private DTOMapper dtoMapper;
 
     public StudentDashboardResponse getStudentDashboard(String studentId) throws Exception {
@@ -95,4 +101,72 @@ public class DashboardService {
 
         return enriched;
     }
+
+    public TutorDashboardResponse getTutorDashboard(String tutorId) throws Exception {
+        TutorDashboardResponse dashboard = new TutorDashboardResponse();
+
+        // Get tutor info
+        Tutor tutor = tutorService.findById(tutorId);
+        dashboard.setTutor(dtoMapper.toTutorResponse(tutor));
+
+        // Get bookings
+        List<Booking> allBookings = bookingService.findByTutorId(tutorId);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<EnrichedBookingResponse> upcomingBookings = new ArrayList<>();
+        List<EnrichedBookingResponse> recentBookings = new ArrayList<>();
+
+        for (Booking booking : allBookings) {
+            EnrichedBookingResponse enriched = enrichBooking(booking);
+
+            if (booking.getDateTime().isAfter(now) &&
+                    booking.getStatus() != Booking.BookingStatus.CANCELLED) {
+                upcomingBookings.add(enriched);
+            } else if (booking.getDateTime().isAfter(now.minusDays(30))) {
+                recentBookings.add(enriched);
+            }
+        }
+
+        dashboard.setUpcomingBookings(upcomingBookings);
+        dashboard.setRecentBookings(recentBookings);
+
+        // Get recent reviews
+        List<Review> reviews = reviewService.getTutorReviews(tutorId);
+        List<ReviewResponse> recentReviews = reviews.stream()
+                .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
+                .limit(5)
+                .map(dtoMapper::toReviewResponse)
+                .collect(Collectors.toList());
+        dashboard.setRecentReviews(recentReviews);
+
+        // Calculate stats
+        DashboardStats stats = new DashboardStats();
+        stats.setTotalBookings(allBookings.size());
+        stats.setCompletedSessions((int) allBookings.stream()
+                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
+                .count());
+        stats.setTotalEarnings(tutor.getEarnings());
+        stats.setAverageRating(tutor.getReviewsReceived().isEmpty() ? 0.0
+                : tutor.getReviewsReceived().stream()
+                        .mapToDouble(Review::getRating)
+                        .average()
+                        .orElse(0.0));
+        stats.setTotalReviews(tutor.getReviewsReceived().size());
+
+        dashboard.setStats(stats);
+
+        return dashboard;
+    }
+
+    public List<TutorSearchResponse> searchTutorsEnriched(String subjectId, Double minPrice, 
+        Double maxPrice, Double minRating) throws Exception {
+    
+        SearchService.TutorSearchCriteria criteria = new SearchService.TutorSearchCriteria.Builder()
+            .withSubject(subjectId)
+            .withPriceRange(minPrice, maxPrice)
+            .withMinRating(minRating)
+            .build();
+        
+        return searchService.searchTutors(criteria);
+    }   
 }

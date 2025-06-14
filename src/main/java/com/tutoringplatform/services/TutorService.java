@@ -6,6 +6,8 @@ import com.tutoringplatform.models.Review;
 import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.Tutor;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+import com.tutoringplatform.dto.request.UpdateTutorRequest;
+import java.time.ZoneId;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,5 +83,50 @@ public class TutorService extends UserService<Tutor> {
         tutor.removeSubject(subject);
         update(tutor);
         return tutor.getSubjects();
+    }
+
+    public Tutor updateTutor(String tutorId, UpdateTutorRequest request) throws Exception {
+        Tutor tutor = findById(tutorId);
+
+        // Only update fields that are provided
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            tutor.setName(request.getName());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            // Check if email is already taken by another user
+            Tutor existing = repository.findByEmail(request.getEmail());
+            if (existing != null && !existing.getId().equals(tutorId)) {
+                throw new IllegalArgumentException("Email already in use");
+            }
+            tutor.setEmail(request.getEmail());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            tutor.setPassword(request.getPassword());
+        }
+
+        if (request.getTimeZoneId() != null) {
+            try {
+                ZoneId zone = ZoneId.of(request.getTimeZoneId());
+                tutor.setTimeZone(zone);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid timezone");
+            }
+        }
+
+        if (request.getHourlyRate() != null) {
+            if (request.getHourlyRate() <= 0) {
+                throw new IllegalArgumentException("Hourly rate must be positive");
+            }
+            tutor.setHourlyRate(request.getHourlyRate());
+        }
+
+        if (request.getDescription() != null && !request.getDescription().trim().isEmpty()) {
+            tutor.setDescription(request.getDescription());
+        }
+
+        repository.update(tutor);
+        return tutor;
     }
 }

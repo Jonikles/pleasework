@@ -13,6 +13,7 @@ public abstract class User {
     protected UserType userType;
     protected List<Booking> bookings;
     protected String timeZoneId;
+    protected String profilePictureId;
 
     public User(String name, String email, String password, UserType userType) {
         this.id = UUID.randomUUID().toString();
@@ -94,5 +95,13 @@ public abstract class User {
 
     public void setTimeZoneId(String timeZoneId) {
         this.timeZoneId = timeZoneId;
+    }
+
+    public String getProfilePictureId() {
+        return profilePictureId;
+    }
+
+    public void setProfilePictureId(String profilePictureId) {
+        this.profilePictureId = profilePictureId;
     }
 }

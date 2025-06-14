@@ -29,6 +29,9 @@ public class DTOMapper {
         response.setEmail(student.getEmail());
         response.setBalance(student.getBalance());
         response.setTimeZoneId(student.getTimeZoneId());
+        if (student.getProfilePictureId() != null) {
+            response.setProfilePictureUrl("/api/files/" + student.getProfilePictureId());
+        }
         return response;
     }
 
@@ -60,6 +63,10 @@ public class DTOMapper {
             response.setAvailability(availability.getRecurringSlots());
         } catch (Exception e) {
             response.setAvailability(new ArrayList<>());
+        }
+
+        if (tutor.getProfilePictureId() != null) {
+            response.setProfilePictureUrl("/api/files/" + tutor.getProfilePictureId());
         }
 
         return response;

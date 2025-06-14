@@ -10,13 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+import com.tutoringplatform.services.FileService;
+import com.tutoringplatform.dto.request.UpdateStudentRequest;
 
 @RestController
 @RequestMapping("/api/students")
 @CrossOrigin(origins = "*")
 public class StudentController {
+
+    @Autowired
+    private FileService fileService;
 
     @Autowired
     private StudentService studentService;
@@ -35,10 +42,40 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateStudent(@PathVariable String id, @RequestBody Student student) {
+public ResponseEntity<?> updateStudent(@PathVariable String id, @RequestBody UpdateStudentRequest request) {
+    try {
+        Student updatedStudent = studentService.updateStudent(id, request);
+        return ResponseEntity.ok(dtoMapper.toStudentResponse(updatedStudent));
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+}
+
+    // Add endpoint to update profile picture
+    @PostMapping("/{id}/profile-picture")
+    public ResponseEntity<?> updateProfilePicture(
+            @PathVariable String id,
+            @RequestParam("file") MultipartFile file) {
         try {
+            String fileId = fileService.storeFile(id, file, "profile");
+
+            Student student = studentService.findById(id);
+
+            // Delete old profile picture if exists
+            if (student.getProfilePictureId() != null) {
+                try {
+                    fileService.deleteFile(student.getProfilePictureId());
+                } catch (Exception e) {
+                    // Log error but continue
+                }
+            }
+
+            student.setProfilePictureId(fileId);
             studentService.update(student);
-            return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
+
+            return ResponseEntity.ok(Map.of(
+                    "profilePictureId", fileId,
+                    "profilePictureUrl", "/api/files/" + fileId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

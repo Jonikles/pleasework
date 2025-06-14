@@ -9,13 +9,21 @@ import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.availability.TutorAvailability;
 import com.tutoringplatform.services.AvailabilityService;
 import com.tutoringplatform.services.TutorService;
+import com.tutoringplatform.services.SearchService;
 import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import java.time.LocalDateTime;
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+import com.tutoringplatform.services.FileService;
+import com.tutoringplatform.dto.request.UpdateTutorRequest;
+import org.springframework.web.multipart.MultipartFile;
+import com.tutoringplatform.dto.response.TutorSearchResponse;
 
 @RestController
 @RequestMapping("/api/tutors")
@@ -27,6 +35,12 @@ public class TutorController {
 
     @Autowired
     private AvailabilityService availabilityService;
+
+    @Autowired
+    private SearchService searchService;
+
+    @Autowired
+    private FileService fileService;
 
     @Autowired
     private DTOMapper dtoMapper;
@@ -51,10 +65,40 @@ public class TutorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateTutor(@PathVariable String id, @RequestBody Tutor tutor) {
+    public ResponseEntity<?> updateTutor(@PathVariable String id, @RequestBody UpdateTutorRequest request) {
         try {
+            Tutor updatedTutor = tutorService.updateTutor(id, request);
+            return ResponseEntity.ok(dtoMapper.toTutorResponse(updatedTutor));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Add endpoint to update profile picture
+    @PostMapping("/{id}/profile-picture")
+    public ResponseEntity<?> updateProfilePicture(
+            @PathVariable String id,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            String fileId = fileService.storeFile(id, file, "profile");
+
+            Tutor tutor = tutorService.findById(id);
+
+            // Delete old profile picture if exists
+            if (tutor.getProfilePictureId() != null) {
+                try {
+                    fileService.deleteFile(tutor.getProfilePictureId());
+                } catch (Exception e) {
+                    // Log error but continue
+                }
+            }
+
+            tutor.setProfilePictureId(fileId);
             tutorService.update(tutor);
-            return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
+
+            return ResponseEntity.ok(Map.of(
+                    "profilePictureId", fileId,
+                    "profilePictureUrl", "/api/files/" + fileId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -151,6 +195,47 @@ public class TutorController {
             return ResponseEntity.ok(dtoMapper.toAverageRatingResponse(averageRating));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    
+    @GetMapping("/search")
+    public ResponseEntity<?> searchTutors(
+            @RequestParam(required = false) String subjectId,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) String day,
+            @RequestParam(required = false) Integer hour) {
+        try {
+            // Convert day/hour to LocalDateTime if provided
+            LocalDateTime availableFrom = null;
+            LocalDateTime availableTo = null;
+
+            if (day != null && hour != null) {
+                // Find next occurrence of the day
+                LocalDateTime now = LocalDateTime.now();
+                DayOfWeek targetDay = DayOfWeek.valueOf(day.toUpperCase());
+                LocalDateTime target = now.with(targetDay).withHour(hour).withMinute(0);
+
+                if (target.isBefore(now)) {
+                    target = target.plusWeeks(1);
+                }
+
+                availableFrom = target;
+                availableTo = target.plusHours(1);
+            }
+
+            SearchService.TutorSearchCriteria criteria = new SearchService.TutorSearchCriteria.Builder()
+                    .withSubject(subjectId)
+                    .withPriceRange(minPrice, maxPrice)
+                    .withMinRating(minRating)
+                    .withAvailability(availableFrom, availableTo)
+                    .build();
+
+            List<TutorSearchResponse> results = searchService.searchTutors(criteria);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

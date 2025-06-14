@@ -17,6 +17,7 @@ public class TutorResponse {
     private List<SubjectResponse> subjects;
     private String timeZoneId;
     private List<RecurringAvailability> availability;
+    private String profilePictureUrl;
 
     // All getters and setters
     public String getId() {
@@ -105,5 +106,13 @@ public class TutorResponse {
 
     public void setAvailability(List<RecurringAvailability> availability) {
         this.availability = availability;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 }
