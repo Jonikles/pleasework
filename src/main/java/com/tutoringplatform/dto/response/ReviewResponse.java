@@ -2,15 +2,18 @@ package com.tutoringplatform.dto.response;
 
 import java.time.LocalDateTime;
 
+import com.tutoringplatform.dto.response.info.ReviewInfo;
+import com.tutoringplatform.dto.response.info.UserInfo;
+
 public class ReviewResponse {
     private String id;
-    private String studentId;
-    private String tutorId;
+    private ReviewInfo review;
+    private UserInfo studentInfo;
+    private UserInfo tutorInfo;
     private int rating;
     private String comment;
-    private LocalDateTime timestamp;
+    private LocalDateTime createdAt;
 
-    // All getters and setters
     public String getId() {
         return id;
     }
@@ -19,20 +22,28 @@ public class ReviewResponse {
         this.id = id;
     }
 
-    public String getStudentId() {
-        return studentId;
+    public ReviewInfo getReview() {
+        return review;
     }
 
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
+    public void setReview(ReviewInfo review) {
+        this.review = review;
     }
 
-    public String getTutorId() {
-        return tutorId;
+    public UserInfo getStudentInfo() {
+        return studentInfo;
     }
 
-    public void setTutorId(String tutorId) {
-        this.tutorId = tutorId;
+    public void setStudentInfo(UserInfo studentInfo) {
+        this.studentInfo = studentInfo;
+    }
+
+    public UserInfo getTutorInfo() {
+        return tutorInfo;
+    }
+
+    public void setTutorInfo(UserInfo tutorInfo) {
+        this.tutorInfo = tutorInfo;
     }
 
     public int getRating() {
@@ -51,11 +62,11 @@ public class ReviewResponse {
         this.comment = comment;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

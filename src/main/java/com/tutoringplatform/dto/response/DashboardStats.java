@@ -1,19 +1,21 @@
 package com.tutoringplatform.dto.response;
 
 public class DashboardStats {
-    private int totalBookings;
+    private int totalSessions;
     private int completedSessions;
-    private double totalEarnings;
-    private double averageRating;
-    private int totalReviews;
+    private int upcomingSessions;
+    private double totalEarnings; // Tutors only
+    private double thisMonthEarnings; // Tutors only
+    private double averageRating; // Tutors only
+    private int totalReviews; // Tutors only
 
     // All getters and setters
-    public int getTotalBookings() {
-        return totalBookings;
+    public int getTotalSessions() {
+        return totalSessions;
     }
 
-    public void setTotalBookings(int totalBookings) {
-        this.totalBookings = totalBookings;
+    public void setTotalSessions(int totalSessions) {
+        this.totalSessions = totalSessions;
     }
 
     public int getCompletedSessions() {
@@ -24,12 +26,28 @@ public class DashboardStats {
         this.completedSessions = completedSessions;
     }
 
+    public int getUpcomingSessions() {
+        return upcomingSessions;
+    }
+
+    public void setUpcomingSessions(int upcomingSessions) {
+        this.upcomingSessions = upcomingSessions;
+    }
+
     public double getTotalEarnings() {
         return totalEarnings;
     }
 
     public void setTotalEarnings(double totalEarnings) {
         this.totalEarnings = totalEarnings;
+    }
+
+    public double getThisMonthEarnings() {
+        return thisMonthEarnings;
+    }
+
+    public void setThisMonthEarnings(double thisMonthEarnings) {
+        this.thisMonthEarnings = thisMonthEarnings;
     }
 
     public double getAverageRating() {

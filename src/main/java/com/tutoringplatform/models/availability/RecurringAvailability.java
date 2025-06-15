@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/tutoringplatform/models/availability/RecurringAvailability.java
 package com.tutoringplatform.models.availability;
 
 import java.time.*;

@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/tutoringplatform/dto/request/AddFundsRequest.java
 package com.tutoringplatform.dto.request;
 
 public class AddFundsRequest {

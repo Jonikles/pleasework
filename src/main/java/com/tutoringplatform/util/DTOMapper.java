@@ -1,79 +1,212 @@
-// FILE: src/main/java/com/tutoringplatform/util/DTOMapper.java
 package com.tutoringplatform.util;
 
-import java.time.ZoneId;
 import com.tutoringplatform.dto.response.*;
+import com.tutoringplatform.dto.response.info.PaymentInfo;
+import com.tutoringplatform.dto.response.info.TutorInfo;
+import com.tutoringplatform.dto.response.info.TutorSearchResultInfo;
+import com.tutoringplatform.dto.response.info.UserInfo;
 import com.tutoringplatform.models.*;
-import com.tutoringplatform.models.availability.TutorAvailability;
-import com.tutoringplatform.services.AvailabilityService;
-import com.tutoringplatform.services.StudentService;
-import com.tutoringplatform.services.TutorService;
+import com.tutoringplatform.models.availability.RecurringAvailability;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import com.tutoringplatform.config.AppProperties;
+import com.tutoringplatform.models.availability.AvailabilityException;
 
 @Component
 public class DTOMapper {
-    @Autowired
-    private AvailabilityService availabilityService;
-    @Autowired
-    private StudentService studentService;
-    @Autowired
-    private TutorService tutorService;
+
     @Autowired
     private AppProperties appProperties;
 
-    public StudentResponse toStudentResponse(Student student) {
-        StudentResponse response = new StudentResponse();
-        response.setId(student.getId());
-        response.setName(student.getName());
-        response.setEmail(student.getEmail());
-        response.setBalance(student.getBalance());
-        response.setTimeZoneId(student.getTimeZoneId());
-        if (student.getProfilePictureId() != null) {
-            response.setProfilePictureUrl(appProperties.getApi().getFilesBaseUrl() + student.getProfilePictureId());
-        }
+    // ========== AUTH RESPONSES ==========
+
+    public AuthResponse toAuthResponse(User user, double balance, double hourlyRate) {
+        AuthResponse response = new AuthResponse();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setEmail(user.getEmail());
+        response.setUserType(user.getUserType().getDisplayName());
+        response.setTimeZoneId(user.getTimeZoneId());
+        response.setProfilePictureUrl(buildProfilePictureUrl(user.getProfilePictureId()));
+        response.setBalance(balance); // Only for students
+        response.setHourlyRate(hourlyRate); // Only for tutors
         return response;
     }
 
-    public TutorResponse toTutorResponse(Tutor tutor) {
-        TutorResponse response = new TutorResponse();
+    // ========== DASHBOARD RESPONSES ==========
+
+    public StudentDashboardResponse toStudentDashboardResponse(
+            UserProfile profile,
+            DashboardStats stats,
+            List<BookingDetailResponse> upcomingBookings) {
+
+        StudentDashboardResponse response = new StudentDashboardResponse();
+        response.setProfile(profile);
+        response.setStats(stats);
+        response.setUpcomingBookings(upcomingBookings);
+
+        return response;
+    }
+
+    public TutorDashboardResponse toTutorDashboardResponse(
+            UserProfile profile,
+            DashboardStats stats,
+            List<BookingDetailResponse> upcomingBookings,
+            List<ReviewResponse> recentReviews,
+            List<BookingDetailResponse> todaysSchedule) {
+
+        TutorDashboardResponse response = new TutorDashboardResponse();
+        response.setProfile(profile);
+        response.setStats(stats);
+        response.setUpcomingBookings(upcomingBookings);
+        response.setTodaysSchedule(todaysSchedule);
+
+        return response;
+    }
+
+    // ========== BOOKING RESPONSES ==========
+
+    public BookingDetailResponse toBookingDetailResponse(
+            Booking booking,
+            Student student,
+            Tutor tutor,
+            Payment payment) {
+
+        BookingDetailResponse response = new BookingDetailResponse();
+        response.setId(booking.getId());
+
+        // Student info
+        UserInfo studentInfo = new UserInfo();
+        studentInfo.setId(student.getId());
+        studentInfo.setName(student.getName());
+        studentInfo.setProfilePictureUrl(buildProfilePictureUrl(student.getProfilePictureId()));
+        response.setStudent(studentInfo);
+
+        // Tutor info
+        TutorInfo tutorInfo = new TutorInfo();
+        tutorInfo.setId(tutor.getId());
+        tutorInfo.setName(tutor.getName());
+        tutorInfo.setProfilePictureUrl(buildProfilePictureUrl(tutor.getProfilePictureId()));
+        tutorInfo.setHourlyRate(tutor.getHourlyRate());
+        response.setTutor(tutorInfo);
+
+        // Subject
+        response.setSubject(toSubjectResponse(booking.getSubject()));
+
+        response.setDateTime(booking.getDateTime());
+        response.setDurationHours(booking.getDurationHours());
+        response.setTotalCost(booking.getTotalCost());
+        response.setStatus(booking.getStatus().toString());
+
+        // Payment info (if exists)
+        if (payment != null) {
+            PaymentInfo paymentInfo = new PaymentInfo();
+            paymentInfo.setStatus(payment.getStatus().toString());
+            paymentInfo.setPaidAt(payment.getTimestamp());
+            response.setPayment(paymentInfo);
+        }
+
+        return response;
+    }
+
+    public BookingListResponse toBookingListResponse(
+            List<BookingDetailResponse> upcomingBookings,
+            List<BookingDetailResponse> pastBookings,
+            List<BookingDetailResponse> cancelledBookings) {
+
+        BookingListResponse response = new BookingListResponse();
+        response.setUpcomingBookings(upcomingBookings);
+        response.setPastBookings(pastBookings);
+        response.setCancelledBookings(cancelledBookings);
+        return response;
+    }
+
+    // ========== PROFILE RESPONSES ==========
+
+    public TutorProfileResponse toTutorProfileResponse(
+            Tutor tutor,
+            double averageRating,
+            int totalReviews,
+            List<SubjectResponse> subjects,
+            List<RecurringAvailability> availability,
+            int completedSessions,
+            java.time.LocalDate joinedDate) {
+
+        TutorProfileResponse response = new TutorProfileResponse();
         response.setId(tutor.getId());
         response.setName(tutor.getName());
         response.setEmail(tutor.getEmail());
+        response.setProfilePictureUrl(buildProfilePictureUrl(tutor.getProfilePictureId()));
         response.setHourlyRate(tutor.getHourlyRate());
         response.setDescription(tutor.getDescription());
-        response.setEarnings(tutor.getEarnings());
-        response.setTimeZoneId(tutor.getTimeZoneId());
-
-        if (tutor.getSubjects() != null) {
-            response.setSubjects(tutor.getSubjects().stream()
-                    .map(this::toSubjectResponse)
-                    .collect(Collectors.toList()));
-        }
-
-        if (tutor.getReviewsReceived() != null) {
-            response.setAverageRating(tutor.getReviewsReceived().stream()
-                    .mapToDouble(Review::getRating)
-                    .average()
-                    .orElse(0.0));
-        }
-
-        try {
-            TutorAvailability availability = availabilityService.getAvailability(tutor.getId());
-            response.setAvailability(availability.getRecurringSlots());
-        } catch (Exception e) {
-            response.setAvailability(new ArrayList<>());
-        }
-
-        if (tutor.getProfilePictureId() != null) {
-            response.setProfilePictureUrl(appProperties.getApi().getFilesBaseUrl() + tutor.getProfilePictureId());
-        }
+        response.setRating(averageRating);
+        response.setTotalReviews(totalReviews);
+        response.setSubjects(subjects);
+        response.setAvailability(availability);
+        response.setCompletedSessions(completedSessions);
+        response.setJoinedDate(joinedDate);
 
         return response;
     }
+
+    public StudentProfileResponse toStudentProfileResponse(
+            Student student,
+            java.time.LocalDate joinedDate,
+            int totalSessions) {
+
+        StudentProfileResponse response = new StudentProfileResponse();
+        response.setId(student.getId());
+        response.setName(student.getName());
+        response.setEmail(student.getEmail());
+        response.setProfilePictureUrl(buildProfilePictureUrl(student.getProfilePictureId()));
+        response.setBalance(student.getBalance());
+        response.setTimeZoneId(student.getTimeZoneId());
+        response.setJoinedDate(joinedDate);
+        response.setTotalSessions(totalSessions);
+
+        return response;
+    }
+
+    // ========== SEARCH RESPONSES ==========
+
+    public TutorSearchResultsResponse toTutorSearchResultsResponse(
+            List<TutorSearchResultInfo> results,
+            int totalCount,
+            SearchFilters appliedFilters) {
+
+        TutorSearchResultsResponse response = new TutorSearchResultsResponse();
+        response.setResults(results);
+        response.setTotalCount(totalCount);
+        response.setFilters(appliedFilters);
+        return response;
+    }
+
+    public TutorSearchResultInfo toTutorSearchResult(
+            Tutor tutor,
+            double rating,
+            int reviewCount,
+            String shortDescription,
+            java.time.LocalDateTime nextAvailable) {
+
+        TutorSearchResultInfo result = new TutorSearchResultInfo();
+        result.setId(tutor.getId());
+        result.setName(tutor.getName());
+        result.setProfilePictureUrl(buildProfilePictureUrl(tutor.getProfilePictureId()));
+        result.setHourlyRate(tutor.getHourlyRate());
+        result.setRating(rating);
+        result.setReviewCount(reviewCount);
+        result.setSubjects(tutor.getSubjects().stream()
+                .map(this::toSubjectResponse)
+                .collect(Collectors.toList()));
+        result.setShortDescription(shortDescription);
+        result.setNextAvailable(nextAvailable);
+
+        return result;
+    }
+
+    // ========== SUBJECT RESPONSES ==========
 
     public SubjectResponse toSubjectResponse(Subject subject) {
         SubjectResponse response = new SubjectResponse();
@@ -83,71 +216,95 @@ public class DTOMapper {
         return response;
     }
 
-    public BookingResponse toBookingResponse(Booking booking) {
-        BookingResponse response = new BookingResponse();
-        response.setId(booking.getId());
-        response.setStudentId(booking.getStudentId());
-        response.setTutorId(booking.getTutorId());
-        response.setSubject(toSubjectResponse(booking.getSubject()));
-        response.setDateTime(booking.getDateTime());
-        response.setDurationHours(booking.getDurationHours());
-        response.setTotalCost(booking.getTotalCost());
-        response.setStatus(booking.getStatus().toString());
-    
-    // Add timezone info
-        try {
-            Student student = studentService.findById(booking.getStudentId());
-            response.setStudentTimeZoneId(student.getTimeZoneId());
-        } catch (Exception e) {
-            // Use default if not found
-            response.setStudentTimeZoneId(ZoneId.systemDefault().getId());
-        }
-        
-        try {
-            Tutor tutor = tutorService.findById(booking.getTutorId());
-            response.setTutorTimeZoneId(tutor.getTimeZoneId());
-        } catch (Exception e) {
-            // Use default if not found
-            response.setTutorTimeZoneId(ZoneId.systemDefault().getId());
-        }
-        
+    public SubjectListResponse toSubjectListResponse(List<CategorySubjects> categorizedSubjects) {
+        SubjectListResponse response = new SubjectListResponse();
+        response.setSubjects(categorizedSubjects);
         return response;
     }
-    public ReviewResponse toReviewResponse(Review review) {
+
+    // ========== REVIEW RESPONSES ==========
+
+    public ReviewResponse toReviewResponse(
+            Review review,
+            Student student,
+            Tutor tutor) {
+
         ReviewResponse response = new ReviewResponse();
         response.setId(review.getId());
-        response.setStudentId(review.getStudentId());
-        response.setTutorId(review.getTutorId());
+
+        // Student info
+        UserInfo studentInfo = new UserInfo();
+        studentInfo.setId(student.getId());
+        studentInfo.setName(student.getName());
+        studentInfo.setProfilePictureUrl(buildProfilePictureUrl(student.getProfilePictureId()));
+        response.setStudentInfo(studentInfo);
+
+        // Tutor info (minimal)
+        UserInfo tutorInfo = new UserInfo();
+        tutorInfo.setId(tutor.getId());
+        tutorInfo.setName(tutor.getName());
+        response.setTutorInfo(tutorInfo);
+
         response.setRating(review.getRating());
         response.setComment(review.getComment());
-        response.setTimestamp(review.getTimestamp());
+        response.setCreatedAt(review.getTimestamp());
+
         return response;
     }
 
-    public AverageRatingResponse toAverageRatingResponse(double averageRating) {
-        AverageRatingResponse response = new AverageRatingResponse();
-        response.setAverageRating(averageRating);
+    // ========== PAYMENT RESPONSES ==========
+
+    public PaymentHistoryResponse toPaymentHistoryResponse(
+            List<TransactionRecord> transactions,
+            double totalSpent,
+            double currentBalance) {
+
+        PaymentHistoryResponse response = new PaymentHistoryResponse();
+        response.setTransactions(transactions);
+        response.setTotalSpent(totalSpent);
+        response.setCurrentBalance(currentBalance);
         return response;
     }
 
-    public EarningsResponse toEarningsResponse(double earnings) {
-        EarningsResponse response = new EarningsResponse();
-        response.setEarnings(earnings);
+    // ========== AVAILABILITY RESPONSES ==========
+
+    public AvailabilityResponse toAvailabilityResponse(
+            String tutorId,
+            java.time.ZoneId timeZone,
+            List<RecurringAvailability> regularSchedule,
+            List<AvailabilityException> exceptions,
+            java.time.LocalDateTime nextAvailableSlot) {
+
+        AvailabilityResponse response = new AvailabilityResponse();
+        response.setTutorId(tutorId);
+        response.setTimeZone(timeZone.toString());
+        response.setRegularSchedule(regularSchedule);
+        response.setExceptions(exceptions);
+        response.setNextAvailableSlot(nextAvailableSlot);
         return response;
     }
 
-    public BalanceResponse toBalanceResponse(double balance) {
-        BalanceResponse response = new BalanceResponse();
-        response.setBalance(balance);
+    // ========== VALUE RESPONSE ==========
+
+    public <T> ValueResponse<T> toValueResponse(T value) {
+        ValueResponse<T> response = new ValueResponse<>();
+        response.setValue(value);
         return response;
     }
 
-    public Object toUserResponse(User user) {
-        if (user.getUserType() == UserType.STUDENT) {
-            return toStudentResponse((Student) user);
-        } else if (user.getUserType() == UserType.TUTOR) {
-            return toTutorResponse((Tutor) user);
+    public <T> ValueResponse<T> toValueResponse(T value, String message) {
+        ValueResponse<T> response = new ValueResponse<>();
+        response.setValue(value);
+        response.setMessage(message);
+        return response;
+    }
+
+    // ========== HELPER METHODS ==========
+
+    public String buildProfilePictureUrl(String profilePictureId) {
+        if (profilePictureId == null) {
+            return appProperties.getApi().getFilesBaseUrl() + "default-avatar";
         }
-        throw new IllegalArgumentException("Unknown user type: " + user.getUserType());
+        return appProperties.getApi().getFilesBaseUrl() + profilePictureId;
     }
 }

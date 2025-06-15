@@ -73,4 +73,9 @@ public class TutorRepository implements ITutorRepository {
                         .orElse(0.0) >= rating)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean emailExists(String email) {
+        return findByEmail(email) != null;
+    }
 }

@@ -5,7 +5,7 @@ import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Tutor;
 import org.springframework.context.ApplicationEvent;
 
-public class BookingEvent extends ApplicationEvent{
+public class BookingEvent extends ApplicationEvent {
     private EventType eventType;
     private Booking booking;
     private Student student;
@@ -23,11 +23,19 @@ public class BookingEvent extends ApplicationEvent{
         this.tutor = tutor;
     }
 
-    public EventType getEventType() { return eventType; }
+    public EventType getEventType() {
+        return eventType;
+    }
 
-    public Booking getBooking() { return booking; }
+    public Booking getBooking() {
+        return booking;
+    }
 
-    public Student getStudent() { return student; }
+    public Student getStudent() {
+        return student;
+    }
 
-    public Tutor getTutor() { return tutor; }
+    public Tutor getTutor() {
+        return tutor;
+    }
 }

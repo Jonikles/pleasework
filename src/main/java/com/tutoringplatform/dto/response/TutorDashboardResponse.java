@@ -3,11 +3,19 @@ package com.tutoringplatform.dto.response;
 import java.util.List;
 
 public class TutorDashboardResponse {
-    private TutorResponse tutor;
-    private List<EnrichedBookingResponse> upcomingBookings;
-    private List<EnrichedBookingResponse> recentBookings;
-    private List<ReviewResponse> recentReviews;
+    private UserProfile profile;
     private DashboardStats stats;
+    private List<BookingDetailResponse> upcomingBookings;
+    private List<BookingDetailResponse> todaysSchedule;
+
+    // All getters and setters
+    public UserProfile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(UserProfile profile) {
+        this.profile = profile;
+    }
 
     public DashboardStats getStats() {
         return stats;
@@ -17,35 +25,19 @@ public class TutorDashboardResponse {
         this.stats = stats;
     }
 
-    public TutorResponse getTutor() {
-        return tutor;
-    }
-
-    public void setTutor(TutorResponse tutor) {
-        this.tutor = tutor;
-    }
-
-    public List<EnrichedBookingResponse> getUpcomingBookings() {
+    public List<BookingDetailResponse> getUpcomingBookings() {
         return upcomingBookings;
     }
 
-    public void setUpcomingBookings(List<EnrichedBookingResponse> upcomingBookings) {
+    public void setUpcomingBookings(List<BookingDetailResponse> upcomingBookings) {
         this.upcomingBookings = upcomingBookings;
     }
 
-    public List<EnrichedBookingResponse> getRecentBookings() {
-        return recentBookings;
+    public List<BookingDetailResponse> getTodaysSchedule() {
+        return todaysSchedule;
     }
 
-    public void setRecentBookings(List<EnrichedBookingResponse> recentBookings) {
-        this.recentBookings = recentBookings;
-    }
-
-    public List<ReviewResponse> getRecentReviews() {
-        return recentReviews;
-    }
-
-    public void setRecentReviews(List<ReviewResponse> recentReviews) {
-        this.recentReviews = recentReviews;
+    public void setTodaysSchedule(List<BookingDetailResponse> todaysSchedule) {
+        this.todaysSchedule = todaysSchedule;
     }
 }

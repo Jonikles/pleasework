@@ -1,80 +1,123 @@
 package com.tutoringplatform.services;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import com.tutoringplatform.models.Review;
-import com.tutoringplatform.models.Student;
-import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.repositories.interfaces.IBookingRepository;
-import com.tutoringplatform.repositories.interfaces.IReviewRepository;
-import com.tutoringplatform.repositories.interfaces.IStudentRepository;
-import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+import com.tutoringplatform.dto.request.CreateReviewRequest;
+import com.tutoringplatform.dto.response.ReviewResponse;
+import com.tutoringplatform.models.*;
+import com.tutoringplatform.repositories.interfaces.*;
+import com.tutoringplatform.util.DTOMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class ReviewService {
+
     private final IReviewRepository reviewRepository;
     private final IBookingRepository bookingRepository;
-    private final ITutorRepository tutorRepository;
     private final IStudentRepository studentRepository;
-    private final StudentService studentService;
-    private final TutorService tutorService;
+    private final ITutorRepository tutorRepository;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    public ReviewService(IReviewRepository reviewRepository, IBookingRepository bookingRepository,
-            ITutorRepository tutorRepository, IStudentRepository studentRepository, StudentService studentService,
-            TutorService tutorService) {
+    public ReviewService(
+            IReviewRepository reviewRepository,
+            IBookingRepository bookingRepository,
+            IStudentRepository studentRepository,
+            ITutorRepository tutorRepository,
+            DTOMapper dtoMapper) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
-        this.tutorRepository = tutorRepository;
         this.studentRepository = studentRepository;
-        this.studentService = studentService;
-        this.tutorService = tutorService;
+        this.tutorRepository = tutorRepository;
+        this.dtoMapper = dtoMapper;
     }
 
-    public Review createOrUpdateReview(String studentId, String tutorId, int rating, String comment) throws Exception {
-        Student student = studentService.findById(studentId);
-        Tutor tutor = tutorService.findById(tutorId);
+    @Transactional
+    public ReviewResponse createReview(CreateReviewRequest request) throws Exception {
+        // Extract student and tutor IDs from request
+        String studentId = request.getStudentId();
+        String tutorId = request.getTutorId();
+
+        // Verify student exists
+        Student student = studentRepository.findById(studentId);
+        if (student == null) {
+            throw new Exception("Student not found");
+        }
+
+        // Verify tutor exists
+        Tutor tutor = tutorRepository.findById(tutorId);
+        if (tutor == null) {
+            throw new Exception("Tutor not found");
+        }
 
         // Check if student has completed any bookings with this tutor
-        if (!bookingRepository.hasCompletedBooking(studentId, tutorId)) {
+        List<Booking> completedBookings = bookingRepository.findByStudentIdAndTutorIdAndStatus(
+                studentId, tutorId, Booking.BookingStatus.COMPLETED);
+
+        if (completedBookings.isEmpty()) {
             throw new Exception("Can only review tutors you've had completed sessions with");
         }
 
-        // Check if review already exists
+        // Check if review already exists from this student for this tutor
         Review existingReview = reviewRepository.findByStudentIdAndTutorId(studentId, tutorId);
 
         if (existingReview != null) {
             // Update existing review
-            existingReview.setRating(rating);
-            existingReview.setComment(comment);
+            existingReview.setRating(request.getRating());
+            existingReview.setComment(request.getComment());
             existingReview.setTimestamp(LocalDateTime.now());
             reviewRepository.update(existingReview);
-            return existingReview;
-        } else {
-            // Create new review
-            Review review = new Review(studentId, tutorId, rating, comment);
-            reviewRepository.save(review);
 
-            // Update tutor's reviews list
-            tutor.getReviewsReceived().add(review);
-            tutorRepository.update(tutor);
-
-            // Update student's reviews list
-            student.getReviewsGiven().add(review);
-            studentRepository.update(student);
-
-            return review;
+            return dtoMapper.toReviewResponse(existingReview, student, tutor);
         }
+
+        // Validate rating
+        if (request.getRating() < 1 || request.getRating() > 5) {
+            throw new Exception("Rating must be between 1 and 5");
+        }
+
+        // Create new review
+        Review review = new Review(
+                studentId,
+                tutorId,
+                request.getRating(),
+                request.getComment());
+
+        reviewRepository.save(review);
+
+        // Update tutor's reviews list
+        tutor.getReviewsReceived().add(review);
+        tutorRepository.update(tutor);
+
+        // Update student's reviews list
+        student.getReviewsGiven().add(review);
+        studentRepository.update(student);
+
+        return dtoMapper.toReviewResponse(review, student, tutor);
     }
 
-    public List<Review> getTutorReviews(String tutorId) {
-        return reviewRepository.getTutorReviews(tutorId);
-    }
+    public List<ReviewResponse> getTutorReviewsWithDetails(String tutorId) throws Exception {
+        Tutor tutor = tutorRepository.findById(tutorId);
+        if (tutor == null) {
+            throw new Exception("Tutor not found");
+        }
 
-    public List<Review> getStudentReviews(String studentId) {
-        return reviewRepository.getStudentReviews(studentId);
+        List<Review> reviews = reviewRepository.getTutorReviews(tutorId);
+        List<ReviewResponse> responses = new ArrayList<>();
+
+        for (Review review : reviews) {
+            Student student = studentRepository.findById(review.getStudentId());
+
+            ReviewResponse response = dtoMapper.toReviewResponse(review, student, tutor);
+            responses.add(response);
+        }
+
+        // Sort by most recent first
+        responses.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+        return responses;
     }
 }

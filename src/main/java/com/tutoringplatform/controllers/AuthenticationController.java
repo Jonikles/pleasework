@@ -1,14 +1,9 @@
-// FILE: src/main/java/com/tutoringplatform/controllers/AuthController.java
 package com.tutoringplatform.controllers;
 
 import com.tutoringplatform.dto.request.LoginRequest;
-import com.tutoringplatform.dto.request.StudentSignupRequest;
-import com.tutoringplatform.dto.request.TutorSignupRequest;
-import com.tutoringplatform.models.Student;
-import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.models.User;
+import com.tutoringplatform.dto.request.SignupRequest;
+import com.tutoringplatform.dto.response.AuthResponse;
 import com.tutoringplatform.services.AuthenticationService;
-import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -19,40 +14,27 @@ import org.springframework.http.HttpStatus;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
-    private final DTOMapper dtoMapper;
 
     @Autowired
-    public AuthenticationController(AuthenticationService authenticationService, DTOMapper dtoMapper) {
+    public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
-        this.dtoMapper = dtoMapper;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            User user = authenticationService.login(request.getEmail(), request.getPassword());
-            return ResponseEntity.ok(dtoMapper.toUserResponse(user));
+            AuthResponse response = authenticationService.login(request.getEmail(), request.getPassword());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 
-    @PostMapping("/signup/student")
-    public ResponseEntity<?> signupStudent(@RequestBody StudentSignupRequest request) {
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
-            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(), request.getPassword(), request.getTimeZoneId());
-            return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    @PostMapping("/signup/tutor")
-    public ResponseEntity<?> signupTutor(@RequestBody TutorSignupRequest request) {
-        try {
-            Tutor tutor = authenticationService.signupTutor(request.getName(), request.getEmail(), request.getPassword(),
-                    request.getHourlyRate(), request.getDescription(), request.getTimeZoneId());
-            return ResponseEntity.ok(dtoMapper.toTutorResponse(tutor));
+            AuthResponse response = authenticationService.signup(request);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

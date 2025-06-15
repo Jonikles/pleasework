@@ -1,5 +1,6 @@
 package com.tutoringplatform.repositories.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,33 @@ public class BookingRepository implements IBookingRepository {
         }
         return false;
     }
+
+    @Override
+    public List<Booking> findByTutorIdAndDateTimeRange(String tutorId, LocalDateTime startTime, LocalDateTime endTime) {
+        return bookings.values().stream()
+                .filter(b -> b.getTutorId().equals(tutorId) &&
+                        b.getDateTime().isAfter(startTime) &&
+                        b.getDateTime().isBefore(endTime))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Booking> findByTutorIdAndSubjectId(String tutorId, String subjectId) {
+        return bookings.values().stream()
+                .filter(b -> b.getTutorId().equals(tutorId) &&
+                        b.getSubject().getId().equals(subjectId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Booking> findByStudentIdAndTutorIdAndStatus(String studentId, String tutorId, Booking.BookingStatus status) {
+        return bookings.values().stream()
+                .filter(b -> b.getStudentId().equals(studentId) &&
+                        b.getTutorId().equals(tutorId) &&
+                        b.getStatus() == status)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public void save(Booking booking) {

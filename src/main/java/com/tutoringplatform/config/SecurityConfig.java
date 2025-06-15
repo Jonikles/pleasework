@@ -22,7 +22,7 @@ public class SecurityConfig {
         http
                 .csrf().disable() // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                        .antMatchers("/api/**").permitAll() // Allow all requests to our API endpoints
+                        .antMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/api/auth/**").permitAll() 
                         .anyRequest().authenticated() // Secure any other endpoint (if any)
                 );
         return http.build();

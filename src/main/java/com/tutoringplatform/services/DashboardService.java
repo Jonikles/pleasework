@@ -1,172 +1,186 @@
-// FILE: src/main/java/com/tutoringplatform/services/DashboardService.java
 package com.tutoringplatform.services;
 
 import com.tutoringplatform.dto.response.*;
 import com.tutoringplatform.models.*;
+import com.tutoringplatform.repositories.interfaces.*;
 import com.tutoringplatform.util.DTOMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class DashboardService {
 
-    private final StudentService studentService;
-    private final BookingService bookingService;
-    private final TutorService tutorService;
-    private final SubjectService subjectService;
-    private final ReviewService reviewService;
-    private final SearchService searchService;
+    private final IStudentRepository studentRepository;
+    private final ITutorRepository tutorRepository;
+    private final IBookingRepository bookingRepository;
+    private final IReviewRepository reviewRepository;
+    private final IPaymentRepository paymentRepository;
     private final DTOMapper dtoMapper;
 
     @Autowired
-    public DashboardService(StudentService studentService, BookingService bookingService, TutorService tutorService,
-            SubjectService subjectService, ReviewService reviewService, SearchService searchService,
+    public DashboardService(
+            IStudentRepository studentRepository,
+            ITutorRepository tutorRepository,
+            IBookingRepository bookingRepository,
+            IReviewRepository reviewRepository,
+            IPaymentRepository paymentRepository,
             DTOMapper dtoMapper) {
-        this.studentService = studentService;
-        this.bookingService = bookingService;
-        this.tutorService = tutorService;
-        this.subjectService = subjectService;
-        this.reviewService = reviewService;
-        this.searchService = searchService;
+        this.studentRepository = studentRepository;
+        this.tutorRepository = tutorRepository;
+        this.bookingRepository = bookingRepository;
+        this.reviewRepository = reviewRepository;
+        this.paymentRepository = paymentRepository;
         this.dtoMapper = dtoMapper;
     }
 
     public StudentDashboardResponse getStudentDashboard(String studentId) throws Exception {
-        StudentDashboardResponse dashboard = new StudentDashboardResponse();
+        // Fetch student
+        Student student = studentRepository.findById(studentId);
+        if (student == null) {
+            throw new Exception("Student not found");
+        }
 
-        // Get student info
-        Student student = studentService.findById(studentId);
-        dashboard.setStudent(dtoMapper.toStudentResponse(student));
+        // Build profile
+        UserProfile profile = new UserProfile();
+        profile.setName(student.getName());
+        profile.setBalance(student.getBalance());
+        profile.setProfilePictureUrl(dtoMapper.buildProfilePictureUrl(student.getProfilePictureId()));
 
-        // Get bookings with enriched data
-        List<Booking> allBookings = bookingService.findByStudentId(studentId);
+        // Build stats
+        List<Booking> allBookings = bookingRepository.findByStudentId(studentId);
+        DashboardStats stats = buildStudentStats(allBookings);
 
+        // Get upcoming bookings with details
         LocalDateTime now = LocalDateTime.now();
-        List<EnrichedBookingResponse> upcomingBookings = new ArrayList<>();
-        List<EnrichedBookingResponse> pastBookings = new ArrayList<>();
+        List<BookingDetailResponse> upcomingBookings = new ArrayList<>();
 
         for (Booking booking : allBookings) {
-            EnrichedBookingResponse enriched = enrichBooking(booking);
-
             if (booking.getDateTime().isAfter(now) &&
                     booking.getStatus() != Booking.BookingStatus.CANCELLED) {
-                upcomingBookings.add(enriched);
-            } else {
-                pastBookings.add(enriched);
+
+                Tutor tutor = tutorRepository.findById(booking.getTutorId());
+                Payment payment = paymentRepository.findByBookingId(booking.getId());
+
+                BookingDetailResponse detail = dtoMapper.toBookingDetailResponse(
+                        booking, student, tutor, payment);
+                upcomingBookings.add(detail);
             }
         }
 
-        dashboard.setUpcomingBookings(upcomingBookings);
-        dashboard.setPastBookings(pastBookings);
+        // Sort by date
+        upcomingBookings.sort((a, b) -> a.getDateTime().compareTo(b.getDateTime()));
 
-        // Get all subjects
-        List<Subject> subjects = subjectService.findAll();
-        dashboard.setAvailableSubjects(subjects.stream()
-                .map(dtoMapper::toSubjectResponse)
-                .collect(Collectors.toList()));
-
-        return dashboard;
-    }
-
-    private EnrichedBookingResponse enrichBooking(Booking booking) throws Exception {
-        EnrichedBookingResponse enriched = new EnrichedBookingResponse();
-
-        // Copy basic booking data
-        enriched.setId(booking.getId());
-        enriched.setStudentId(booking.getStudentId());
-        enriched.setTutorId(booking.getTutorId());
-        enriched.setSubject(dtoMapper.toSubjectResponse(booking.getSubject()));
-        enriched.setDateTime(booking.getDateTime());
-        enriched.setDurationHours(booking.getDurationHours());
-        enriched.setTotalCost(booking.getTotalCost());
-        enriched.setStatus(booking.getStatus().toString());
-
-        // Enrich with names
-        try {
-            Student student = studentService.findById(booking.getStudentId());
-            enriched.setStudentName(student.getName());
-        } catch (Exception e) {
-            enriched.setStudentName("Unknown");
-        }
-
-        try {
-            Tutor tutor = tutorService.findById(booking.getTutorId());
-            enriched.setTutorName(tutor.getName());
-        } catch (Exception e) {
-            enriched.setTutorName("Unknown");
-        }
-
-        return enriched;
+        return dtoMapper.toStudentDashboardResponse(profile, stats, upcomingBookings);
     }
 
     public TutorDashboardResponse getTutorDashboard(String tutorId) throws Exception {
-        TutorDashboardResponse dashboard = new TutorDashboardResponse();
+        // Fetch tutor
+        Tutor tutor = tutorRepository.findById(tutorId);
+        if (tutor == null) {
+            throw new Exception("Tutor not found");
+        }
 
-        // Get tutor info
-        Tutor tutor = tutorService.findById(tutorId);
-        dashboard.setTutor(dtoMapper.toTutorResponse(tutor));
+        // Build profile
+        UserProfile profile = new UserProfile();
+        profile.setName(tutor.getName());
+        profile.setHourlyRate(tutor.getHourlyRate());
+        profile.setProfilePictureUrl(dtoMapper.buildProfilePictureUrl(tutor.getProfilePictureId()));
 
-        // Get bookings
-        List<Booking> allBookings = bookingService.findByTutorId(tutorId);
+        // Build stats
+        List<Booking> allBookings = bookingRepository.findByTutorId(tutorId);
+        List<Review> allReviews = reviewRepository.getTutorReviews(tutorId);
+        DashboardStats stats = buildTutorStats(allBookings, allReviews, tutor.getEarnings());
+
+        // Get upcoming bookings
         LocalDateTime now = LocalDateTime.now();
-
-        List<EnrichedBookingResponse> upcomingBookings = new ArrayList<>();
-        List<EnrichedBookingResponse> recentBookings = new ArrayList<>();
+        List<BookingDetailResponse> upcomingBookings = new ArrayList<>();
+        List<BookingDetailResponse> todaysSchedule = new ArrayList<>();
 
         for (Booking booking : allBookings) {
-            EnrichedBookingResponse enriched = enrichBooking(booking);
-
             if (booking.getDateTime().isAfter(now) &&
                     booking.getStatus() != Booking.BookingStatus.CANCELLED) {
-                upcomingBookings.add(enriched);
-            } else if (booking.getDateTime().isAfter(now.minusDays(30))) {
-                recentBookings.add(enriched);
+
+                Student student = studentRepository.findById(booking.getStudentId());
+                Payment payment = paymentRepository.findByBookingId(booking.getId());
+
+                BookingDetailResponse detail = dtoMapper.toBookingDetailResponse(
+                        booking, student, tutor, payment);
+
+                upcomingBookings.add(detail);
+
+                // Check if it's today
+                if (booking.getDateTime().toLocalDate().equals(LocalDate.now())) {
+                    todaysSchedule.add(detail);
+                }
             }
         }
 
-        dashboard.setUpcomingBookings(upcomingBookings);
-        dashboard.setRecentBookings(recentBookings);
+        // Sort by date
+        upcomingBookings.sort((a, b) -> a.getDateTime().compareTo(b.getDateTime()));
+        todaysSchedule.sort((a, b) -> a.getDateTime().compareTo(b.getDateTime()));
 
-        // Get recent reviews
-        List<Review> reviews = reviewService.getTutorReviews(tutorId);
-        List<ReviewResponse> recentReviews = reviews.stream()
-                .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
-                .limit(5)
-                .map(dtoMapper::toReviewResponse)
-                .collect(Collectors.toList());
-        dashboard.setRecentReviews(recentReviews);
-
-        // Calculate stats
-        DashboardStats stats = new DashboardStats();
-        stats.setTotalBookings(allBookings.size());
-        stats.setCompletedSessions((int) allBookings.stream()
-                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
-                .count());
-        stats.setTotalEarnings(tutor.getEarnings());
-        stats.setAverageRating(tutor.getReviewsReceived().isEmpty() ? 0.0
-                : tutor.getReviewsReceived().stream()
-                        .mapToDouble(Review::getRating)
-                        .average()
-                        .orElse(0.0));
-        stats.setTotalReviews(tutor.getReviewsReceived().size());
-
-        dashboard.setStats(stats);
-
-        return dashboard;
+        return dtoMapper.toTutorDashboardResponse(profile, stats, upcomingBookings, null, todaysSchedule);
     }
 
-    public List<TutorSearchResponse> searchTutorsEnriched(String subjectId, Double minPrice, 
-        Double maxPrice, Double minRating) throws Exception {
-    
-        SearchService.TutorSearchCriteria criteria = new SearchService.TutorSearchCriteria.Builder()
-            .withSubject(subjectId)
-            .withPriceRange(minPrice, maxPrice)
-            .withMinRating(minRating)
-            .build();
-        
-        return searchService.searchTutors(criteria);
-    }   
+    private DashboardStats buildStudentStats(List<Booking> bookings) {
+        DashboardStats stats = new DashboardStats();
+
+        int totalSessions = bookings.size();
+        int completedSessions = (int) bookings.stream()
+                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
+                .count();
+        int upcomingSessions = (int) bookings.stream()
+                .filter(b -> b.getStatus() != Booking.BookingStatus.CANCELLED &&
+                        b.getDateTime().isAfter(LocalDateTime.now()))
+                .count();
+
+        stats.setTotalSessions(totalSessions);
+        stats.setCompletedSessions(completedSessions);
+        stats.setUpcomingSessions(upcomingSessions);
+
+        return stats;
+    }
+
+    private DashboardStats buildTutorStats(List<Booking> bookings, List<Review> reviews, double totalEarnings) {
+        DashboardStats stats = new DashboardStats();
+
+        // Booking stats
+        int totalSessions = bookings.size();
+        int completedSessions = (int) bookings.stream()
+                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
+                .count();
+        int upcomingSessions = (int) bookings.stream()
+                .filter(b -> b.getStatus() != Booking.BookingStatus.CANCELLED &&
+                        b.getDateTime().isAfter(LocalDateTime.now()))
+                .count();
+
+        // This month's earnings
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        double thisMonthEarnings = bookings.stream()
+                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED &&
+                        b.getDateTime().toLocalDate().isAfter(startOfMonth.minusDays(1)))
+                .mapToDouble(Booking::getTotalCost)
+                .sum();
+
+        // Review stats
+        double averageRating = reviews.isEmpty() ? 0.0
+                : reviews.stream()
+                        .mapToDouble(Review::getRating)
+                        .average()
+                        .orElse(0.0);
+
+        stats.setTotalSessions(totalSessions);
+        stats.setCompletedSessions(completedSessions);
+        stats.setUpcomingSessions(upcomingSessions);
+        stats.setTotalEarnings(totalEarnings);
+        stats.setThisMonthEarnings(thisMonthEarnings);
+        stats.setAverageRating(averageRating);
+        stats.setTotalReviews(reviews.size());
+
+        return stats;
+    }
 }

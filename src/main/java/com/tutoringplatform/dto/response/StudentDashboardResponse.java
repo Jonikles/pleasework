@@ -1,44 +1,34 @@
-// FILE: src/main/java/com/tutoringplatform/dto/response/StudentDashboardResponse.java
 package com.tutoringplatform.dto.response;
 
 import java.util.List;
 
 public class StudentDashboardResponse {
-    private StudentResponse student;
-    private List<EnrichedBookingResponse> upcomingBookings;
-    private List<EnrichedBookingResponse> pastBookings;
-    private List<SubjectResponse> availableSubjects;
+    private UserProfile profile;
+    private DashboardStats stats;
+    private List<BookingDetailResponse> upcomingBookings;
 
-    // Getters and setters
-    public StudentResponse getStudent() {
-        return student;
+    // All getters and setters
+    public UserProfile getProfile() {
+        return profile;
     }
 
-    public void setStudent(StudentResponse student) {
-        this.student = student;
+    public void setProfile(UserProfile profile) {
+        this.profile = profile;
     }
 
-    public List<EnrichedBookingResponse> getUpcomingBookings() {
+    public DashboardStats getStats() {
+        return stats;
+    }
+
+    public void setStats(DashboardStats stats) {
+        this.stats = stats;
+    }
+
+    public List<BookingDetailResponse> getUpcomingBookings() {
         return upcomingBookings;
     }
 
-    public void setUpcomingBookings(List<EnrichedBookingResponse> upcomingBookings) {
+    public void setUpcomingBookings(List<BookingDetailResponse> upcomingBookings) {
         this.upcomingBookings = upcomingBookings;
-    }
-
-    public List<EnrichedBookingResponse> getPastBookings() {
-        return pastBookings;
-    }
-
-    public void setPastBookings(List<EnrichedBookingResponse> pastBookings) {
-        this.pastBookings = pastBookings;
-    }
-
-    public List<SubjectResponse> getAvailableSubjects() {
-        return availableSubjects;
-    }
-
-    public void setAvailableSubjects(List<SubjectResponse> availableSubjects) {
-        this.availableSubjects = availableSubjects;
     }
 }

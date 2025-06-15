@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/tutoringplatform/models/availability/AvailabilityException.java
 package com.tutoringplatform.models.availability;
 
 import java.time.*;

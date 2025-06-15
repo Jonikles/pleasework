@@ -7,10 +7,13 @@ import com.tutoringplatform.command.RefundPaymentCommand;
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Payment;
 import com.tutoringplatform.models.Student;
+import com.tutoringplatform.dto.response.PaymentHistoryResponse;
 import com.tutoringplatform.repositories.interfaces.IBookingRepository;
 import com.tutoringplatform.repositories.interfaces.IPaymentCommand;
 import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import com.tutoringplatform.util.DTOMapper;
+
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +24,15 @@ public class PaymentService {
     private final IStudentRepository studentRepository;
     private final IBookingRepository bookingRepository;
     private final Stack<IPaymentCommand> commandHistory;
-
+    private final DTOMapper dtoMapper;
     @Autowired
     public PaymentService(IPaymentRepository paymentRepository, IStudentRepository studentRepository,
-            IBookingRepository bookingRepository) {
+            IBookingRepository bookingRepository, DTOMapper dtoMapper) {
         this.paymentRepository = paymentRepository;
         this.studentRepository = studentRepository;
         this.bookingRepository = bookingRepository;
         this.commandHistory = new Stack<>();
+        this.dtoMapper = dtoMapper;
     }
 
     @Transactional

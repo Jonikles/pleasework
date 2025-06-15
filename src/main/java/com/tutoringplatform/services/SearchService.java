@@ -1,248 +1,282 @@
-// FILE: src/main/java/com/tutoringplatform/services/SearchService.java
 package com.tutoringplatform.services;
 
-import com.tutoringplatform.models.*;
+import com.tutoringplatform.models.availability.TutorAvailability;
+import com.tutoringplatform.dto.request.TutorSearchRequest;
 import com.tutoringplatform.dto.response.*;
+import com.tutoringplatform.dto.response.info.TutorSearchResultInfo;
+import com.tutoringplatform.models.*;
+import com.tutoringplatform.repositories.interfaces.*;
 import com.tutoringplatform.util.DTOMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.time.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class SearchService {
 
-    @Autowired
-    private TutorService tutorService;
+    private final ITutorRepository tutorRepository;
+    private final ISubjectRepository subjectRepository;
+    private final IReviewRepository reviewRepository;
+    private final IBookingRepository bookingRepository;
+    private final AvailabilityService availabilityService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private SubjectService subjectService;
-
-    @Autowired
-    private AvailabilityService availabilityService;
-
-    @Autowired
-    private DTOMapper dtoMapper;
-
-    public static class TutorSearchCriteria {
-        private String subjectId;
-        private Double minPrice;
-        private Double maxPrice;
-        private Double minRating;
-        private LocalDateTime availableFrom;
-        private LocalDateTime availableTo;
-        private String searchText;
-        private boolean onlyAvailableNow;
-
-        // Builder pattern for easy construction
-        public static class Builder {
-            private TutorSearchCriteria criteria = new TutorSearchCriteria();
-
-            public Builder withSubject(String subjectId) {
-                criteria.subjectId = subjectId;
-                return this;
-            }
-
-            public Builder withPriceRange(Double min, Double max) {
-                criteria.minPrice = min;
-                criteria.maxPrice = max;
-                return this;
-            }
-
-            public Builder withMinRating(Double rating) {
-                criteria.minRating = rating;
-                return this;
-            }
-
-            public Builder withAvailability(LocalDateTime from, LocalDateTime to) {
-                criteria.availableFrom = from;
-                criteria.availableTo = to;
-                return this;
-            }
-
-            public Builder withSearchText(String text) {
-                criteria.searchText = text;
-                return this;
-            }
-
-            public Builder onlyAvailableNow(boolean available) {
-                criteria.onlyAvailableNow = available;
-                return this;
-            }
-
-            public TutorSearchCriteria build() {
-                return criteria;
-            }
-        }
-
-        // Getters
-        public String getSubjectId() {
-            return subjectId;
-        }
-
-        public Double getMinPrice() {
-            return minPrice;
-        }
-
-        public Double getMaxPrice() {
-            return maxPrice;
-        }
-
-        public Double getMinRating() {
-            return minRating;
-        }
-
-        public LocalDateTime getAvailableFrom() {
-            return availableFrom;
-        }
-
-        public LocalDateTime getAvailableTo() {
-            return availableTo;
-        }
-
-        public String getSearchText() {
-            return searchText;
-        }
-
-        public boolean isOnlyAvailableNow() {
-            return onlyAvailableNow;
-        }
+    public SearchService(
+            ITutorRepository tutorRepository,
+            ISubjectRepository subjectRepository,
+            IReviewRepository reviewRepository,
+            IBookingRepository bookingRepository,
+            AvailabilityService availabilityService,
+            DTOMapper dtoMapper) {
+        this.tutorRepository = tutorRepository;
+        this.subjectRepository = subjectRepository;
+        this.reviewRepository = reviewRepository;
+        this.bookingRepository = bookingRepository;
+        this.availabilityService = availabilityService;
+        this.dtoMapper = dtoMapper;
     }
 
-    public List<TutorSearchResponse> searchTutors(TutorSearchCriteria criteria) throws Exception {
+    public TutorSearchResultsResponse searchTutors(TutorSearchRequest request) throws Exception {
         // Start with all tutors
-        List<Tutor> tutors = tutorService.findAll();
+        List<Tutor> tutors = tutorRepository.findAll();
 
         // Apply filters
-        tutors = filterBySubject(tutors, criteria.getSubjectId());
-        tutors = filterByPrice(tutors, criteria.getMinPrice(), criteria.getMaxPrice());
-        tutors = filterByRating(tutors, criteria.getMinRating());
-        tutors = filterBySearchText(tutors, criteria.getSearchText());
-        tutors = filterByAvailability(tutors, criteria);
+        tutors = applyFilters(tutors, request);
 
-        // Convert to response DTOs
-        return tutors.stream()
-                .map(this::enrichTutor)
-                .collect(Collectors.toList());
+        // Sort results
+        tutors = sortResults(tutors, request.getSortBy());
+
+        // Apply pagination
+        int page = request.getPage() != null ? request.getPage() : 0;
+        int pageSize = request.getPageSize() != null ? request.getPageSize() : 20;
+        int totalCount = tutors.size();
+
+        int startIndex = page * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, tutors.size());
+
+        List<Tutor> paginatedTutors = startIndex < tutors.size() ? tutors.subList(startIndex, endIndex)
+                : new ArrayList<>();
+
+        // Convert to search results
+        List<TutorSearchResultInfo> results = new ArrayList<>();
+        for (Tutor tutor : paginatedTutors) {
+            TutorSearchResultInfo result = buildSearchResult(tutor);
+            results.add(result);
+        }
+
+        // Build filters for response
+        SearchFilters appliedFilters = new SearchFilters();
+        appliedFilters.setSubjectId(request.getSubjectId());
+        appliedFilters.setMinPrice(request.getMinPrice());
+        appliedFilters.setMaxPrice(request.getMaxPrice());
+        appliedFilters.setMinRating(request.getMinRating());
+        appliedFilters.setSortBy(request.getSortBy());
+
+        return dtoMapper.toTutorSearchResultsResponse(results, totalCount, appliedFilters);
     }
 
-    private List<Tutor> filterBySubject(List<Tutor> tutors, String subjectId) throws Exception {
-        if (subjectId == null)
-            return tutors;
+    private List<Tutor> applyFilters(List<Tutor> tutors, TutorSearchRequest request) throws Exception {
+        // Filter by subject
+        if (request.getSubjectId() != null) {
+            Subject subject = subjectRepository.findById(request.getSubjectId());
+            if (subject != null) {
+                tutors = tutors.stream()
+                        .filter(t -> t.getSubjects().contains(subject))
+                        .collect(Collectors.toList());
+            }
+        }
 
-        Subject subject = subjectService.findById(subjectId);
-        return tutors.stream()
-                .filter(t -> t.getSubjects().contains(subject))
-                .collect(Collectors.toList());
+        // Filter by price range
+        if (request.getMinPrice() > 0) {
+            tutors = tutors.stream()
+                    .filter(t -> t.getHourlyRate() >= request.getMinPrice())
+                    .collect(Collectors.toList());
+        }
+
+        if (request.getMaxPrice() > 0) {
+            tutors = tutors.stream()
+                    .filter(t -> t.getHourlyRate() <= request.getMaxPrice())
+                    .collect(Collectors.toList());
+        }
+
+        // Filter by minimum rating
+        if (request.getMinRating() > 0) {
+            tutors = tutors.stream()
+                    .filter(t -> {
+                        double avgRating = calculateAverageRating(t.getId());
+                        return avgRating >= request.getMinRating();
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Filter by search text
+        if (request.getSearchText() != null && !request.getSearchText().trim().isEmpty()) {
+            String searchLower = request.getSearchText().toLowerCase();
+            tutors = tutors.stream()
+                    .filter(t -> t.getName().toLowerCase().contains(searchLower) ||
+                            t.getDescription().toLowerCase().contains(searchLower) ||
+                            t.getSubjects().stream()
+                                    .anyMatch(s -> s.getName().toLowerCase().contains(searchLower)))
+                    .collect(Collectors.toList());
+        }
+
+        // Filter by availability
+        if (request.getAvailableNow() != null && request.getAvailableNow()) {
+            tutors = filterByCurrentAvailability(tutors);
+        } else if (request.getAvailableDateTime() != null) {
+            tutors = filterBySpecificAvailability(tutors, request.getAvailableDateTime());
+        }
+
+        return tutors;
     }
 
-    private List<Tutor> filterByPrice(List<Tutor> tutors, Double minPrice, Double maxPrice) {
-        return tutors.stream()
-                .filter(t -> (minPrice == null || t.getHourlyRate() >= minPrice))
-                .filter(t -> (maxPrice == null || t.getHourlyRate() <= maxPrice))
-                .collect(Collectors.toList());
-    }
-
-    private List<Tutor> filterByRating(List<Tutor> tutors, Double minRating) {
-        if (minRating == null)
-            return tutors;
+    private List<Tutor> filterByCurrentAvailability(List<Tutor> tutors) {
+        ZoneId userTimeZone = ZoneId.systemDefault(); // Should get from user context
+        ZonedDateTime now = ZonedDateTime.now(userTimeZone);
+        ZonedDateTime oneHourLater = now.plusHours(1);
 
         return tutors.stream()
-                .filter(t -> {
-                    double avgRating = calculateAverageRating(t);
-                    return avgRating >= minRating;
+                .filter(tutor -> {
+                    try {
+                        return availabilityService.isAvailable(
+                                tutor.getId(), now, oneHourLater, userTimeZone);
+                    } catch (Exception e) {
+                        return false;
+                    }
                 })
                 .collect(Collectors.toList());
     }
 
-    private List<Tutor> filterBySearchText(List<Tutor> tutors, String searchText) {
-        if (searchText == null || searchText.trim().isEmpty())
-            return tutors;
-
-        String search = searchText.toLowerCase();
-        return tutors.stream()
-                .filter(t -> t.getName().toLowerCase().contains(search) ||
-                        t.getDescription().toLowerCase().contains(search) ||
-                        t.getSubjects().stream()
-                                .anyMatch(s -> s.getName().toLowerCase().contains(search)))
-                .collect(Collectors.toList());
-    }
-
-    private List<Tutor> filterByAvailability(List<Tutor> tutors, TutorSearchCriteria criteria) {
-        if (!criteria.isOnlyAvailableNow() &&
-                criteria.getAvailableFrom() == null &&
-                criteria.getAvailableTo() == null) {
-            return tutors;
-        }
-
-        LocalDateTime checkFrom = criteria.isOnlyAvailableNow() ? LocalDateTime.now() : criteria.getAvailableFrom();
-        LocalDateTime checkTo = criteria.isOnlyAvailableNow() ? LocalDateTime.now().plusHours(1)
-                : criteria.getAvailableTo();
-
-        if (checkFrom == null || checkTo == null)
-            return tutors;
-
-        ZoneId studentTimeZone = ZoneId.systemDefault(); // Should get from logged-in user
-        ZonedDateTime from = checkFrom.atZone(studentTimeZone);
-        ZonedDateTime to = checkTo.atZone(studentTimeZone);
-
-        List<String> tutorIds = tutors.stream()
-                .map(Tutor::getId)
-                .collect(Collectors.toList());
-
-        List<String> availableIds = availabilityService.findAvailableTutors(tutorIds, from, to, studentTimeZone);
+    private List<Tutor> filterBySpecificAvailability(List<Tutor> tutors, LocalDateTime dateTime) {
+        ZoneId userTimeZone = ZoneId.systemDefault(); // Should get from user context
+        ZonedDateTime start = dateTime.atZone(userTimeZone);
+        ZonedDateTime end = start.plusHours(1); // Default 1 hour session
 
         return tutors.stream()
-                .filter(t -> availableIds.contains(t.getId()))
+                .filter(tutor -> {
+                    try {
+                        return availabilityService.isAvailable(
+                                tutor.getId(), start, end, userTimeZone);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
-    private TutorSearchResponse enrichTutor(Tutor tutor) {
-        TutorSearchResponse response = new TutorSearchResponse();
-        response.setId(tutor.getId());
-        response.setName(tutor.getName());
-        response.setEmail(tutor.getEmail());
-        response.setHourlyRate(tutor.getHourlyRate());
-        response.setDescription(tutor.getDescription());
-
-        double avgRating = calculateAverageRating(tutor);
-        response.setAverageRating(avgRating);
-        response.setTotalReviews(tutor.getReviewsReceived().size());
-
-        response.setSubjects(tutor.getSubjects().stream()
-                .map(dtoMapper::toSubjectResponse)
-                .collect(Collectors.toList()));
-
-        if (tutor.getProfilePictureId() != null) {
-            response.setProfilePictureUrl("/api/files/" + tutor.getProfilePictureId());
+    private List<Tutor> sortResults(List<Tutor> tutors, String sortBy) {
+        if (sortBy == null) {
+            sortBy = "RATING"; // Default sort
         }
 
-        // Check current availability
-        response.setCurrentlyAvailable(checkIfCurrentlyAvailable(tutor));
+        switch (sortBy) {
+            case "PRICE_LOW":
+                tutors.sort(Comparator.comparing(Tutor::getHourlyRate));
+                break;
+            case "PRICE_HIGH":
+                tutors.sort(Comparator.comparing(Tutor::getHourlyRate).reversed());
+                break;
+            case "RATING":
+                tutors.sort((a, b) -> {
+                    double ratingA = calculateAverageRating(a.getId());
+                    double ratingB = calculateAverageRating(b.getId());
+                    return Double.compare(ratingB, ratingA); // Descending
+                });
+                break;
+            case "REVIEWS":
+                tutors.sort((a, b) -> {
+                    int reviewsA = reviewRepository.getTutorReviews(a.getId()).size();
+                    int reviewsB = reviewRepository.getTutorReviews(b.getId()).size();
+                    return Integer.compare(reviewsB, reviewsA); // Descending
+                });
+                break;
+        }
 
-        return response;
+        return tutors;
     }
 
-    private double calculateAverageRating(Tutor tutor) {
-        if (tutor.getReviewsReceived().isEmpty())
+    private TutorSearchResultInfo buildSearchResult(Tutor tutor) throws Exception {
+        // Calculate average rating
+        double averageRating = calculateAverageRating(tutor.getId());
+
+        // Get review count
+        int reviewCount = reviewRepository.getTutorReviews(tutor.getId()).size();
+
+        // Create short description (first 100 chars)
+        String shortDescription = tutor.getDescription();
+        if (shortDescription.length() > 100) {
+            shortDescription = shortDescription.substring(0, 97) + "...";
+        }
+
+        // Find next available slot
+        LocalDateTime nextAvailable = findNextAvailableSlot(tutor.getId());
+
+        return dtoMapper.toTutorSearchResult(
+                tutor,
+                averageRating,
+                reviewCount,
+                shortDescription,
+                nextAvailable);
+    }
+
+    private double calculateAverageRating(String tutorId) {
+        List<Review> reviews = reviewRepository.getTutorReviews(tutorId);
+        if (reviews.isEmpty()) {
             return 0.0;
+        }
 
-        return tutor.getReviewsReceived().stream()
+        return reviews.stream()
                 .mapToDouble(Review::getRating)
                 .average()
                 .orElse(0.0);
     }
 
-    private boolean checkIfCurrentlyAvailable(Tutor tutor) {
-        try {
-            LocalDateTime now = LocalDateTime.now();
-            ZonedDateTime from = now.atZone(ZoneId.systemDefault());
-            ZonedDateTime to = from.plusMinutes(30);
-
-            return availabilityService.isAvailable(tutor.getId(), from, to, ZoneId.systemDefault());
-        } catch (Exception e) {
-            return false;
+    private LocalDateTime findNextAvailableSlot(String tutorId) throws Exception {
+        // Get tutor's availability
+        TutorAvailability availability = availabilityService.getAvailability(tutorId);
+        if (availability.getRecurringSlots().isEmpty()) {
+            return null;
         }
+
+        // Get existing bookings
+        List<Booking> bookings = bookingRepository.findByTutorId(tutorId).stream()
+                .filter(b -> b.getStatus() != Booking.BookingStatus.CANCELLED)
+                .filter(b -> b.getDateTime().isAfter(LocalDateTime.now()))
+                .collect(Collectors.toList());
+
+        // Find next available slot (simplified - would need more complex logic)
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime checkTime = now.plusHours(1); // Start checking from 1 hour from now
+
+        // Check next 7 days
+        for (int i = 0; i < 168; i++) { // 168 hours = 7 days
+            LocalDateTime slotTime = checkTime.plusHours(i);
+            ZonedDateTime slotStart = slotTime.atZone(availability.getTimeZone());
+            ZonedDateTime slotEnd = slotStart.plusHours(1);
+
+            // Check if this slot is available
+            boolean isAvailable = availabilityService.isAvailable(
+                    tutorId, slotStart, slotEnd, availability.getTimeZone());
+
+            if (isAvailable) {
+                // Check if not already booked
+                boolean isBooked = bookings.stream()
+                        .anyMatch(b -> {
+                            LocalDateTime bookingEnd = b.getDateTime().plusHours(b.getDurationHours());
+                            return !slotTime.isAfter(bookingEnd) && !slotTime.plusHours(1).isBefore(b.getDateTime());
+                        });
+
+                if (!isBooked) {
+                    return slotTime;
+                }
+            }
+        }
+
+        return null;
     }
 }

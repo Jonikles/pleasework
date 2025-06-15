@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/tutoringplatform/dto/response/SubjectResponse.java
 package com.tutoringplatform.dto.response;
 
 public class SubjectResponse {

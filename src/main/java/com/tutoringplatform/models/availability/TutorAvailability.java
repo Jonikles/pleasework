@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/tutoringplatform/models/availability/TutorAvailability.java
 package com.tutoringplatform.models.availability;
 
 import java.time.*;

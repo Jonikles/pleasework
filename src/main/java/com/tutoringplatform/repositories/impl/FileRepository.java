@@ -16,6 +16,11 @@ public class FileRepository implements IFileRepository {
     }
 
     @Override
+    public List<FileMetaData> findAll() {
+        return new ArrayList<>(files.values());
+    }
+
+    @Override
     public List<FileMetaData> findByUserId(String userId) {
         return files.values().stream()
                 .filter(f -> f.getUserId().equals(userId))
@@ -24,6 +29,11 @@ public class FileRepository implements IFileRepository {
 
     @Override
     public void save(FileMetaData metadata) {
+        files.put(metadata.getFileId(), metadata);
+    }
+
+    @Override
+    public void update(FileMetaData metadata) {
         files.put(metadata.getFileId(), metadata);
     }
 

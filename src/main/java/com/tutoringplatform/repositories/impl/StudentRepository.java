@@ -54,4 +54,9 @@ public class StudentRepository implements IStudentRepository {
                 .filter(s -> s.getName().toLowerCase().contains(name.toLowerCase()))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean emailExists(String email) {
+        return findByEmail(email) != null;
+    }
 }
