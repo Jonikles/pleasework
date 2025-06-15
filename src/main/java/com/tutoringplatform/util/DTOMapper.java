@@ -252,20 +252,6 @@ public class DTOMapper {
         return response;
     }
 
-    // ========== PAYMENT RESPONSES ==========
-
-    public PaymentHistoryResponse toPaymentHistoryResponse(
-            List<TransactionRecord> transactions,
-            double totalSpent,
-            double currentBalance) {
-
-        PaymentHistoryResponse response = new PaymentHistoryResponse();
-        response.setTransactions(transactions);
-        response.setTotalSpent(totalSpent);
-        response.setCurrentBalance(currentBalance);
-        return response;
-    }
-
     // ========== AVAILABILITY RESPONSES ==========
 
     public AvailabilityResponse toAvailabilityResponse(
