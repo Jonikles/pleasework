@@ -11,7 +11,6 @@ import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.Tutor;
 import com.tutoringplatform.observer.BookingEvent;
-import com.tutoringplatform.observer.BookingObserver;
 import com.tutoringplatform.repositories.interfaces.IBookingRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
@@ -19,6 +18,7 @@ import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 public class BookingService {
@@ -29,12 +29,12 @@ public class BookingService {
     private final ISubjectRepository subjectRepository;
     private final AvailabilityService availabilityService;
     private final TutorService tutorService;
-    private List<BookingObserver> observers;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired 
     public BookingService(IBookingRepository bookingRepository, IStudentRepository studentRepository,
             ITutorRepository tutorRepository, PaymentService paymentService, ISubjectRepository subjectRepository,
-            AvailabilityService availabilityService, TutorService tutorService, List<BookingObserver> observers) {
+            AvailabilityService availabilityService, TutorService tutorService, ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.studentRepository = studentRepository;
         this.tutorRepository = tutorRepository;
@@ -42,13 +42,7 @@ public class BookingService {
         this.subjectRepository = subjectRepository;
         this.availabilityService = availabilityService;
         this.tutorService = tutorService;
-        this.observers = observers;
-    }
-
-    private void notifyObservers(BookingEvent event) {
-        for (BookingObserver observer : observers) {
-            observer.update(event);
-        }
+        this.eventPublisher = eventPublisher;
     }
 
     public Booking createBooking(String studentId, String tutorId, String subjectId,
@@ -84,7 +78,7 @@ public class BookingService {
         Booking booking = new Booking(studentId, tutorId, subject, dateTime, durationHours, tutor.getHourlyRate());
         bookingRepository.save(booking);
 
-        notifyObservers(new BookingEvent(BookingEvent.EventType.CREATED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.CREATED, booking, student, tutor));
 
         return booking;
     }
@@ -134,7 +128,7 @@ public class BookingService {
 
         bookingRepository.update(booking);
 
-        notifyObservers(new BookingEvent(BookingEvent.EventType.CONFIRMED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.CONFIRMED, booking, student, tutor));
 
         return booking;
     }
@@ -169,7 +163,7 @@ public class BookingService {
             System.err.println("Tutor with ID " + booking.getTutorId() + " not found during booking cancellation.");
         }
 
-        notifyObservers(new BookingEvent(BookingEvent.EventType.CANCELLED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.CANCELLED, booking, student, tutor));
     }
 
     @Transactional
@@ -191,7 +185,7 @@ public class BookingService {
         Tutor tutor = tutorRepository.findById(booking.getTutorId());
         Student student = studentRepository.findById(booking.getStudentId());
         
-        notifyObservers(new BookingEvent(BookingEvent.EventType.COMPLETED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.COMPLETED, booking, student, tutor));
     }
 
     public Booking findById(String id) throws Exception {

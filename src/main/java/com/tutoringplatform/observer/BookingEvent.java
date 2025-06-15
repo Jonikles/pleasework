@@ -3,8 +3,9 @@ package com.tutoringplatform.observer;
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Tutor;
+import org.springframework.context.ApplicationEvent;
 
-public class BookingEvent {
+public class BookingEvent extends ApplicationEvent{
     private EventType eventType;
     private Booking booking;
     private Student student;
@@ -14,7 +15,8 @@ public class BookingEvent {
         CREATED, CONFIRMED, CANCELLED, COMPLETED
     }
 
-    public BookingEvent(EventType eventType, Booking booking, Student student, Tutor tutor) {
+    public BookingEvent(Object source, EventType eventType, Booking booking, Student student, Tutor tutor) {
+        super(source);
         this.eventType = eventType;
         this.booking = booking;
         this.student = student;

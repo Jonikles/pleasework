@@ -5,978 +5,241 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutoring Platform</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        #authSection {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2rem;
-        }
-
-        h2 {
-            color: #555;
-            margin-bottom: 25px;
-            font-size: 1.5rem;
-        }
-
-        h3 {
-            color: #666;
-            margin: 20px 0 15px 0;
-            font-size: 1.2rem;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #fafafa;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:nth-of-type(2) {
-            background: transparent;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        button:nth-of-type(2):hover {
-            background: #667eea;
-            color: white;
-        }
-
-        #studentDashboard,
-        #tutorDashboard {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        .welcome-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .welcome-section h2 {
-            color: white;
-            margin: 0;
-        }
-
-        .welcome-section p {
-            margin: 10px 0;
-            font-size: 1.1rem;
-        }
-
-        .balance,
-        .earnings,
-        .rate {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid #e0e0e0;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-        }
-
-        .search-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        #tutorList,
-        #studentBookings,
-        #tutorBookings {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        #tutorList>div,
-        #studentBookings>div,
-        #tutorBookings>div {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-
-        #tutorList>div:hover {
-            border-color: #667eea;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.1);
-        }
-
-        #tutorAvailability {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        #tutorAvailability p {
-            margin: 8px 0;
-            padding: 8px 12px;
-            background: white;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-
-        #tutorSubjects,
-        #mySubjects {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        #tutorSubjects p,
-        #mySubjects p {
-            background: #667eea;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin: 0;
-        }
-
-        #bookingModal {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-        }
-
-        #bookingModal::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: -1;
-        }
-
-        #bookingModal h3 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        #bookingModal p {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        #bookingModal input,
-        #bookingModal select {
-            width: 60%;
-            margin-bottom: 0;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-pending {
-            background: #ffeaa7;
-            color: #fdcb6e;
-        }
-
-        .status-confirmed {
-            background: #55efc4;
-            color: #00b894;
-        }
-
-        .status-completed {
-            background: #81ecec;
-            color: #00cec9;
-        }
-
-        .status-cancelled {
-            background: #fab1a0;
-            color: #e17055;
-        }
-
-        #loginError,
-        #signupError {
-            color: #e74c3c;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        button[onclick="logout()"] {
-            background: #e74c3c;
-            max-width: 200px;
-            margin-top: 30px;
-        }
-
-        button[onclick="logout()"]:hover {
-            background: #c0392b;
-        }
-
-        .add-funds-section {
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-            margin-bottom: 20px;
-        }
-
-        .add-funds-section input {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .add-funds-section button {
-            width: auto;
-            padding: 12px 30px;
-            margin-bottom: 0;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            #authSection {
-                padding: 30px 20px;
-            }
-
-            #studentDashboard,
-            #tutorDashboard {
-                padding: 20px;
-            }
-
-            .welcome-section {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-
-            #bookingModal {
-                width: 95%;
-                padding: 20px;
-            }
-
-            #bookingModal p {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            #bookingModal input,
-            #bookingModal select {
-                width: 100%;
-                margin-top: 5px;
-            }
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
 </head>
 
 <body>
-    <div id="authSection">
-        <h1>📚 Tutoring Platform</h1>
-
-        <div id="loginForm">
-            <h2>Login</h2>
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPassword" placeholder="Password">
-            <button onclick="login()">Login</button>
-            <button onclick="showSignup()">Go to Signup</button>
-            <div id="loginError"></div>
-        </div>
-
-        <div id="signupForm" style="display:none">
-            <h2>Sign Up</h2>
-            <input type="text" id="signupName" placeholder="Name">
-            <input type="email" id="signupEmail" placeholder="Email">
-            <input type="password" id="signupPassword" placeholder="Password">
-            <select id="userType" onchange="toggleTutorFields()">
-                <option value="student">Student</option>
-                <option value="tutor">Tutor</option>
-            </select>
-
-            <div id="tutorFields" style="display:none">
-                <input type="number" id="hourlyRate" placeholder="Hourly Rate ($)">
-                <textarea id="description" placeholder="Tell students about your experience..."></textarea>
-            </div>
-
-            <button onclick="signup()">Sign Up</button>
-            <button onclick="showLogin()">Go to Login</button>
-            <div id="signupError"></div>
-        </div>
-    </div>
-
-    <div id="studentDashboard" style="display:none">
-        <div class="welcome-section">
-            <div>
-                <h2>Welcome back, <span id="studentName"></span>! 👋</h2>
-                <p>Ready to learn something new today?</p>
-            </div>
-            <div style="text-align: right;">
-                <p>Current Balance</p>
-                <p class="balance">$<span id="studentBalance"></span></p>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>💰 Add Funds</h3>
-            <div class="add-funds-section">
-                <input type="number" id="fundAmount" placeholder="Amount to add">
-                <button onclick="addFunds()">Add Funds</button>
-            </div>
-        </div>
-
-        <div class="search-section">
-            <h3>🔍 Find Your Perfect Tutor</h3>
-            <div class="search-controls">
-                <select id="searchSubject"></select>
-                <input type="number" id="minPrice" placeholder="Min Price">
-                <input type="number" id="maxPrice" placeholder="Max Price">
-                <button onclick="searchTutors()">Search Tutors</button>
-            </div>
-            <div id="tutorList"></div>
-        </div>
-
-        <div class="card">
-            <h3>📅 My Bookings</h3>
-            <div id="studentBookings"></div>
-        </div>
-
-        <button onclick="logout()">Logout</button>
-    </div>
-
-    <div id="tutorDashboard" style="display:none">
-        <div class="welcome-section">
-            <div>
-                <h2>Welcome back, <span id="tutorName"></span>! 👋</h2>
-                <p>Ready to inspire students today?</p>
-            </div>
-            <div style="text-align: right;">
-                <p>Total Earnings</p>
-                <p class="earnings">$<span id="tutorEarnings"></span></p>
-                <p style="font-size: 1rem; margin-top: 10px;">Hourly Rate: <span class="rate">$<span
-                            id="tutorRate"></span>/hr</span></p>
-            </div>
-        </div>
-
-        <div class="card-grid">
-            <div class="card">
-                <h3>📚 My Subjects</h3>
-                <div id="mySubjects"></div>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <select id="addSubjectSelect" style="flex: 1;"></select>
-                    <button onclick="addSubjectToTutor()" style="width: auto; padding: 12px 20px;">Add</button>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <nav class="container nav">
+                <h1>Tutoring Platform</h1>
+                <ul class="nav-links">
+                    <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
+                    <li><a href="#tutors" class="nav-link">Find Tutors</a></li>
+                    <li><a href="#bookings" class="nav-link">My Bookings</a></li>
+                    <li><a href="#profile" class="nav-link">Profile</a></li>
+                </ul>
+                <div class="user-info">
+                    <span id="userBalance" class="balance hidden"></span>
+                    <span id="userName">Loading...</span>
+                    <button class="btn btn-secondary" onclick="app.logout()">Logout</button>
                 </div>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="margin-top: 2rem;">
+            <div id="content">
+                <div class="spinner"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="mb-4">Welcome to Tutoring Platform</h2>
+
+            <div id="loginForm">
+                <h3>Login</h3>
+                <form onsubmit="app.login(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <button type="button" class="btn btn-secondary" onclick="app.showSignup()">Sign Up Instead</button>
+                </form>
             </div>
 
-            <div class="card">
-                <h3>🗓️ My Availability</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px;">
-                    <select id="availDay">
-                        <option value="Monday">Monday</option>
-                        <option value="Tuesday">Tuesday</option>
-                        <option value="Wednesday">Wednesday</option>
-                        <option value="Thursday">Thursday</option>
-                        <option value="Friday">Friday</option>
-                        <option value="Saturday">Saturday</option>
-                        <option value="Sunday">Sunday</option>
+            <div id="signupForm" class="hidden">
+                <h3>Sign Up</h3>
+                <form onsubmit="app.signup(event)">
+                    <div class="form-group">
+                        <label class="form-label">I want to be a:</label>
+                        <select class="form-select" name="userType" onchange="app.toggleTutorFields(event)">
+                            <option value="student">Student</option>
+                            <option value="tutor">Tutor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-input" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" name="password" required>
+                    </div>
+                    <div id="tutorFields" class="hidden">
+                        <div class="form-group">
+                            <label class="form-label">Hourly Rate ($)</label>
+                            <input type="number" class="form-input" name="hourlyRate" min="10" step="5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-textarea" name="description" rows="3"
+                                placeholder="Tell students about your teaching experience..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                    <button type="button" class="btn btn-secondary" onclick="app.showLogin()">Back to Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Funds Modal -->
+    <div id="addFundsModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Add Funds to Your Account</h3>
+            <form onsubmit="app.addFunds(event)">
+                <div class="form-group">
+                    <label class="form-label">Amount ($)</label>
+                    <input type="number" class="form-input" name="amount" min="10" step="10" required>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Add Funds</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="app.closeModal('addFundsModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Booking Modal -->
+    <div id="bookingModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Book a Session</h3>
+            <form onsubmit="app.createBooking(event)">
+                <input type="hidden" name="tutorId" id="bookingTutorId">
+                <input type="hidden" name="subjectId" id="bookingSubjectId">
+
+                <div class="form-group">
+                    <label class="form-label">Tutor</label>
+                    <input type="text" class="form-input" id="bookingTutorName" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Subject</label>
+                    <input type="text" class="form-input" id="bookingSubjectName" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date & Time</label>
+                    <input type="datetime-local" class="form-input" name="dateTime" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Duration (hours)</label>
+                    <select class="form-select" name="durationHours" onchange="app.updateBookingCost()">
+                        <option value="1">1 hour</option>
+                        <option value="2">2 hours</option>
+                        <option value="3">3 hours</option>
+                        <option value="4">4 hours</option>
                     </select>
-                    <input type="number" id="availHour" placeholder="Hour (0-23)" min="0" max="23">
-                    <button onclick="addAvailability()" style="width: auto; padding: 12px 20px;">Add</button>
                 </div>
-                <div id="tutorAvailability"></div>
-            </div>
-        </div>
 
-        <div class="card">
-            <h3>📋 My Bookings</h3>
-            <div id="tutorBookings"></div>
-        </div>
+                <div class="form-group">
+                    <label class="form-label">Total Cost</label>
+                    <p class="total-cost" id="bookingTotalCost">$0.00</p>
+                </div>
 
-        <button onclick="logout()">Logout</button>
-    </div>
-    
-    <div id="bookingModal" style="display:none;">
-        <h3>📅 Book a Session</h3>
-        <p><strong>Tutor:</strong> <span id="bookingTutorName"></span></p>
-        <p><strong>Subject:</strong> <select id="bookingSubject"></select></p>
-        <p><strong>Date:</strong> <input type="date" id="bookingDate"></p>
-        <p><strong>Time:</strong> <input type="number" id="bookingHour" placeholder="Hour (0-23)" min="0" max="23"></p>
-        <p><strong>Duration:</strong> <input type="number" id="bookingDuration" value="1" min="1"> hours</p>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button onclick="createBooking()">Book Session</button>
-            <button onclick="closeBookingModal()">Cancel</button>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="app.closeModal('bookingModal')">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <script>
-        const API_BASE = 'http://localhost:8080/api';
-        let currentUser = null;
-        let selectedTutorId = null;
-        
-        async function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, password})
-                });
-                
-                if (response.ok) {
-                    currentUser = await response.json();
-                    showDashboard();
-                } else {
-                    document.getElementById('loginError').textContent = 'Invalid credentials';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-            }
-        }
-        
-        async function signup() {
-            const name = document.getElementById('signupName').value;
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const userType = document.getElementById('userType').value;
-            
-            let endpoint = userType === 'student' ? 'student' : 'tutor';
-            let body = {name, email, password};
-            
-            if (userType === 'tutor') {
-                body.hourlyRate = parseFloat(document.getElementById('hourlyRate').value);
-                body.description = document.getElementById('description').value;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE}/auth/signup/${endpoint}`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(body)
-                });
-                
-                if (response.ok) {
-                    alert('Signup successful! Please login.');
-                    showLogin();
-                } else {
-                    document.getElementById('signupError').textContent = await response.text();
-                }
-            } catch (error) {
-                console.error('Signup error:', error);
-            }
-        }
-        
-        function showDashboard() {
-            document.getElementById('authSection').style.display = 'none';
-            
-            if (currentUser.userType === 'STUDENT') {
-                document.getElementById('studentDashboard').style.display = 'block';
-                document.getElementById('studentName').textContent = currentUser.name;
-                loadStudentData();
-            } else {
-                document.getElementById('tutorDashboard').style.display = 'block';
-                document.getElementById('tutorName').textContent = currentUser.name;
-                loadTutorData();
-            }
-            loadSubjects();
-        }
-        
-        async function loadStudentData() {
-            const balanceRes = await fetch(`${API_BASE}/students/${currentUser.id}/balance`);
-            const balanceData = await balanceRes.json();
-            document.getElementById('studentBalance').textContent = balanceData.balance;
-            
-            loadStudentBookings();
-        }
-        
-        async function addFunds() {
-            const amount = parseFloat(document.getElementById('fundAmount').value);
-            
-            try {
-                const response = await fetch(`${API_BASE}/students/${currentUser.id}/add-funds`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({amount})
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('studentBalance').textContent = data.balance;
-                    document.getElementById('fundAmount').value = '';
-                }
-            } catch (error) {
-                console.error('Add funds error:', error);
-            }
-        }
-        
-        async function searchTutors() {
-            const subjectId = document.getElementById('searchSubject').value;
-            const minPrice = document.getElementById('minPrice').value;
-            const maxPrice = document.getElementById('maxPrice').value;
-            
-            let url = `${API_BASE}/tutors/search?`;
-            if (subjectId) url += `subjectId=${subjectId}&`;
-            if (minPrice) url += `minPrice=${minPrice}&`;
-            if (maxPrice) url += `maxPrice=${maxPrice}&`;
-            
-            try {
-                const response = await fetch(url);
-                const tutors = await response.json();
-                
-                let html = '';
-                tutors.forEach(tutor => {
-                    html += `
-                        <div style="border:1px solid black; margin:10px; padding:10px;">
-                            <h4>${tutor.name}</h4>
-                            <p>${tutor.description}</p>
-                            <p>Rate: $${tutor.hourlyRate}/hour</p>
-                            <button onclick="openBookingModal('${tutor.id}', '${tutor.name}')">Book Session</button>
-                        </div>
-                    `;
-                });
-                
-                document.getElementById('tutorList').innerHTML = html;
-            } catch (error) {
-                console.error('Search error:', error);
-            }
-        }
-        
-        async function loadStudentBookings() {
-            try {
-                const response = await fetch(`${API_BASE}/bookings/student/${currentUser.id}`);
-                const bookings = await response.json();
-                
-                let html = '';
-                for (const booking of bookings) {
-                    html += `
-                        <div style="border:1px solid black; margin:10px; padding:10px;">
-                            <p>Date: ${booking.dateTime}</p>
-                            <p>Duration: ${booking.durationHours} hours</p>
-                            <p>Status: ${booking.status}</p>
-                            <p>Cost: $${booking.totalCost}</p>
-                            ${booking.status === 'PENDING' ? `<button onclick="confirmBooking('${booking.id}')">Pay & Confirm</button>` : ''}
-                            ${booking.status === 'COMPLETED' ? `<button onclick="openReviewModal('${booking.id}')">Leave Review</button>` : ''}
-                        </div>
-                    `;
-                }
-                
-                document.getElementById('studentBookings').innerHTML = html;
-            } catch (error) {
-                console.error('Load bookings error:', error);
-            }
-        }
-        
-        async function confirmBooking(bookingId) {
-            try {
-                const response = await fetch(`${API_BASE}/bookings/${bookingId}/confirm`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({studentId: currentUser.id})
-                });
-                
-                if (response.ok) {
-                    alert('Booking confirmed!');
-                    loadStudentData();
-                }
-            } catch (error) {
-                console.error('Confirm booking error:', error);
-            }
-        }
-        
-        async function loadTutorData() {
-            const earningsRes = await fetch(`${API_BASE}/tutors/${currentUser.id}/earnings`);
-            const earningsData = await earningsRes.json();
-            document.getElementById('tutorEarnings').textContent = earningsData.earnings;
-            document.getElementById('tutorRate').textContent = currentUser.hourlyRate;
-            
-            loadTutorSubjects();
-            
-            loadTutorAvailability();
-            
-            loadTutorBookings();
-        }
-        
-        async function loadTutorSubjects() {
-            let html = '';
-            currentUser.subjects.forEach(subject => {
-                html += `<p>${subject.name}</p>`;
-            });
-            document.getElementById('tutorSubjects').innerHTML = html;
-        }
-        
-        async function addSubjectToTutor() {
-            const subjectId = document.getElementById('addSubjectSelect').value;
-            
-            try {
-                const response = await fetch(`${API_BASE}/tutors/${currentUser.id}/subjects/${subjectId}`, {
-                    method: 'POST'
-                });
-                
-                if (response.ok) {
-                    const tutorRes = await fetch(`${API_BASE}/tutors/${currentUser.id}`);
-                    currentUser = await tutorRes.json();
-                    loadTutorSubjects();
-                }
-            } catch (error) {
-                console.error('Add subject error:', error);
-            }
-        }
-        
-        async function addAvailability() {
-            const day = document.getElementById('availDay').value;
-            const hour = parseInt(document.getElementById('availHour').value);
-            
-            try {
-                const response = await fetch(`${API_BASE}/tutors/${currentUser.id}/availability`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({day, hour, add: true})
-                });
-                
-                if (response.ok) {
-                    loadTutorAvailability();
-                }
-            } catch (error) {
-                console.error('Add availability error:', error);
-            }
-        }
-        
-        async function loadTutorAvailability() {
-            const response = await fetch(`${API_BASE}/tutors/${currentUser.id}`);
-            currentUser = await response.json();
-            
-            let html = '';
-            for (const [day, hours] of Object.entries(currentUser.availability)) {
-                if (hours.length > 0) {
-                    html += `<p>${day}: ${hours.join(', ')}</p>`;
-                }
-            }
-            document.getElementById('tutorAvailability').innerHTML = html;
-        }
-        
-        async function loadTutorBookings() {
-            try {
-                const response = await fetch(`${API_BASE}/bookings/tutor/${currentUser.id}`);
-                const bookings = await response.json();
-                
-                let html = '';
-                bookings.forEach(booking => {
-                    html += `
-                        <div style="border:1px solid black; margin:10px; padding:10px;">
-                            <p>Date: ${booking.dateTime}</p>
-                            <p>Duration: ${booking.durationHours} hours</p>
-                            <p>Status: ${booking.status}</p>
-                            <p>Earnings: $${booking.totalCost}</p>
-                            ${booking.status === 'CONFIRMED' ? `<button onclick="completeBooking('${booking.id}')">Mark Complete</button>` : ''}
-                        </div>
-                    `;
-                });
-                
-                document.getElementById('tutorBookings').innerHTML = html;
-            } catch (error) {
-                console.error('Load bookings error:', error);
-            }
-        }
-        
-        async function completeBooking(bookingId) {
-            try {
-                const response = await fetch(`${API_BASE}/bookings/${bookingId}/complete`, {
-                    method: 'POST'
-                });
-                
-                if (response.ok) {
-                    alert('Booking completed!');
-                    loadTutorData();
-                }
-            } catch (error) {
-                console.error('Complete booking error:', error);
-            }
-        }
-        
-        function openBookingModal(tutorId, tutorName) {
-            selectedTutorId = tutorId;
-            document.getElementById('bookingTutorName').textContent = tutorName;
-            
-            fetch(`${API_BASE}/tutors/${tutorId}`)
-                .then(res => res.json())
-                .then(tutor => {
-                    let html = '';
-                    tutor.subjects.forEach(subject => {
-                        html += `<option value="${subject.id}">${subject.name}</option>`;
-                    });
-                    document.getElementById('bookingSubject').innerHTML = html;
-                });
-            
-            document.getElementById('bookingModal').style.display = 'block';
-        }
-        
-        function closeBookingModal() {
-            document.getElementById('bookingModal').style.display = 'none';
-            selectedTutorId = null;
-        }
-        
-        async function createBooking() {
-            const subjectId = document.getElementById('bookingSubject').value;
-            const date = document.getElementById('bookingDate').value;
-            const hour = document.getElementById('bookingHour').value;
-            const duration = document.getElementById('bookingDuration').value;
-            
-            const dateTime = `${date}T${hour.padStart(2, '0')}:00:00`;
-            
-            try {
-                const response = await fetch(`${API_BASE}/bookings`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        studentId: currentUser.id,
-                        tutorId: selectedTutorId,
-                        subjectId: subjectId,
-                        dateTime: dateTime,
-                        durationHours: parseInt(duration)
-                    })
-                });
-                
-                if (response.ok) {
-                    alert('Booking created! Please confirm payment.');
-                    closeBookingModal();
-                    loadStudentBookings();
-                } else {
-                    alert('Error creating booking: ' + await response.text());
-                }
-            } catch (error) {
-                console.error('Create booking error:', error);
-            }
-        }
-        
-        async function loadSubjects() {
-            try {
-                const response = await fetch(`${API_BASE}/subjects`);
-                const subjects = await response.json();
-                
-                let html = '<option value="">All Subjects</option>';
-                subjects.forEach(subject => {
-                    html += `<option value="${subject.id}">${subject.name}</option>`;
-                });
-                
-                document.getElementById('searchSubject').innerHTML = html;
-                document.getElementById('addSubjectSelect').innerHTML = html;
-            } catch (error) {
-                console.error('Load subjects error:', error);
-            }
-        }
-        
-        function showLogin() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('signupForm').style.display = 'none';
-        }
-        
-        function showSignup() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('signupForm').style.display = 'block';
-        }
-        
-        function toggleTutorFields() {
-            const userType = document.getElementById('userType').value;
-            document.getElementById('tutorFields').style.display = 
-                userType === 'tutor' ? 'block' : 'none';
-        }
-        
-        function logout() {
-            currentUser = null;
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('studentDashboard').style.display = 'none';
-            document.getElementById('tutorDashboard').style.display = 'none';
-            showLogin();
-        }
-        
-        function openReviewModal(bookingId) {
-            const rating = prompt('Rating (1-5):');
-            const comment = prompt('Comment:');
-            
-            if (rating && comment) {
-                fetch(`${API_BASE}/reviews`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        bookingId: bookingId,
-                        rating: parseInt(rating),
-                        comment: comment
-                    })
-                }).then(() => {
-                    alert('Review submitted!');
-                });
-            }
-        }
-    </script>
+    <!-- Review Modal -->
+    <div id="reviewModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Leave a Review</h3>
+            <form onsubmit="app.submitReview(event)">
+                <input type="hidden" name="tutorId" id="reviewTutorId">
+
+                <div class="form-group">
+                    <label class="form-label">Rating</label>
+                    <div class="rating-input">
+                        <input type="radio" name="rating" value="1" id="star1" required>
+                        <label for="star1">⭐</label>
+                        <input type="radio" name="rating" value="2" id="star2">
+                        <label for="star2">⭐⭐</label>
+                        <input type="radio" name="rating" value="3" id="star3">
+                        <label for="star3">⭐⭐⭐</label>
+                        <input type="radio" name="rating" value="4" id="star4">
+                        <label for="star4">⭐⭐⭐⭐</label>
+                        <input type="radio" name="rating" value="5" id="star5">
+                        <label for="star5">⭐⭐⭐⭐⭐</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Comment</label>
+                    <textarea class="form-textarea" name="comment" rows="4" required
+                        placeholder="Share your experience..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="app.closeModal('reviewModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Availability Modal (for tutors) -->
+    <div id="availabilityModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Add Availability</h3>
+            <form onsubmit="app.addAvailability(event)">
+                <div class="form-group">
+                    <label class="form-label">Day of Week</label>
+                    <select class="form-select" name="dayOfWeek" required>
+                        <option value="MONDAY">Monday</option>
+                        <option value="TUESDAY">Tuesday</option>
+                        <option value="WEDNESDAY">Wednesday</option>
+                        <option value="THURSDAY">Thursday</option>
+                        <option value="FRIDAY">Friday</option>
+                        <option value="SATURDAY">Saturday</option>
+                        <option value="SUNDAY">Sunday</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" class="form-input" name="startTime" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">End Time</label>
+                    <input type="time" class="form-input" name="endTime" required>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Add Availability</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="app.closeModal('availabilityModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
 </body>
+
 </html>
