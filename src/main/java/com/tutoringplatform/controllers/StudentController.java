@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
 import com.tutoringplatform.services.FileService;
-import com.tutoringplatform.dto.request.UpdateStudentRequest;
+import com.tutoringplatform.dto.request.UpdateUserRequest;
+import com.tutoringplatform.dto.response.ValueResponse;
 
 @RestController
 @RequestMapping("/api/students")
@@ -43,7 +44,7 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
-public ResponseEntity<?> updateStudent(@PathVariable String id, @RequestBody UpdateStudentRequest request) {
+public ResponseEntity<?> updateStudent(@PathVariable String id, @RequestBody UpdateUserRequest request) {
     try {
         Student updatedStudent = studentService.updateStudent(id, request);
         return ResponseEntity.ok(dtoMapper.toStudentResponse(updatedStudent));
@@ -96,7 +97,7 @@ public ResponseEntity<?> updateStudent(@PathVariable String id, @RequestBody Upd
     public ResponseEntity<?> getBalance(@PathVariable String id) {
         try {
             double balance = studentService.getBalance(id);
-            return ResponseEntity.ok(dtoMapper.toBalanceResponse(balance));
+            return ResponseEntity.ok(new ValueResponse<>(balance));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

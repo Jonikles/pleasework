@@ -6,7 +6,7 @@ import com.tutoringplatform.models.Student;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.tutoringplatform.dto.request.UpdateStudentRequest;
+import com.tutoringplatform.dto.request.UpdateUserRequest;
 import java.time.ZoneId;
 
 @Service
@@ -55,7 +55,7 @@ public class StudentService extends UserService<Student> {
         return ((IStudentRepository) repository).findByNameContaining(name);
     }
 
-    public Student updateStudent(String studentId, UpdateStudentRequest request) throws Exception {
+    public Student updateStudent(String studentId, UpdateUserRequest request) throws Exception {
         Student student = findById(studentId);
 
         // Only update fields that are provided

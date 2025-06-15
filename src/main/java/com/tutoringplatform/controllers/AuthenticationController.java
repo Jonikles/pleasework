@@ -40,7 +40,8 @@ public class AuthenticationController {
     @PostMapping("/signup/student")
     public ResponseEntity<?> signupStudent(@RequestBody StudentSignupRequest request) {
         try {
-            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(), request.getPassword(), request.getTimeZoneId());
+            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(),
+                    request.getPassword(), request.getTimeZoneId());
             return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

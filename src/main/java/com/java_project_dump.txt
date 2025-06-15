@@ -6,9 +6,15 @@ package com.tutoringplatform;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
-
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+        DataSourceAutoConfiguration.class,
+        DataSourceTransactionManagerAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class
+})
 public class TutoringPlatformApplication {
 
     public static void main(String[] args) {
@@ -126,30 +132,44 @@ public class RefundPaymentCommand implements IPaymentCommand {
 
 
 ======================================================================
-// FILE: tutoringplatform\config\BookingConfiguration.java
+// FILE: tutoringplatform\config\AppProperties.java
 ======================================================================
 
 package com.tutoringplatform.config;
 
-import com.tutoringplatform.services.BookingService;
-import com.tutoringplatform.observer.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import javax.annotation.PostConstruct;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-@Configuration
-public class BookingConfiguration {
+@Component
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
 
-    @Autowired
-    private BookingService bookingService;
+    private String[] allowedOrigins = {};
+    private final Api api = new Api();
 
-    @PostConstruct
-    public void setupObservers() {
-        BookingLogger bookingLogger = new BookingLogger();
+    public static class Api {
+        private String filesBaseUrl = "/api/files/";
 
-        bookingService.addObserver(bookingLogger);
+        public String getFilesBaseUrl() {
+            return filesBaseUrl;
+        }
 
-        System.out.println("Booking observers configured: Logger and TutorUpdater registered");
+        public void setFilesBaseUrl(String filesBaseUrl) {
+            this.filesBaseUrl = filesBaseUrl;
+        }
+    }
+
+    // Getters and Setters
+    public String[] getAllowedOrigins() {
+        return allowedOrigins;
+    }
+
+    public void setAllowedOrigins(String[] allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
+
+    public Api getApi() {
+        return api;
     }
 }
 
@@ -188,6 +208,73 @@ public class DataInitializationConfiguration {
 
 
 ======================================================================
+// FILE: tutoringplatform\config\SecurityConfig.java
+======================================================================
+
+package com.tutoringplatform.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf().disable() // Disable CSRF for stateless APIs
+                .authorizeHttpRequests(auth -> auth
+                        .antMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/api/auth/**").permitAll()
+                        .anyRequest().authenticated() // Secure any other endpoint (if any)
+                );
+        return http.build();
+    }
+}
+
+
+
+======================================================================
+// FILE: tutoringplatform\config\WebConfiguration.java
+======================================================================
+
+package com.tutoringplatform.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.lang.NonNull;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfiguration implements WebMvcConfigurer {
+
+    @Autowired
+    private AppProperties appProperties;
+
+    @Override
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
+        registry.addMapping("/api/**") // Apply CORS to all /api endpoints
+                .allowedOrigins(appProperties.getAllowedOrigins())
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
+}
+
+
+
+======================================================================
 // FILE: tutoringplatform\controllers\AuthenticationController.java
 ======================================================================
 
@@ -209,14 +296,16 @@ import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AuthenticationController {
 
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public AuthenticationController(AuthenticationService authenticationService, DTOMapper dtoMapper) {
+        this.authenticationService = authenticationService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -231,7 +320,8 @@ public class AuthenticationController {
     @PostMapping("/signup/student")
     public ResponseEntity<?> signupStudent(@RequestBody StudentSignupRequest request) {
         try {
-            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(), request.getPassword(), request.getTimeZoneId());
+            Student student = authenticationService.signupStudent(request.getName(), request.getEmail(),
+                    request.getPassword(), request.getTimeZoneId());
             return ResponseEntity.ok(dtoMapper.toStudentResponse(student));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -260,7 +350,6 @@ public class AuthenticationController {
 package com.tutoringplatform.controllers;
 
 import com.tutoringplatform.dto.request.BookingRequest;
-import com.tutoringplatform.dto.request.PaymentRequest;
 import com.tutoringplatform.dto.response.BookingResponse;
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.services.BookingService;
@@ -274,14 +363,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "*")
 public class BookingController {
 
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public BookingController(BookingService bookingService, DTOMapper dtoMapper) {
+        this.bookingService = bookingService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody BookingRequest request) {
@@ -323,9 +414,9 @@ public class BookingController {
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<?> confirmBooking(@PathVariable String id, @RequestBody PaymentRequest request) {
+    public ResponseEntity<?> confirmBooking(@PathVariable String id) {
         try {
-            Booking booking = bookingService.confirmBooking(id, request.getStudentId());
+            Booking booking = bookingService.confirmBooking(id);
             return ResponseEntity.ok(dtoMapper.toBookingResponse(booking));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -372,11 +463,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/dashboard")
-@CrossOrigin(origins = "*")
 public class DashboardController {
 
+    private final DashboardService dashboardService;
+
     @Autowired
-    private DashboardService dashboardService;
+    public DashboardController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
 
     @GetMapping("/student/{studentId}")
     public ResponseEntity<?> getStudentDashboard(@PathVariable String studentId) {
@@ -435,11 +529,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "*")
 public class FileController {
 
+    private final FileService fileService;
+
     @Autowired
-    private FileService fileService;
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
+    }
 
     @PostMapping("/upload/{userId}")
     public ResponseEntity<?> uploadFile(
@@ -502,14 +599,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reviews")
-@CrossOrigin(origins = "*")
 public class ReviewController {
 
-    @Autowired
-    private ReviewService reviewService;
+    private final ReviewService reviewService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public ReviewController(ReviewService reviewService, DTOMapper dtoMapper) {
+        this.reviewService = reviewService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @PostMapping
     public ResponseEntity<?> createReview(@RequestBody ReviewRequest request) {
@@ -563,11 +662,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/search")
-@CrossOrigin(origins = "*")
 public class SearchController {
 
+    private final SearchService searchService;
+
     @Autowired
-    private SearchService searchService;
+    public SearchController(SearchService searchService) {
+        this.searchService = searchService;
+    }
 
     @GetMapping("/tutors")
     public ResponseEntity<?> searchTutors(
@@ -625,17 +727,18 @@ import com.tutoringplatform.dto.request.UpdateStudentRequest;
 
 @RestController
 @RequestMapping("/api/students")
-@CrossOrigin(origins = "*")
 public class StudentController {
 
-    @Autowired
-    private FileService fileService;
+    private final FileService fileService;
+    private final StudentService studentService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private DTOMapper dtoMapper;
+    public StudentController(FileService fileService, StudentService studentService, DTOMapper dtoMapper) {
+        this.fileService = fileService;
+        this.studentService = studentService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getStudent(@PathVariable String id) {
@@ -740,14 +843,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/subjects")
-@CrossOrigin(origins = "*")
 public class SubjectController {
 
-    @Autowired
-    private SubjectService subjectService;
+    private final SubjectService subjectService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private DTOMapper dtoMapper;
+    public SubjectController(SubjectService subjectService, DTOMapper dtoMapper) {
+        this.subjectService = subjectService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllSubjects() {
@@ -815,41 +920,35 @@ import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.availability.TutorAvailability;
 import com.tutoringplatform.services.AvailabilityService;
 import com.tutoringplatform.services.TutorService;
-import com.tutoringplatform.services.SearchService;
 import com.tutoringplatform.util.DTOMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import java.time.LocalDateTime;
-import java.time.DayOfWeek;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
 import com.tutoringplatform.services.FileService;
 import com.tutoringplatform.dto.request.UpdateTutorRequest;
 import org.springframework.web.multipart.MultipartFile;
-import com.tutoringplatform.dto.response.TutorSearchResponse;
 
 @RestController
 @RequestMapping("/api/tutors")
-@CrossOrigin(origins = "*")
 public class TutorController {
 
-    @Autowired
-    private TutorService tutorService;
+    private final TutorService tutorService;
+    private final AvailabilityService availabilityService;
+    private final FileService fileService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private AvailabilityService availabilityService;
-
-    @Autowired
-    private SearchService searchService;
-
-    @Autowired
-    private FileService fileService;
-
-    @Autowired
-    private DTOMapper dtoMapper;
+    public TutorController(TutorService tutorService, AvailabilityService availabilityService, FileService fileService,
+            DTOMapper dtoMapper) {
+        this.tutorService = tutorService;
+        this.availabilityService = availabilityService;
+        this.fileService = fileService;
+        this.dtoMapper = dtoMapper;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getTutor(@PathVariable String id) {
@@ -910,7 +1009,6 @@ public class TutorController {
         }
     }
 
-
     @PostMapping("/{id}/availability")
     public ResponseEntity<?> addAvailability(
             @PathVariable String id,
@@ -928,7 +1026,7 @@ public class TutorController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+
     @DeleteMapping("/{id}/availability")
     public ResponseEntity<?> removeAvailability(
             @PathVariable String id,
@@ -1001,47 +1099,6 @@ public class TutorController {
             return ResponseEntity.ok(dtoMapper.toAverageRatingResponse(averageRating));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-    
-    @GetMapping("/search")
-    public ResponseEntity<?> searchTutors(
-            @RequestParam(required = false) String subjectId,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) Double minRating,
-            @RequestParam(required = false) String day,
-            @RequestParam(required = false) Integer hour) {
-        try {
-            // Convert day/hour to LocalDateTime if provided
-            LocalDateTime availableFrom = null;
-            LocalDateTime availableTo = null;
-
-            if (day != null && hour != null) {
-                // Find next occurrence of the day
-                LocalDateTime now = LocalDateTime.now();
-                DayOfWeek targetDay = DayOfWeek.valueOf(day.toUpperCase());
-                LocalDateTime target = now.with(targetDay).withHour(hour).withMinute(0);
-
-                if (target.isBefore(now)) {
-                    target = target.plusWeeks(1);
-                }
-
-                availableFrom = target;
-                availableTo = target.plusHours(1);
-            }
-
-            SearchService.TutorSearchCriteria criteria = new SearchService.TutorSearchCriteria.Builder()
-                    .withSubject(subjectId)
-                    .withPriceRange(minPrice, maxPrice)
-                    .withMinRating(minRating)
-                    .withAvailability(availableFrom, availableTo)
-                    .build();
-
-            List<TutorSearchResponse> results = searchService.searchTutors(criteria);
-            return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
@@ -1310,7 +1367,7 @@ public class StudentSignupRequest {
         return timeZoneId;
     }
 
-    public void setTimeZoneID(String timeZoneId) {
+    public void setTimeZoneId(String timeZoneId) {
         this.timeZoneId = timeZoneId;
     }
 }
@@ -1753,103 +1810,6 @@ public class EarningsResponse {
 // FILE: tutoringplatform\dto\response\EnrichedBookingResponse.java
 ======================================================================
 
-// FILE: src/main/java/com/tutoringplatform/dto/response/EnrichedBookingResponse.java
-package com.tutoringplatform.dto.response;
-
-import java.time.LocalDateTime;
-
-public class EnrichedBookingResponse {
-    private String id;
-    private String studentId;
-    private String studentName;
-    private String tutorId;
-    private String tutorName;
-    private SubjectResponse subject;
-    private LocalDateTime dateTime;
-    private int durationHours;
-    private double totalCost;
-    private String status;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getStudentId() {
-        return studentId;
-    }
-
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
-    }
-
-    public String getStudentName() {
-        return studentName;
-    }
-
-    public void setStudentName(String studentName) {
-        this.studentName = studentName;
-    }
-
-    public String getTutorId() {
-        return tutorId;
-    }
-
-    public void setTutorId(String tutorId) {
-        this.tutorId = tutorId;
-    }
-
-    public String getTutorName() {
-        return tutorName;
-    }
-
-    public void setTutorName(String tutorName) {
-        this.tutorName = tutorName;
-    }
-
-    public SubjectResponse getSubject() {
-        return subject;
-    }
-
-    public void setSubject(SubjectResponse subject) {
-        this.subject = subject;
-    }
-
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public int getDurationHours() {
-        return durationHours;
-    }
-
-    public void setDurationHours(int durationHours) {
-        this.durationHours = durationHours;
-    }
-
-    public double getTotalCost() {
-        return totalCost;
-    }
-
-    public void setTotalCost(double totalCost) {
-        this.totalCost = totalCost;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-}
 
 
 
@@ -3226,7 +3186,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BookingLogger implements BookingObserver {
     private List<String> logs;
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -3419,6 +3381,18 @@ public class BookingRepository implements IBookingRepository {
         return bookings.values().stream()
                 .filter(b -> b.getStatus() == status)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean hasCompletedBooking(String studentId, String tutorId) {
+        for (Booking booking : bookings.values()) {
+            if (booking.getStudentId().equals(studentId) &&
+                    booking.getTutorId().equals(tutorId) &&
+                    booking.getStatus() == Booking.BookingStatus.COMPLETED) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -3875,6 +3849,7 @@ public interface IBookingRepository {
     List<Booking> findByStudentId(String studentId);
     List<Booking> findByTutorId(String tutorId);
     List<Booking> findByStatus(Booking.BookingStatus status);
+    boolean hasCompletedBooking(String studentId, String tutorId);
     void save(Booking booking);
     void update(Booking booking);
     void delete(String id);
@@ -4061,19 +4036,26 @@ import com.tutoringplatform.models.Tutor;
 import com.tutoringplatform.repositories.interfaces.IAuthenticationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class AuthenticationService {
 
-    @Autowired
-    private IAuthenticationRepository authenticationRepository;
+    private final IAuthenticationRepository authenticationRepository;
+    private final UserFactory userFactory;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserFactory userFactory;
+    public AuthenticationService(IAuthenticationRepository authenticationRepository, UserFactory userFactory, PasswordEncoder passwordEncoder) {
+        this.authenticationRepository = authenticationRepository;
+        this.userFactory = userFactory;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public User login(String email, String password) throws Exception {
         User user = authenticationRepository.findByEmail(email);
-        if (user == null || !user.getPassword().equals(password)) {
+
+        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             throw new Exception("Invalid email or password");
         }
         return user;
@@ -4082,8 +4064,9 @@ public class AuthenticationService {
     public Student signupStudent(String name, String email, String password, String timeZoneId) throws Exception {
         validateSignup(email);
 
-        Student student = userFactory.createStudent(name, email, password);
-        
+        // MODIFY THIS LINE to encode the password
+        Student student = userFactory.createStudent(name, email, passwordEncoder.encode(password));
+
         if (timeZoneId != null && !timeZoneId.isEmpty()) {
             try {
                 ZoneId zone = ZoneId.of(timeZoneId);
@@ -4104,9 +4087,8 @@ public class AuthenticationService {
             throw new Exception("Hourly rate must be positive");
         }
 
-        Tutor tutor = userFactory.createTutor(name, email, password, hourlyRate, description);
-
-    
+        // MODIFY THIS LINE to encode the password
+        Tutor tutor = userFactory.createTutor(name, email, passwordEncoder.encode(password), hourlyRate, description);
 
         authenticationRepository.saveUser(tutor);
         return tutor;
@@ -4139,11 +4121,14 @@ import java.util.*;
 @Service
 public class AvailabilityService {
 
-    @Autowired
-    private IAvailabilityRepository availabilityRepository;
+    private final IAvailabilityRepository availabilityRepository;
+    private final TutorService tutorService;
 
     @Autowired
-    private TutorService tutorService;
+    public AvailabilityService(IAvailabilityRepository availabilityRepository, TutorService tutorService) {
+        this.availabilityRepository = availabilityRepository;
+        this.tutorService = tutorService;
+    }
 
     public TutorAvailability getAvailability(String tutorId) throws Exception {
         TutorAvailability availability = availabilityRepository.findByTutorId(tutorId);
@@ -4233,7 +4218,6 @@ public class AvailabilityService {
 package com.tutoringplatform.services;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -4252,46 +4236,30 @@ import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import javax.annotation.PostConstruct;
 
 @Service
 public class BookingService {
-    @Autowired
-    private IBookingRepository bookingRepository;
-    @Autowired
-    private IStudentRepository studentRepository;
-    @Autowired
-    private ITutorRepository tutorRepository;
-    @Autowired
-    private PaymentService paymentService;
-    @Autowired
-    private ISubjectRepository subjectRepository;
-    @Autowired
-    private AvailabilityService availabilityService;
-    @Autowired
-    private TutorService tutorService;
+    private final IBookingRepository bookingRepository;
+    private final IStudentRepository studentRepository;
+    private final ITutorRepository tutorRepository;
+    private final PaymentService paymentService;
+    private final ISubjectRepository subjectRepository;
+    private final AvailabilityService availabilityService;
+    private final TutorService tutorService;
     private List<BookingObserver> observers;
 
-    @PostConstruct
-    public void init() {
-        this.observers = new ArrayList<>();
-    }
-
-    public BookingService(IBookingRepository bookingRepository,
-            IStudentRepository studentRepository,
-            ITutorRepository tutorRepository) {
+    @Autowired 
+    public BookingService(IBookingRepository bookingRepository, IStudentRepository studentRepository,
+            ITutorRepository tutorRepository, PaymentService paymentService, ISubjectRepository subjectRepository,
+            AvailabilityService availabilityService, TutorService tutorService, List<BookingObserver> observers) {
         this.bookingRepository = bookingRepository;
         this.studentRepository = studentRepository;
         this.tutorRepository = tutorRepository;
-        this.observers = new ArrayList<>();
-    }
-
-    public void addObserver(BookingObserver observer) {
-        observers.add(observer);
-    }
-
-    public void removeObserver(BookingObserver observer) {
-        observers.remove(observer);
+        this.paymentService = paymentService;
+        this.subjectRepository = subjectRepository;
+        this.availabilityService = availabilityService;
+        this.tutorService = tutorService;
+        this.observers = observers;
     }
 
     private void notifyObservers(BookingEvent event) {
@@ -4349,7 +4317,7 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking confirmBooking(String bookingId, String studentId) throws Exception {
+    public Booking confirmBooking(String bookingId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId);
         if (booking == null) {
             throw new Exception("Booking not found");
@@ -4357,21 +4325,23 @@ public class BookingService {
         if (booking.getStatus() != Booking.BookingStatus.PENDING) {
             throw new Exception("Booking is not in pending status");
         }
-        Payment payment = paymentService.processPayment(studentId, bookingId, booking.getTotalCost());
-
-        booking.setPayment(payment);
-        booking.setStatus(Booking.BookingStatus.CONFIRMED);
-
         Student student = studentRepository.findById(booking.getStudentId());
-        Tutor tutor = tutorRepository.findById(booking.getTutorId());
 
         if (student != null) {
             student.addBooking(booking);
             studentRepository.update(student);
         } else {
             System.err.println("Student with ID " + booking.getStudentId() + " not found during booking confirmation.");
+            return null;
         }
 
+        Payment payment = paymentService.processPayment(student.getId(), bookingId, booking.getTotalCost());
+
+        booking.setPayment(payment);
+        booking.setStatus(Booking.BookingStatus.CONFIRMED);
+
+        Tutor tutor = tutorRepository.findById(booking.getTutorId());
+        
         if (tutor != null) {
             tutor.addBooking(booking);
             tutorRepository.update(tutor);
@@ -4479,26 +4449,26 @@ import java.util.stream.Collectors;
 @Service
 public class DashboardService {
 
-    @Autowired
-    private StudentService studentService;
+    private final StudentService studentService;
+    private final BookingService bookingService;
+    private final TutorService tutorService;
+    private final SubjectService subjectService;
+    private final ReviewService reviewService;
+    private final SearchService searchService;
+    private final DTOMapper dtoMapper;
 
     @Autowired
-    private BookingService bookingService;
-
-    @Autowired
-    private TutorService tutorService;
-
-    @Autowired
-    private SubjectService subjectService;
-
-    @Autowired
-    private ReviewService reviewService;
-
-    @Autowired
-    private SearchService searchService;
-
-    @Autowired
-    private DTOMapper dtoMapper;
+    public DashboardService(StudentService studentService, BookingService bookingService, TutorService tutorService,
+            SubjectService subjectService, ReviewService reviewService, SearchService searchService,
+            DTOMapper dtoMapper) {
+        this.studentService = studentService;
+        this.bookingService = bookingService;
+        this.tutorService = tutorService;
+        this.subjectService = subjectService;
+        this.reviewService = reviewService;
+        this.searchService = searchService;
+        this.dtoMapper = dtoMapper;
+    }
 
     public StudentDashboardResponse getStudentDashboard(String studentId) throws Exception {
         StudentDashboardResponse dashboard = new StudentDashboardResponse();
@@ -4659,12 +4629,12 @@ import java.util.*;
 @Service
 public class FileService {
 
-    @Autowired
-    private IFileRepository fileRepository;
-
+    private final IFileRepository fileRepository;
     private final Path fileStorageLocation = Paths.get("uploads").toAbsolutePath().normalize();
 
-    public FileService() {
+    @Autowired
+    public FileService(IFileRepository fileRepository) {
+        this.fileRepository = fileRepository;
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
@@ -4763,20 +4733,20 @@ import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import javax.annotation.PostConstruct;
 
 @Service
 public class PaymentService {
-    @Autowired
-    private IPaymentRepository paymentRepository;
-    @Autowired
-    private IStudentRepository studentRepository;
-    @Autowired
-    private IBookingRepository bookingRepository;
-    private Stack<IPaymentCommand> commandHistory;
+    private final IPaymentRepository paymentRepository;
+    private final IStudentRepository studentRepository;
+    private final IBookingRepository bookingRepository;
+    private final Stack<IPaymentCommand> commandHistory;
 
-    @PostConstruct
-    public void init() {
+    @Autowired
+    public PaymentService(IPaymentRepository paymentRepository, IStudentRepository studentRepository,
+            IBookingRepository bookingRepository) {
+        this.paymentRepository = paymentRepository;
+        this.studentRepository = studentRepository;
+        this.bookingRepository = bookingRepository;
         this.commandHistory = new Stack<>();
     }
 
@@ -4850,9 +4820,7 @@ package com.tutoringplatform.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Review;
 import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Tutor;
@@ -4865,30 +4833,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class ReviewService {
+    private final IReviewRepository reviewRepository;
+    private final IBookingRepository bookingRepository;
+    private final ITutorRepository tutorRepository;
+    private final IStudentRepository studentRepository;
+    private final StudentService studentService;
+    private final TutorService tutorService;
+
     @Autowired
-    private IReviewRepository reviewRepository;
-    @Autowired
-    private IBookingRepository bookingRepository;
-    @Autowired
-    private ITutorRepository tutorRepository;
-    @Autowired
-    private IStudentRepository studentRepository;
-    @Autowired
-    private StudentService studentService;
-    @Autowired
-    private TutorService tutorService;
+    public ReviewService(IReviewRepository reviewRepository, IBookingRepository bookingRepository,
+            ITutorRepository tutorRepository, IStudentRepository studentRepository, StudentService studentService,
+            TutorService tutorService) {
+        this.reviewRepository = reviewRepository;
+        this.bookingRepository = bookingRepository;
+        this.tutorRepository = tutorRepository;
+        this.studentRepository = studentRepository;
+        this.studentService = studentService;
+        this.tutorService = tutorService;
+    }
 
     public Review createOrUpdateReview(String studentId, String tutorId, int rating, String comment) throws Exception {
         Student student = studentService.findById(studentId);
         Tutor tutor = tutorService.findById(tutorId);
 
         // Check if student has completed any bookings with this tutor
-        List<Booking> completedBookings = bookingRepository.findByStudentId(studentId).stream()
-                .filter(b -> b.getTutorId().equals(tutorId))
-                .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
-                .collect(Collectors.toList());
-
-        if (completedBookings.isEmpty()) {
+        if (!bookingRepository.hasCompletedBooking(studentId, tutorId)) {
             throw new Exception("Can only review tutors you've had completed sessions with");
         }
 
@@ -5298,8 +5267,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class SubjectService {
+    private final ISubjectRepository subjectRepository;
+
     @Autowired
-    private ISubjectRepository subjectRepository;
+    public SubjectService(ISubjectRepository subjectRepository) {
+        this.subjectRepository = subjectRepository;
+    }
 
     public Subject createSubject(String name, String category) throws Exception {
         if (subjectRepository.findByName(name) != null) {
@@ -5358,12 +5331,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class TutorService extends UserService<Tutor> {
-    @Autowired
-    private SubjectService subjectService;
+    private final SubjectService subjectService;
 
     @Autowired
-    public TutorService(ITutorRepository repository) {
+    public TutorService(ITutorRepository repository, SubjectService subjectService) {
         super(repository);
+        this.subjectService = subjectService;
     }
 
     public void register(Tutor tutor) throws Exception {
@@ -5385,13 +5358,6 @@ public class TutorService extends UserService<Tutor> {
                 .average()
                 .orElse(0.0);
     }
-
-    public void addAvailability(String tutorId, String day, int hour) throws Exception {
-        Tutor tutor = findById(tutorId);
-        
-        repository.update(tutor);
-    }
-
 
     public void addEarnings(String tutorId, double amount) throws Exception {
         Tutor tutor = findById(tutorId);
@@ -5550,6 +5516,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import com.tutoringplatform.config.AppProperties;
 
 @Component
 public class DTOMapper {
@@ -5559,6 +5526,8 @@ public class DTOMapper {
     private StudentService studentService;
     @Autowired
     private TutorService tutorService;
+    @Autowired
+    private AppProperties appProperties;
 
     public StudentResponse toStudentResponse(Student student) {
         StudentResponse response = new StudentResponse();
@@ -5568,7 +5537,7 @@ public class DTOMapper {
         response.setBalance(student.getBalance());
         response.setTimeZoneId(student.getTimeZoneId());
         if (student.getProfilePictureId() != null) {
-            response.setProfilePictureUrl("/api/files/" + student.getProfilePictureId());
+            response.setProfilePictureUrl(appProperties.getApi().getFilesBaseUrl() + student.getProfilePictureId());
         }
         return response;
     }
@@ -5604,7 +5573,7 @@ public class DTOMapper {
         }
 
         if (tutor.getProfilePictureId() != null) {
-            response.setProfilePictureUrl("/api/files/" + tutor.getProfilePictureId());
+            response.setProfilePictureUrl(appProperties.getApi().getFilesBaseUrl() + tutor.getProfilePictureId());
         }
 
         return response;

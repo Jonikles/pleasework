@@ -73,4 +73,14 @@ public class SubjectController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/available/tutor/{tutorId}")
+    public ResponseEntity<?> getAvailableSubjectsForTutor(@PathVariable String tutorId) {
+        try {
+            List<SubjectResponse> subjects = subjectService.getAvailableSubjectsForTutor(tutorId);
+            return ResponseEntity.ok(subjects);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 }

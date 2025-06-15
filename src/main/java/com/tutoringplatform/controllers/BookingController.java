@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import java.util.List;
+import com.tutoringplatform.dto.response.EnrichedBookingResponse;
 import java.util.stream.Collectors;
 
 @RestController
@@ -94,4 +95,27 @@ public class BookingController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // In BookingController.java
+    @GetMapping("/student/{studentId}/enriched")
+    public ResponseEntity<?> getEnrichedStudentBookings(@PathVariable String studentId) {
+        try {
+            List<EnrichedBookingResponse> bookings = bookingService.getEnrichedStudentBookings(studentId);
+            return ResponseEntity.ok(bookings);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/tutor/{tutorId}/enriched")
+    public ResponseEntity<?> getEnrichedTutorBookings(@PathVariable String tutorId) {
+        try {
+            List<EnrichedBookingResponse> bookings = bookingService.getEnrichedTutorBookings(tutorId);
+            return ResponseEntity.ok(bookings);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    
 }

@@ -1,0 +1,1365 @@
+======================================================================
+// FILE: request\AddFundsRequest.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/request/AddFundsRequest.java
+package com.tutoringplatform.dto.request;
+
+public class AddFundsRequest {
+    private double amount;
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\AvailabilityRequest.java
+======================================================================
+
+package com.tutoringplatform.dto.request;
+
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+
+public class AvailabilityRequest {
+    private DayOfWeek dayOfWeek;
+    private LocalTime startTime;
+    private LocalTime endTime;
+
+    // Getters and setters
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\BookingRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+import java.time.LocalDateTime;
+
+public class BookingRequest {
+    private String studentId;
+    private String tutorId;
+    private String subjectId;
+    private LocalDateTime dateTime;
+    private int durationHours;
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public void setDurationHours(int durationHours) {
+        this.durationHours = durationHours;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\LoginRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class LoginRequest {
+    private String email;
+    private String password;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\PaymentRequest.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/request/PaymentRequest.java
+package com.tutoringplatform.dto.request;
+
+public class PaymentRequest {
+    private String studentId;
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\ReviewRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class ReviewRequest {
+    private String studentId;
+    private String tutorId;
+    private int rating;
+    private String comment;
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\StudentSignupRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class StudentSignupRequest {
+    private String name;
+    private String email;
+    private String password;
+    private String timeZoneId;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\SubjectRequest.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/request/SubjectRequest.java
+package com.tutoringplatform.dto.request;
+
+public class SubjectRequest {
+    private String name;
+    private String category;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\TutorSignupRequest.java
+======================================================================
+
+
+package com.tutoringplatform.dto.request;
+
+public class TutorSignupRequest {
+    private String name;
+    private String email;
+    private String password;
+    private double hourlyRate;
+    private String description;
+    private String timeZoneId;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\UpdateStudentRequest.java
+======================================================================
+
+package com.tutoringplatform.dto.request;
+
+public class UpdateStudentRequest {
+    private String name;
+    private String email;
+    private String password;
+    private String timeZoneId;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+}
+
+
+
+======================================================================
+// FILE: request\UpdateTutorRequest.java
+======================================================================
+
+package com.tutoringplatform.dto.request;
+
+public class UpdateTutorRequest {
+    private String name;
+    private String email;
+    private String password;
+    private String timeZoneId;
+    private Double hourlyRate;
+    private String description;
+
+    // All getters and setters
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+
+    public Double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(Double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\AverageRatingResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+public class AverageRatingResponse {
+    private double averageRating;
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\BalanceResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+public class BalanceResponse {
+    private double balance;
+
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\BookingResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/BookingResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.time.LocalDateTime;
+
+public class BookingResponse {
+    private String id;
+    private String studentId;
+    private String tutorId;
+    private SubjectResponse subject;
+    private LocalDateTime dateTime;
+    private int durationHours;
+    private double totalCost;
+    private String status;
+    private String studentTimeZoneId;
+    private String tutorTimeZoneId;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public SubjectResponse getSubject() {
+        return subject;
+    }
+
+    public void setSubject(SubjectResponse subject) {
+        this.subject = subject;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public void setDurationHours(int durationHours) {
+        this.durationHours = durationHours;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(double totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStudentTimeZoneId() {
+        return studentTimeZoneId;
+    }
+
+    public void setStudentTimeZoneId(String studentTimeZoneId) {
+        this.studentTimeZoneId = studentTimeZoneId;
+    }
+
+    public String getTutorTimeZoneId() {
+        return tutorTimeZoneId;
+    }
+
+    public void setTutorTimeZoneId(String tutorTimeZoneId) {
+        this.tutorTimeZoneId = tutorTimeZoneId;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\DashboardStats.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+public class DashboardStats {
+    private int totalBookings;
+    private int completedSessions;
+    private double totalEarnings;
+    private double averageRating;
+    private int totalReviews;
+
+    // All getters and setters
+    public int getTotalBookings() {
+        return totalBookings;
+    }
+
+    public void setTotalBookings(int totalBookings) {
+        this.totalBookings = totalBookings;
+    }
+
+    public int getCompletedSessions() {
+        return completedSessions;
+    }
+
+    public void setCompletedSessions(int completedSessions) {
+        this.completedSessions = completedSessions;
+    }
+
+    public double getTotalEarnings() {
+        return totalEarnings;
+    }
+
+    public void setTotalEarnings(double totalEarnings) {
+        this.totalEarnings = totalEarnings;
+    }
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public int getTotalReviews() {
+        return totalReviews;
+    }
+
+    public void setTotalReviews(int totalReviews) {
+        this.totalReviews = totalReviews;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\EarningsResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/EarningsResponse.java
+package com.tutoringplatform.dto.response;
+
+public class EarningsResponse {
+    private double earnings;
+
+    public double getEarnings() {
+        return earnings;
+    }
+
+    public void setEarnings(double earnings) {
+        this.earnings = earnings;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\EnrichedBookingResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/EnrichedBookingResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.time.LocalDateTime;
+
+public class EnrichedBookingResponse {
+    private String id;
+    private String studentId;
+    private String studentName;
+    private String tutorId;
+    private String tutorName;
+    private SubjectResponse subject;
+    private LocalDateTime dateTime;
+    private int durationHours;
+    private double totalCost;
+    private String status;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public String getTutorName() {
+        return tutorName;
+    }
+
+    public void setTutorName(String tutorName) {
+        this.tutorName = tutorName;
+    }
+
+    public SubjectResponse getSubject() {
+        return subject;
+    }
+
+    public void setSubject(SubjectResponse subject) {
+        this.subject = subject;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public void setDurationHours(int durationHours) {
+        this.durationHours = durationHours;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(double totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\ReviewResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+import java.time.LocalDateTime;
+
+public class ReviewResponse {
+    private String id;
+    private String studentId;
+    private String tutorId;
+    private int rating;
+    private String comment;
+    private LocalDateTime timestamp;
+
+    // All getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(String tutorId) {
+        this.tutorId = tutorId;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\StudentDashboardResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/StudentDashboardResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.util.List;
+
+public class StudentDashboardResponse {
+    private StudentResponse student;
+    private List<EnrichedBookingResponse> upcomingBookings;
+    private List<EnrichedBookingResponse> pastBookings;
+    private List<SubjectResponse> availableSubjects;
+
+    // Getters and setters
+    public StudentResponse getStudent() {
+        return student;
+    }
+
+    public void setStudent(StudentResponse student) {
+        this.student = student;
+    }
+
+    public List<EnrichedBookingResponse> getUpcomingBookings() {
+        return upcomingBookings;
+    }
+
+    public void setUpcomingBookings(List<EnrichedBookingResponse> upcomingBookings) {
+        this.upcomingBookings = upcomingBookings;
+    }
+
+    public List<EnrichedBookingResponse> getPastBookings() {
+        return pastBookings;
+    }
+
+    public void setPastBookings(List<EnrichedBookingResponse> pastBookings) {
+        this.pastBookings = pastBookings;
+    }
+
+    public List<SubjectResponse> getAvailableSubjects() {
+        return availableSubjects;
+    }
+
+    public void setAvailableSubjects(List<SubjectResponse> availableSubjects) {
+        this.availableSubjects = availableSubjects;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\StudentResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/StudentResponse.java
+package com.tutoringplatform.dto.response;
+
+import com.tutoringplatform.models.UserType;
+
+public class StudentResponse {
+    private String id;
+    private String name;
+    private String email;
+    private String userType = UserType.STUDENT.getDisplayName();
+    private double balance;
+    private String timeZoneId;
+    private String profilePictureUrl;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\SubjectResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/SubjectResponse.java
+package com.tutoringplatform.dto.response;
+
+public class SubjectResponse {
+    private String id;
+    private String name;
+    private String category;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\TutorDashboardResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+import java.util.List;
+
+public class TutorDashboardResponse {
+    private TutorResponse tutor;
+    private List<EnrichedBookingResponse> upcomingBookings;
+    private List<EnrichedBookingResponse> recentBookings;
+    private List<ReviewResponse> recentReviews;
+    private DashboardStats stats;
+
+    public DashboardStats getStats() {
+        return stats;
+    }
+
+    public void setStats(DashboardStats stats) {
+        this.stats = stats;
+    }
+
+    public TutorResponse getTutor() {
+        return tutor;
+    }
+
+    public void setTutor(TutorResponse tutor) {
+        this.tutor = tutor;
+    }
+
+    public List<EnrichedBookingResponse> getUpcomingBookings() {
+        return upcomingBookings;
+    }
+
+    public void setUpcomingBookings(List<EnrichedBookingResponse> upcomingBookings) {
+        this.upcomingBookings = upcomingBookings;
+    }
+
+    public List<EnrichedBookingResponse> getRecentBookings() {
+        return recentBookings;
+    }
+
+    public void setRecentBookings(List<EnrichedBookingResponse> recentBookings) {
+        this.recentBookings = recentBookings;
+    }
+
+    public List<ReviewResponse> getRecentReviews() {
+        return recentReviews;
+    }
+
+    public void setRecentReviews(List<ReviewResponse> recentReviews) {
+        this.recentReviews = recentReviews;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\TutorResponse.java
+======================================================================
+
+// FILE: src/main/java/com/tutoringplatform/dto/response/TutorResponse.java
+package com.tutoringplatform.dto.response;
+
+import java.util.List;
+import com.tutoringplatform.models.UserType;
+import com.tutoringplatform.models.availability.RecurringAvailability;
+
+public class TutorResponse {
+    private String id;
+    private String name;
+    private String email;
+    private String userType = UserType.TUTOR.getDisplayName();
+    private double hourlyRate;
+    private String description;
+    private double averageRating;
+    private double earnings;
+    private List<SubjectResponse> subjects;
+    private String timeZoneId;
+    private List<RecurringAvailability> availability;
+    private String profilePictureUrl;
+
+    // All getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public double getEarnings() {
+        return earnings;
+    }
+
+    public void setEarnings(double earnings) {
+        this.earnings = earnings;
+    }
+
+    public List<SubjectResponse> getSubjects() {
+        return subjects;
+    }
+
+    public void setSubjects(List<SubjectResponse> subjects) {
+        this.subjects = subjects;
+    }
+
+    public String getTimeZoneId() {
+        return timeZoneId;
+    }
+
+    public void setTimeZoneId(String timeZoneId) {
+        this.timeZoneId = timeZoneId;
+    }
+
+    public List<RecurringAvailability> getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(List<RecurringAvailability> availability) {
+        this.availability = availability;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\TutorSearchResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+import java.util.List;
+
+public class TutorSearchResponse {
+    private String id;
+    private String name;
+    private String email;
+    private double hourlyRate;
+    private String description;
+    private double averageRating;
+    private int totalReviews;
+    private List<SubjectResponse> subjects;
+    private String profilePictureUrl;
+    private boolean currentlyAvailable;
+
+    // All getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public int getTotalReviews() {
+        return totalReviews;
+    }
+
+    public void setTotalReviews(int totalReviews) {
+        this.totalReviews = totalReviews;
+    }
+
+    public List<SubjectResponse> getSubjects() {
+        return subjects;
+    }
+
+    public void setSubjects(List<SubjectResponse> subjects) {
+        this.subjects = subjects;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+
+    public boolean isCurrentlyAvailable() {
+        return currentlyAvailable;
+    }
+
+    public void setCurrentlyAvailable(boolean currentlyAvailable) {
+        this.currentlyAvailable = currentlyAvailable;
+    }
+}
+
+
+
+======================================================================
+// FILE: response\UserResponse.java
+======================================================================
+
+package com.tutoringplatform.dto.response;
+
+public class UserResponse {
+    private String id;
+    private String name;
+    private String email;
+    private String userType;
+
+    public UserResponse(String id, String name, String email, String userType) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.userType = userType;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+}
+
+
+

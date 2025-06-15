@@ -6,7 +6,7 @@ import com.tutoringplatform.models.Review;
 import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.Tutor;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
-import com.tutoringplatform.dto.request.UpdateTutorRequest;
+import com.tutoringplatform.dto.request.UpdateUserRequest;
 import java.time.ZoneId;
 
 import org.springframework.stereotype.Service;
@@ -78,7 +78,7 @@ public class TutorService extends UserService<Tutor> {
         return tutor.getSubjects();
     }
 
-    public Tutor updateTutor(String tutorId, UpdateTutorRequest request) throws Exception {
+    public Tutor updateTutor(String tutorId, UpdateUserRequest request) throws Exception {
         Tutor tutor = findById(tutorId);
 
         // Only update fields that are provided

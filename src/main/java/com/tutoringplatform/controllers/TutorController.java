@@ -18,8 +18,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
 import com.tutoringplatform.services.FileService;
-import com.tutoringplatform.dto.request.UpdateTutorRequest;
+import com.tutoringplatform.dto.request.UpdateUserRequest;
 import org.springframework.web.multipart.MultipartFile;
+import com.tutoringplatform.dto.response.ValueResponse;
 
 @RestController
 @RequestMapping("/api/tutors")
@@ -59,7 +60,7 @@ public class TutorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateTutor(@PathVariable String id, @RequestBody UpdateTutorRequest request) {
+    public ResponseEntity<?> updateTutor(@PathVariable String id, @RequestBody UpdateUserRequest request) {
         try {
             Tutor updatedTutor = tutorService.updateTutor(id, request);
             return ResponseEntity.ok(dtoMapper.toTutorResponse(updatedTutor));
@@ -185,7 +186,7 @@ public class TutorController {
     public ResponseEntity<?> getAverageRating(@PathVariable String id) {
         try {
             double averageRating = tutorService.getAverageRating(id);
-            return ResponseEntity.ok(dtoMapper.toAverageRatingResponse(averageRating));
+            return ResponseEntity.ok(new ValueResponse<>(averageRating));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import com.tutoringplatform.dto.response.EnrichedBookingResponse;
 
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Payment;
@@ -11,7 +13,6 @@ import com.tutoringplatform.models.Student;
 import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.Tutor;
 import com.tutoringplatform.observer.BookingEvent;
-import com.tutoringplatform.observer.BookingObserver;
 import com.tutoringplatform.repositories.interfaces.IBookingRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
 import com.tutoringplatform.repositories.interfaces.ITutorRepository;
@@ -19,6 +20,8 @@ import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import com.tutoringplatform.util.DTOMapper;
 
 @Service
 public class BookingService {
@@ -29,12 +32,13 @@ public class BookingService {
     private final ISubjectRepository subjectRepository;
     private final AvailabilityService availabilityService;
     private final TutorService tutorService;
-    private List<BookingObserver> observers;
+    private final DTOMapper dtoMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired 
     public BookingService(IBookingRepository bookingRepository, IStudentRepository studentRepository,
             ITutorRepository tutorRepository, PaymentService paymentService, ISubjectRepository subjectRepository,
-            AvailabilityService availabilityService, TutorService tutorService, List<BookingObserver> observers) {
+            AvailabilityService availabilityService, TutorService tutorService, DTOMapper dtoMapper, ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.studentRepository = studentRepository;
         this.tutorRepository = tutorRepository;
@@ -42,13 +46,8 @@ public class BookingService {
         this.subjectRepository = subjectRepository;
         this.availabilityService = availabilityService;
         this.tutorService = tutorService;
-        this.observers = observers;
-    }
-
-    private void notifyObservers(BookingEvent event) {
-        for (BookingObserver observer : observers) {
-            observer.update(event);
-        }
+        this.dtoMapper = dtoMapper;
+        this.eventPublisher = eventPublisher;   
     }
 
     public Booking createBooking(String studentId, String tutorId, String subjectId,
@@ -84,7 +83,7 @@ public class BookingService {
         Booking booking = new Booking(studentId, tutorId, subject, dateTime, durationHours, tutor.getHourlyRate());
         bookingRepository.save(booking);
 
-        notifyObservers(new BookingEvent(BookingEvent.EventType.CREATED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.CREATED, booking, student, tutor));
 
         return booking;
     }
@@ -134,7 +133,7 @@ public class BookingService {
 
         bookingRepository.update(booking);
 
-        notifyObservers(new BookingEvent(BookingEvent.EventType.CONFIRMED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.CONFIRMED, booking, student, tutor));
 
         return booking;
     }
@@ -169,7 +168,7 @@ public class BookingService {
             System.err.println("Tutor with ID " + booking.getTutorId() + " not found during booking cancellation.");
         }
 
-        notifyObservers(new BookingEvent(BookingEvent.EventType.CANCELLED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.CANCELLED, booking, student, tutor));
     }
 
     @Transactional
@@ -191,7 +190,44 @@ public class BookingService {
         Tutor tutor = tutorRepository.findById(booking.getTutorId());
         Student student = studentRepository.findById(booking.getStudentId());
         
-        notifyObservers(new BookingEvent(BookingEvent.EventType.COMPLETED, booking, student, tutor));
+        eventPublisher.publishEvent(new BookingEvent(this, BookingEvent.EventType.COMPLETED, booking, student, tutor));
+    }
+
+    public List<EnrichedBookingResponse> getEnrichedStudentBookings(String studentId) throws Exception {
+        List<Booking> bookings = findByStudentId(studentId);
+        return enrichBookings(bookings);
+    }
+
+    public List<EnrichedBookingResponse> getEnrichedTutorBookings(String tutorId) throws Exception {
+        List<Booking> bookings = findByTutorId(tutorId);
+        return enrichBookings(bookings);
+    }
+
+    private List<EnrichedBookingResponse> enrichBookings(List<Booking> bookings) throws Exception {
+        List<EnrichedBookingResponse> enriched = new ArrayList<>();
+
+        for (Booking booking : bookings) {
+            EnrichedBookingResponse response = new EnrichedBookingResponse();
+            response.setId(booking.getId());
+            response.setDateTime(booking.getDateTime());
+            response.setDurationHours(booking.getDurationHours());
+            response.setTotalCost(booking.getTotalCost());
+            response.setStatus(booking.getStatus().toString());
+            response.setSubject(dtoMapper.toSubjectResponse(booking.getSubject()));
+
+            // Get names
+            Student student = studentRepository.findById(booking.getStudentId());
+            Tutor tutor = tutorRepository.findById(booking.getTutorId());
+
+            response.setStudentId(booking.getStudentId());
+            response.setStudentName(student != null ? student.getName() : "Unknown");
+            response.setTutorId(booking.getTutorId());
+            response.setTutorName(tutor != null ? tutor.getName() : "Unknown");
+
+            enriched.add(response);
+        }
+
+        return enriched;
     }
 
     public Booking findById(String id) throws Exception {

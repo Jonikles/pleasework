@@ -1,6 +1,6 @@
 package com.tutoringplatform.dto.request;
 
-public class UpdateTutorRequest {
+public class UpdateUserRequest {
     private String name;
     private String email;
     private String password;
@@ -8,7 +8,6 @@ public class UpdateTutorRequest {
     private Double hourlyRate;
     private String description;
 
-    // All getters and setters
     public String getName() {
         return name;
     }
