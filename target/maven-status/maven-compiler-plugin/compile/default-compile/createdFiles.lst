@@ -5,7 +5,6 @@ com\tutoringplatform\repositories\impl\PaymentRepository.class
 com\tutoringplatform\dto\request\UpdateStudentRequest.class
 com\tutoringplatform\services\SubjectService.class
 com\tutoringplatform\dto\request\UpdateTutorRequest.class
-com\tutoringplatform\observer\BookingObserver.class
 com\tutoringplatform\controllers\SubjectController.class
 com\tutoringplatform\repositories\impl\BookingRepository.class
 com\tutoringplatform\services\SearchService$TutorSearchCriteria.class
