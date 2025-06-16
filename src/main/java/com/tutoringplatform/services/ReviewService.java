@@ -99,7 +99,24 @@ public class ReviewService {
         return dtoMapper.toReviewResponse(review, student, tutor);
     }
 
-    public List<ReviewResponse> getTutorReviewsWithDetails(String tutorId) throws Exception {
+    @Transactional
+    public void deleteReview(String id) throws Exception {
+        Review review = reviewRepository.findById(id);
+        if (review == null) {
+            throw new Exception("Review not found");
+        }
+        Tutor tutor = tutorRepository.findById(review.getTutorId());
+        tutor.getReviewsReceived().remove(review);
+        tutorRepository.update(tutor);
+
+        Student student = studentRepository.findById(review.getStudentId());
+        student.getReviewsGiven().remove(review);
+        studentRepository.update(student);
+        
+        reviewRepository.delete(id);
+    }
+
+    public List<ReviewResponse> getTutorReviews(String tutorId) throws Exception {
         Tutor tutor = tutorRepository.findById(tutorId);
         if (tutor == null) {
             throw new Exception("Tutor not found");
@@ -116,6 +133,24 @@ public class ReviewService {
         }
 
         // Sort by most recent first
+        responses.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+        return responses;
+    }
+
+    public List<ReviewResponse> getStudentReviews(String studentId) throws Exception {
+        Student student = studentRepository.findById(studentId);
+        if (student == null) {
+            throw new Exception("Student not found");
+        }
+        List<Review> reviews = reviewRepository.getStudentReviews(studentId);
+        List<ReviewResponse> responses = new ArrayList<>();
+        for (Review review : reviews) {
+            Tutor tutor = tutorRepository.findById(review.getTutorId());
+            ReviewResponse response = dtoMapper.toReviewResponse(review, student, tutor);
+            responses.add(response);
+        }
+
         responses.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
 
         return responses;

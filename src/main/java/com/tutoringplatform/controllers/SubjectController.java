@@ -31,6 +31,16 @@ public class SubjectController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteSubject(@PathVariable String id) {
+        try {
+            subjectService.deleteSubject(id);
+            return ResponseEntity.ok("Subject deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getAllSubjects() {
         try {

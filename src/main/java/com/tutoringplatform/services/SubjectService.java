@@ -12,7 +12,6 @@ import com.tutoringplatform.dto.response.SubjectListResponse;
 import com.tutoringplatform.dto.response.CategorySubjects;
 import com.tutoringplatform.dto.response.info.SubjectInfo;
 import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
-import com.tutoringplatform.repositories.interfaces.ITutorRepository;
 import com.tutoringplatform.util.DTOMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Service
 public class SubjectService {
     private final ISubjectRepository subjectRepository;
-    private final ITutorRepository tutorRepository;
+    private final TutorService tutorService;
     private final DTOMapper dtoMapper;
 
     @Autowired
-    public SubjectService(ISubjectRepository subjectRepository, ITutorRepository tutorRepository, DTOMapper dtoMapper) {
+    public SubjectService(ISubjectRepository subjectRepository, TutorService tutorService, DTOMapper dtoMapper) {
         this.subjectRepository = subjectRepository;
-        this.tutorRepository = tutorRepository;
+        this.tutorService = tutorService;
         this.dtoMapper = dtoMapper;
     }
 
@@ -41,6 +40,22 @@ public class SubjectService {
         Subject subject = new Subject(name, category);
         subjectRepository.save(subject);
         return dtoMapper.toSubjectResponse(subject);
+    }
+
+    public void deleteSubject(String id) throws Exception {
+        //check if the subject exists
+        //check if the subject is assigned to any tutors
+        //check if the subject is assigned to any bookings (could derive from the tutor)
+        //if all checks pass, delete the subject
+        Subject subject = findById(id);
+        if (subject == null) {
+            throw new Exception("Subject not found");
+        }
+        List<Tutor> tutors = tutorService.findBySubject(subject);
+        if (tutors.size() > 0) {
+            throw new Exception("Subject is assigned to tutors");
+        }
+        subjectRepository.delete(id);
     }
 
     public Subject findById(String id) throws Exception {
@@ -85,7 +100,7 @@ public class SubjectService {
 
     public List<SubjectResponse> getAvailableSubjectsForTutor(String tutorId) throws Exception {
         // Find the tutor first
-        Tutor tutor = tutorRepository.findById(tutorId);
+        Tutor tutor = tutorService.findById(tutorId);
         if (tutor == null) {
             throw new Exception("Tutor not found");
         }
@@ -130,7 +145,7 @@ public class SubjectService {
         info.setName(subject.getName());
         
         // Calculate tutor count for this subject
-        List<Tutor> tutorsForSubject = tutorRepository.findBySubject(subject);
+        List<Tutor> tutorsForSubject = tutorService.findBySubject(subject);
         info.setTutorCount(tutorsForSubject.size());
         
         // Calculate average price for this subject
@@ -141,5 +156,5 @@ public class SubjectService {
         info.setAveragePrice(averagePrice);
         
         return info;
-    }
+    }  
 }
