@@ -10,6 +10,7 @@ com\tutoringplatform\repositories\impl\BookingRepository.class
 com\tutoringplatform\dto\response\StudentProfileResponse.class
 com\tutoringplatform\dto\response\info\PaymentInfo.class
 com\tutoringplatform\repositories\interfaces\IRepository.class
+com\tutoringplatform\dto\request\CreateSubjectRequest.class
 com\tutoringplatform\repositories\interfaces\IPaymentCommand.class
 com\tutoringplatform\dto\response\ValueResponse.class
 com\tutoringplatform\models\User.class
@@ -38,20 +39,17 @@ com\tutoringplatform\models\Booking$BookingStatus.class
 com\tutoringplatform\models\UserType.class
 com\tutoringplatform\repositories\interfaces\IAvailabilityRepository.class
 com\tutoringplatform\models\Review.class
-com\tutoringplatform\controllers\PaymentController.class
 com\tutoringplatform\repositories\impl\FileRepository.class
 com\tutoringplatform\models\availability\AvailabilityException.class
 com\tutoringplatform\dto\response\TutorProfileResponse.class
 com\tutoringplatform\repositories\interfaces\IReviewRepository.class
 com\tutoringplatform\dto\request\TutorAvailabilityRequest.class
 com\tutoringplatform\command\ProcessPaymentCommand.class
-com\tutoringplatform\dto\response\PaymentHistoryResponse.class
 com\tutoringplatform\repositories\impl\TutorRepository.class
 com\tutoringplatform\dto\response\info\BookingInfo.class
 com\tutoringplatform\factory\UserFactory$UserType.class
 com\tutoringplatform\models\availability\RecurringAvailability.class
 com\tutoringplatform\dto\request\TutorSearchRequest.class
-com\tutoringplatform\dto\response\TransactionRecord$TransactionType.class
 com\tutoringplatform\services\TutorService.class
 com\tutoringplatform\controllers\ReviewController.class
 com\tutoringplatform\config\AppProperties.class
@@ -63,7 +61,6 @@ com\tutoringplatform\repositories\impl\AuthenticationRepository.class
 com\tutoringplatform\repositories\interfaces\IPaymentRepository.class
 com\tutoringplatform\command\RefundPaymentCommand.class
 com\tutoringplatform\util\DTOMapper.class
-com\tutoringplatform\dto\response\TransactionRecord.class
 com\tutoringplatform\dto\response\TutorDashboardResponse.class
 com\tutoringplatform\services\AuthenticationService.class
 com\tutoringplatform\repositories\interfaces\IFileRepository.class

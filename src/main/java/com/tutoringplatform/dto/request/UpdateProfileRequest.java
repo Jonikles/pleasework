@@ -6,7 +6,7 @@ public class UpdateProfileRequest {
     private String password;
     private String currentPassword; // Required if changing password
     private String timeZoneId;
-    private Double hourlyRate; // Tutor only
+    private double hourlyRate; // Tutor only
     private String description; // Tutor only
 
     // All getters and setters
@@ -50,11 +50,11 @@ public class UpdateProfileRequest {
         this.timeZoneId = timeZoneId;
     }
 
-    public Double getHourlyRate() {
+    public double getHourlyRate() {
         return hourlyRate;
     }
 
-    public void setHourlyRate(Double hourlyRate) {
+    public void setHourlyRate(double hourlyRate) {
         this.hourlyRate = hourlyRate;
     }
 

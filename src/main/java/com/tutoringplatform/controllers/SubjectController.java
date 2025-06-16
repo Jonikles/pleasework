@@ -3,6 +3,7 @@ package com.tutoringplatform.controllers;
 import com.tutoringplatform.dto.response.SubjectListResponse;
 import com.tutoringplatform.dto.response.SubjectResponse;
 import com.tutoringplatform.services.SubjectService;
+import com.tutoringplatform.dto.request.CreateSubjectRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,16 @@ public class SubjectController {
     @Autowired
     public SubjectController(SubjectService subjectService) {
         this.subjectService = subjectService;
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createSubject(@RequestBody CreateSubjectRequest request) {
+        try {
+            SubjectResponse subject = subjectService.createSubject(request);
+            return ResponseEntity.ok(subject);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @GetMapping

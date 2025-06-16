@@ -156,10 +156,7 @@ public class TutorService extends UserService<Tutor> {
         }
 
         // Update tutor-specific fields
-        if (request.getHourlyRate() != null) {
-            if (request.getHourlyRate() <= 0) {
-                throw new Exception("Hourly rate must be positive");
-            }
+        if (request.getHourlyRate() > 0) {
             tutor.setHourlyRate(request.getHourlyRate());
         }
 

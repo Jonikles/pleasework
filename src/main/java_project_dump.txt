@@ -549,45 +549,6 @@ public class FileController {
 
 
 ======================================================================
-// FILE: java\com\tutoringplatform\controllers\PaymentController.java
-======================================================================
-
-package com.tutoringplatform.controllers;
-
-import com.tutoringplatform.dto.response.PaymentHistoryResponse;
-import com.tutoringplatform.dto.response.TransactionRecord;
-import com.tutoringplatform.services.PaymentService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-
-@RestController
-@RequestMapping("/api/payments")
-public class PaymentController {
-
-    private final PaymentService paymentService;
-
-    @Autowired
-    public PaymentController(PaymentService paymentService) {
-        this.paymentService = paymentService;
-    }
-
-    /*@GetMapping("/history/{studentId}")
-    public ResponseEntity<?> getPaymentHistory(@PathVariable String studentId) {
-        try {
-            PaymentHistoryResponse history = paymentService.getStudentPaymentHistory(studentId);
-            return ResponseEntity.ok(history);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }*/
-
-}
-
-
-
-======================================================================
 // FILE: java\com\tutoringplatform\controllers\ReviewController.java
 ======================================================================
 
@@ -1872,46 +1833,6 @@ public class DashboardStats {
 
 
 ======================================================================
-// FILE: java\com\tutoringplatform\dto\response\PaymentHistoryResponse.java
-======================================================================
-
-package com.tutoringplatform.dto.response;
-
-import java.util.List;
-
-public class PaymentHistoryResponse {
-    private List<TransactionRecord> transactions;
-    private double totalSpent;
-    private double currentBalance;
-
-    public List<TransactionRecord> getTransactions() {
-        return transactions;
-    }
-
-    public void setTransactions(List<TransactionRecord> transactions) {
-        this.transactions = transactions;
-    }
-
-    public double getTotalSpent() {
-        return totalSpent;
-    }
-
-    public void setTotalSpent(double totalSpent) {
-        this.totalSpent = totalSpent;
-    }
-
-    public double getCurrentBalance() {
-        return currentBalance;
-    }
-
-    public void setCurrentBalance(double currentBalance) {
-        this.currentBalance = currentBalance;
-    }
-}
-
-
-
-======================================================================
 // FILE: java\com\tutoringplatform\dto\response\ReviewResponse.java
 ======================================================================
 
@@ -2229,71 +2150,6 @@ public class SubjectResponse {
 
     public void setCategory(String category) {
         this.category = category;
-    }
-}
-
-
-
-======================================================================
-// FILE: java\com\tutoringplatform\dto\response\TransactionRecord.java
-======================================================================
-
-package com.tutoringplatform.dto.response;
-
-import com.tutoringplatform.dto.response.info.BookingInfo;
-import java.time.LocalDateTime;
-
-public class TransactionRecord {
-    private String id;
-    private TransactionType type;
-    private double amount;
-    private LocalDateTime date;
-    private BookingInfo booking;
-
-    public enum TransactionType {
-        PAYMENT,
-        REFUND
-    }
-
-    // Getters and setters
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public TransactionType getType() {
-        return type;
-    }
-
-    public void setType(TransactionType type) {
-        this.type = type;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    public BookingInfo getBooking() {
-        return booking;
-    }
-
-    public void setBooking(BookingInfo booking) {
-        this.booking = booking;
     }
 }
 
@@ -4482,7 +4338,6 @@ public interface IPaymentCommand {
 
 package com.tutoringplatform.repositories.interfaces;
 
-import java.util.List;
 import com.tutoringplatform.models.Payment;
 
 public interface IPaymentRepository extends IRepository<Payment> {
@@ -5536,12 +5391,10 @@ import com.tutoringplatform.command.RefundPaymentCommand;
 import com.tutoringplatform.models.Booking;
 import com.tutoringplatform.models.Payment;
 import com.tutoringplatform.models.Student;
-import com.tutoringplatform.dto.response.PaymentHistoryResponse;
 import com.tutoringplatform.repositories.interfaces.IBookingRepository;
 import com.tutoringplatform.repositories.interfaces.IPaymentCommand;
 import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
 import com.tutoringplatform.repositories.interfaces.IStudentRepository;
-import com.tutoringplatform.util.DTOMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -5553,15 +5406,13 @@ public class PaymentService {
     private final IStudentRepository studentRepository;
     private final IBookingRepository bookingRepository;
     private final Stack<IPaymentCommand> commandHistory;
-    private final DTOMapper dtoMapper;
     @Autowired
     public PaymentService(IPaymentRepository paymentRepository, IStudentRepository studentRepository,
-            IBookingRepository bookingRepository, DTOMapper dtoMapper) {
+            IBookingRepository bookingRepository) {
         this.paymentRepository = paymentRepository;
         this.studentRepository = studentRepository;
         this.bookingRepository = bookingRepository;
         this.commandHistory = new Stack<>();
-        this.dtoMapper = dtoMapper;
     }
 
     @Transactional
@@ -6927,20 +6778,6 @@ public class DTOMapper {
         response.setComment(review.getComment());
         response.setCreatedAt(review.getTimestamp());
 
-        return response;
-    }
-
-    // ========== PAYMENT RESPONSES ==========
-
-    public PaymentHistoryResponse toPaymentHistoryResponse(
-            List<TransactionRecord> transactions,
-            double totalSpent,
-            double currentBalance) {
-
-        PaymentHistoryResponse response = new PaymentHistoryResponse();
-        response.setTransactions(transactions);
-        response.setTotalSpent(totalSpent);
-        response.setCurrentBalance(currentBalance);
         return response;
     }
 

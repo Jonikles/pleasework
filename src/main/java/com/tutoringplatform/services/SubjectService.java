@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.tutoringplatform.models.Subject;
 import com.tutoringplatform.models.Tutor;
 import com.tutoringplatform.dto.response.SubjectResponse;
+import com.tutoringplatform.dto.request.CreateSubjectRequest;
 import com.tutoringplatform.dto.response.SubjectListResponse;
 import com.tutoringplatform.dto.response.CategorySubjects;
 import com.tutoringplatform.dto.response.info.SubjectInfo;
@@ -29,14 +30,17 @@ public class SubjectService {
         this.dtoMapper = dtoMapper;
     }
 
-    public Subject createSubject(String name, String category) throws Exception {
+    public SubjectResponse createSubject(CreateSubjectRequest request) throws Exception {
+        String name = request.getName();
+        String category = request.getCategory();
+    
         if (subjectRepository.findByName(name) != null) {
             throw new Exception("Subject already exists");
         }
 
         Subject subject = new Subject(name, category);
         subjectRepository.save(subject);
-        return subject;
+        return dtoMapper.toSubjectResponse(subject);
     }
 
     public Subject findById(String id) throws Exception {
