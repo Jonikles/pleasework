@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 @Service
 public class TutorService extends UserService<Tutor> {
 
+    private final ITutorRepository repository;
     private final ISubjectRepository subjectRepository;
     private final IBookingRepository bookingRepository;
     private final IReviewRepository reviewRepository;
@@ -51,6 +52,7 @@ public class TutorService extends UserService<Tutor> {
             PasswordEncoder passwordEncoder,
             DTOMapper dtoMapper) {
         super(repository);
+        this.repository = repository;
         this.subjectRepository = subjectRepository;
         this.bookingRepository = bookingRepository;
         this.reviewRepository = reviewRepository;
@@ -253,5 +255,9 @@ public class TutorService extends UserService<Tutor> {
                         .orElse(0.0);
 
         return dtoMapper.toValueResponse(averageRating);
+    }
+
+    public List<Tutor> findBySubject(Subject subject) {
+        return repository.findBySubject(subject);
     }
 }

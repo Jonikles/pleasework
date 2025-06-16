@@ -30,10 +30,30 @@ public class ReviewController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteReview(@PathVariable String id) {
+        try {
+            reviewService.deleteReview(id);
+            return ResponseEntity.ok("Review deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/tutor/{tutorId}")
     public ResponseEntity<?> getTutorReviews(@PathVariable String tutorId) {
         try {
-            List<ReviewResponse> reviews = reviewService.getTutorReviewsWithDetails(tutorId);
+            List<ReviewResponse> reviews = reviewService.getTutorReviews(tutorId);
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<?> getStudentReviews(@PathVariable String studentId) {
+        try {
+            List<ReviewResponse> reviews = reviewService.getStudentReviews(studentId);
             return ResponseEntity.ok(reviews);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

@@ -252,6 +252,7 @@ public class DTOMapper {
         return response;
     }
 
+
     // ========== AVAILABILITY RESPONSES ==========
 
     public AvailabilityResponse toAvailabilityResponse(
