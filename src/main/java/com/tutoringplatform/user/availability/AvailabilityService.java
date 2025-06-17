@@ -1,8 +1,10 @@
 package com.tutoringplatform.user.availability;
 
+import com.tutoringplatform.booking.Booking;
+import com.tutoringplatform.booking.IBookingRepository;
 import com.tutoringplatform.shared.dto.request.TutorAvailabilityRequest;
 import com.tutoringplatform.shared.dto.response.AvailabilityResponse;
-import com.tutoringplatform.user.availability.availability.*;
+import com.tutoringplatform.user.availability.model.*;
 import com.tutoringplatform.user.tutor.TutorService;
 import com.tutoringplatform.user.tutor.Tutor;
 
@@ -16,11 +18,15 @@ public class AvailabilityService {
 
     private final IAvailabilityRepository availabilityRepository;
     private final TutorService tutorService;
+    private final IBookingRepository bookingRepository;
 
     @Autowired
-    public AvailabilityService(IAvailabilityRepository availabilityRepository, TutorService tutorService) {
+    public AvailabilityService(IAvailabilityRepository availabilityRepository,
+            TutorService tutorService,
+            IBookingRepository bookingRepository) {
         this.availabilityRepository = availabilityRepository;
         this.tutorService = tutorService;
+        this.bookingRepository = bookingRepository;
     }
 
     public TutorAvailability getAvailability(String tutorId) throws Exception {
@@ -81,7 +87,32 @@ public class AvailabilityService {
     public boolean isAvailable(String tutorId, ZonedDateTime start, ZonedDateTime end, ZoneId studentTimeZone)
             throws Exception {
         TutorAvailability availability = getAvailability(tutorId);
-        return availability.isAvailable(start, end, studentTimeZone);
+
+        // First check basic availability (recurring slots and exceptions)
+        if (!availability.isAvailable(start, end, studentTimeZone)) {
+            return false;
+        }
+
+        // Now check for conflicting bookings (excluding cancelled ones)
+        LocalDateTime startLocal = start.withZoneSameInstant(availability.getTimeZone()).toLocalDateTime();
+        LocalDateTime endLocal = end.withZoneSameInstant(availability.getTimeZone()).toLocalDateTime();
+
+        List<Booking> existingBookings = bookingRepository.findByTutorIdAndDateTimeRange(
+                tutorId, startLocal, endLocal);
+
+        // Filter out cancelled bookings - the slot is available if booking was
+        // cancelled
+        for (Booking booking : existingBookings) {
+            if (booking.getStatus() != Booking.BookingStatus.CANCELLED) {
+                // Check for time overlap with non-cancelled bookings
+                LocalDateTime bookingEnd = booking.getDateTime().plusHours(booking.getDurationHours());
+                if (!(endLocal.isBefore(booking.getDateTime()) || startLocal.isAfter(bookingEnd))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public List<String> findAvailableTutors(List<String> tutorIds, ZonedDateTime start, ZonedDateTime end,
@@ -102,7 +133,8 @@ public class AvailabilityService {
     }
 
     // New methods required by TutorController
-    public AvailabilityResponse updateTutorAvailability(String tutorId, TutorAvailabilityRequest request) throws Exception {
+    public AvailabilityResponse updateTutorAvailability(String tutorId, TutorAvailabilityRequest request)
+            throws Exception {
         if ("ADD".equalsIgnoreCase(request.getAction())) {
             addRecurringAvailability(tutorId, request.getDayOfWeek(), request.getStartTime(), request.getEndTime());
         } else if ("REMOVE".equalsIgnoreCase(request.getAction())) {
@@ -116,17 +148,17 @@ public class AvailabilityService {
 
     public AvailabilityResponse getTutorAvailability(String tutorId) throws Exception {
         TutorAvailability availability = getAvailability(tutorId);
-        
+
         AvailabilityResponse response = new AvailabilityResponse();
         response.setTutorId(tutorId);
         response.setTimeZone(availability.getTimeZone().getId());
         response.setRegularSchedule(availability.getRecurringSlots());
         response.setExceptions(availability.getExceptions());
-        
+
         // Calculate next available slot (simplified implementation)
         LocalDateTime nextSlot = calculateNextAvailableSlot(availability);
         response.setNextAvailableSlot(nextSlot);
-        
+
         return response;
     }
 
@@ -134,12 +166,12 @@ public class AvailabilityService {
         // Simplified implementation - find the next recurring slot from now
         LocalDateTime now = LocalDateTime.now();
         DayOfWeek currentDay = now.getDayOfWeek();
-        
+
         // Look for the next available slot in the recurring schedule
         for (int daysToAdd = 0; daysToAdd < 7; daysToAdd++) {
             DayOfWeek checkDay = currentDay.plus(daysToAdd);
             LocalDate checkDate = now.toLocalDate().plusDays(daysToAdd);
-            
+
             for (RecurringAvailability slot : availability.getRecurringSlots()) {
                 if (slot.getDayOfWeek() == checkDay) {
                     LocalDateTime slotDateTime = LocalDateTime.of(checkDate, slot.getStartTime());
@@ -149,7 +181,7 @@ public class AvailabilityService {
                 }
             }
         }
-        
+
         // If no slot found in the next week, return null
         return null;
     }
