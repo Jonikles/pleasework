@@ -2,6 +2,7 @@ package com.tutoringplatform.shared.util;
 
 import com.tutoringplatform.booking.Booking;
 import com.tutoringplatform.config.AppProperties;
+import com.tutoringplatform.notification.Notification;
 import com.tutoringplatform.payment.Payment;
 import com.tutoringplatform.review.Review;
 import com.tutoringplatform.shared.dto.response.*;
@@ -10,14 +11,16 @@ import com.tutoringplatform.shared.dto.response.info.TutorInfo;
 import com.tutoringplatform.shared.dto.response.info.TutorSearchResultInfo;
 import com.tutoringplatform.shared.dto.response.info.UserInfo;
 import com.tutoringplatform.subject.Subject;
-import com.tutoringplatform.user.student.Student;
-import com.tutoringplatform.user.tutor.Tutor;
+import com.tutoringplatform.user.Student;
+import com.tutoringplatform.user.Tutor;
 import com.tutoringplatform.user.User;
-import com.tutoringplatform.user.availability.model.AvailabilityException;
-import com.tutoringplatform.user.availability.model.RecurringAvailability;
+import com.tutoringplatform.user.availability.availability.AvailabilityException;
+import com.tutoringplatform.user.availability.availability.RecurringAvailability;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -276,6 +279,46 @@ public class DTOMapper {
         response.setExceptions(exceptions);
         response.setNextAvailableSlot(nextAvailableSlot);
         return response;
+    }
+
+    // ========== NOTIFICATION RESPONSES ==========
+
+    public NotificationResponse toNotificationResponse(Notification notification) {
+        NotificationResponse response = new NotificationResponse();
+        response.setId(notification.getId());
+        response.setType(notification.getType().toString());
+        response.setTitle(notification.getTitle());
+        response.setMessage(notification.getMessage());
+        response.setActionUrl(notification.getActionUrl());
+        response.setRead(notification.isRead());
+        response.setCreatedAt(notification.getCreatedAt());
+        response.setTimeAgo(calculateTimeAgo(notification.getCreatedAt()));
+        return response;
+    }
+
+    private String calculateTimeAgo(LocalDateTime dateTime) {
+        LocalDateTime now = LocalDateTime.now();
+        long minutes = java.time.Duration.between(dateTime, now).toMinutes();
+
+        if (minutes < 1)
+            return "just now";
+        if (minutes < 60)
+            return minutes + " minute" + (minutes > 1 ? "s" : "") + " ago";
+
+        long hours = minutes / 60;
+        if (hours < 24)
+            return hours + " hour" + (hours > 1 ? "s" : "") + " ago";
+
+        long days = hours / 24;
+        if (days < 7)
+            return days + " day" + (days > 1 ? "s" : "") + " ago";
+
+        long weeks = days / 7;
+        if (weeks < 4)
+            return weeks + " week" + (weeks > 1 ? "s" : "") + " ago";
+
+        long months = days / 30;
+        return months + " month" + (months > 1 ? "s" : "") + " ago";
     }
 
     // ========== VALUE RESPONSE ==========
