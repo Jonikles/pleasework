@@ -1,9 +1,6 @@
-package com.tutoringplatform.services;
+package com.tutoringplatform.user;
 
 import java.util.List;
-
-import com.tutoringplatform.models.User;
-import com.tutoringplatform.repositories.interfaces.IUserRepository;
 
 public abstract class UserService<T extends User> {
     protected IUserRepository<T> repository;
