@@ -1,16 +1,14 @@
-package com.tutoringplatform.services;
+package com.tutoringplatform.payment;
 
 import java.util.Stack;
 
-import com.tutoringplatform.command.ProcessPaymentCommand;
-import com.tutoringplatform.command.RefundPaymentCommand;
-import com.tutoringplatform.models.Booking;
-import com.tutoringplatform.models.Payment;
-import com.tutoringplatform.models.Student;
-import com.tutoringplatform.repositories.interfaces.IBookingRepository;
-import com.tutoringplatform.repositories.interfaces.IPaymentCommand;
-import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
-import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import com.tutoringplatform.booking.Booking;
+import com.tutoringplatform.booking.IBookingRepository;
+import com.tutoringplatform.user.student.IStudentRepository;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.payment.command.IPaymentCommand;
+import com.tutoringplatform.payment.command.ProcessPaymentCommand;
+import com.tutoringplatform.payment.command.RefundPaymentCommand;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;

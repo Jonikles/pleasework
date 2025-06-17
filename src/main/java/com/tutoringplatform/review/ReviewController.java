@@ -1,8 +1,7 @@
-package com.tutoringplatform.controllers;
+package com.tutoringplatform.review;
 
-import com.tutoringplatform.dto.request.CreateReviewRequest;
-import com.tutoringplatform.dto.response.ReviewResponse;
-import com.tutoringplatform.services.ReviewService;
+import com.tutoringplatform.shared.dto.request.CreateReviewRequest;
+import com.tutoringplatform.shared.dto.response.ReviewResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

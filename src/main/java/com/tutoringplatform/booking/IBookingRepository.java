@@ -1,9 +1,9 @@
-package com.tutoringplatform.repositories.interfaces;
+package com.tutoringplatform.booking;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tutoringplatform.models.Booking;
+import com.tutoringplatform.shared.IRepository;
 
 public interface IBookingRepository extends IRepository<Booking> {
     List<Booking> findByStudentId(String studentId);

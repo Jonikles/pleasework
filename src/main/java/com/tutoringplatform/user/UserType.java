@@ -1,4 +1,4 @@
-package com.tutoringplatform.models;
+package com.tutoringplatform.user;
 
 public enum UserType {
     STUDENT("Student"),

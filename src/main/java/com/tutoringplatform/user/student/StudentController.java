@@ -1,10 +1,9 @@
-package com.tutoringplatform.controllers;
+package com.tutoringplatform.user.student;
 
-import com.tutoringplatform.dto.request.AddFundsRequest;
-import com.tutoringplatform.dto.request.UpdateProfileRequest;
-import com.tutoringplatform.dto.response.StudentProfileResponse;
-import com.tutoringplatform.dto.response.ValueResponse;
-import com.tutoringplatform.services.StudentService;
+import com.tutoringplatform.shared.dto.request.AddFundsRequest;
+import com.tutoringplatform.shared.dto.request.UpdateProfileRequest;
+import com.tutoringplatform.shared.dto.response.StudentProfileResponse;
+import com.tutoringplatform.shared.dto.response.ValueResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

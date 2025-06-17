@@ -1,4 +1,4 @@
-package com.tutoringplatform.repositories.impl;
+package com.tutoringplatform.user.tutor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,9 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
-import com.tutoringplatform.models.Subject;
-import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.repositories.interfaces.ITutorRepository;
+import com.tutoringplatform.subject.Subject;
 
 @Repository
 public class TutorRepository implements ITutorRepository {

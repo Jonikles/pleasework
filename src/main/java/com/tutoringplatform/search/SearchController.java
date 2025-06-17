@@ -1,8 +1,7 @@
-package com.tutoringplatform.controllers;
+package com.tutoringplatform.search;
 
-import com.tutoringplatform.dto.request.TutorSearchRequest;
-import com.tutoringplatform.dto.response.TutorSearchResultsResponse;
-import com.tutoringplatform.services.SearchService;
+import com.tutoringplatform.shared.dto.request.TutorSearchRequest;
+import com.tutoringplatform.shared.dto.response.TutorSearchResultsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

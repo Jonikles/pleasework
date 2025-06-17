@@ -1,10 +1,9 @@
-package com.tutoringplatform.controllers;
+package com.tutoringplatform.booking;
 
-import com.tutoringplatform.dto.request.CreateBookingRequest;
-import com.tutoringplatform.dto.request.UpdateBookingRequest;
-import com.tutoringplatform.dto.response.BookingDetailResponse;
-import com.tutoringplatform.dto.response.BookingListResponse;
-import com.tutoringplatform.services.BookingService;
+import com.tutoringplatform.shared.dto.request.CreateBookingRequest;
+import com.tutoringplatform.shared.dto.request.UpdateBookingRequest;
+import com.tutoringplatform.shared.dto.response.BookingDetailResponse;
+import com.tutoringplatform.shared.dto.response.BookingListResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

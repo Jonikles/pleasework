@@ -1,4 +1,4 @@
-package com.tutoringplatform.models;
+package com.tutoringplatform.payment;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

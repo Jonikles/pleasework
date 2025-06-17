@@ -1,8 +1,8 @@
-package com.tutoringplatform.repositories.interfaces;
+package com.tutoringplatform.review;
 
 import java.util.List;
 
-import com.tutoringplatform.models.Review;
+import com.tutoringplatform.shared.IRepository;
 
 public interface IReviewRepository extends IRepository<Review> {
     List<Review> getTutorReviews(String tutorId);

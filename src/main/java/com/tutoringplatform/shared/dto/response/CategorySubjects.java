@@ -1,8 +1,8 @@
-package com.tutoringplatform.dto.response;
-
+package com.tutoringplatform.shared.dto.response;
+    
 import java.util.List;
 
-import com.tutoringplatform.dto.response.info.SubjectInfo;
+import com.tutoringplatform.shared.dto.response.info.SubjectInfo;
 
 public class CategorySubjects {
     private String category;

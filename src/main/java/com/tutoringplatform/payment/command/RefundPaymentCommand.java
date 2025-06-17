@@ -1,11 +1,10 @@
-package com.tutoringplatform.command;
+package com.tutoringplatform.payment.command;
 
 
-import com.tutoringplatform.models.Payment;
-import com.tutoringplatform.models.Student;
-import com.tutoringplatform.repositories.interfaces.IPaymentCommand;
-import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
-import com.tutoringplatform.repositories.interfaces.IStudentRepository;
+import com.tutoringplatform.payment.Payment;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.payment.IPaymentRepository;
+import com.tutoringplatform.user.student.IStudentRepository;
 
 public class RefundPaymentCommand implements IPaymentCommand {
     private Payment payment;

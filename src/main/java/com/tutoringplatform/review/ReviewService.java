@@ -5,10 +5,10 @@ import com.tutoringplatform.booking.IBookingRepository;
 import com.tutoringplatform.shared.dto.request.CreateReviewRequest;
 import com.tutoringplatform.shared.dto.response.ReviewResponse;
 import com.tutoringplatform.shared.util.DTOMapper;
-import com.tutoringplatform.user.IStudentRepository;
-import com.tutoringplatform.user.ITutorRepository;
-import com.tutoringplatform.user.Student;
-import com.tutoringplatform.user.Tutor;
+import com.tutoringplatform.user.student.IStudentRepository;
+import com.tutoringplatform.user.tutor.ITutorRepository;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.tutor.Tutor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;

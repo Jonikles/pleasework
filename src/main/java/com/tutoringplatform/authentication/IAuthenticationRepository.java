@@ -1,7 +1,6 @@
+package com.tutoringplatform.security.authentication;
 
-package com.tutoringplatform.repositories.interfaces;
-
-import com.tutoringplatform.models.User;
+import com.tutoringplatform.user.User;
 
 public interface IAuthenticationRepository {
     User findByEmail(String email);

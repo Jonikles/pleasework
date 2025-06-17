@@ -1,4 +1,4 @@
-package com.tutoringplatform.repositories.impl;
+package com.tutoringplatform.subject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,11 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
-import com.tutoringplatform.models.Subject;
-import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
-
 @Repository
-
 public class SubjectRepository implements ISubjectRepository {
     private Map<String, Subject> subjects = new HashMap<>();
 

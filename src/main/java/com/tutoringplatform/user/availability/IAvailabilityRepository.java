@@ -1,7 +1,6 @@
+package com.tutoringplatform.user.availability;
 
-package com.tutoringplatform.repositories.interfaces;
-
-import com.tutoringplatform.models.availability.TutorAvailability;
+import com.tutoringplatform.user.availability.model.TutorAvailability;
 
 public interface IAvailabilityRepository {
     TutorAvailability findByTutorId(String tutorId);

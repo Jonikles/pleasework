@@ -1,8 +1,8 @@
-package com.tutoringplatform.repositories.interfaces;
+package com.tutoringplatform.subject;
 
 import java.util.List;
 
-import com.tutoringplatform.models.Subject;
+import com.tutoringplatform.shared.IRepository;
 
 public interface ISubjectRepository extends IRepository<Subject> {
     Subject findByName(String name);

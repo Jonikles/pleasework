@@ -1,8 +1,8 @@
-package com.tutoringplatform.dto.response;
+package com.tutoringplatform.shared.dto.response;
 
 import java.time.LocalDate;
 import java.util.List;
-import com.tutoringplatform.models.availability.RecurringAvailability;
+import com.tutoringplatform.user.availability.model.RecurringAvailability;
 
 public class TutorProfileResponse {
     private String id;

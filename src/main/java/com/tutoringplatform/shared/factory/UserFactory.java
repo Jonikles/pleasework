@@ -1,8 +1,7 @@
-// FILE: src/main/java/com/tutoringplatform/factory/UserFactory.java
-package com.tutoringplatform.factory;
+package com.tutoringplatform.shared.factory;
 
-import com.tutoringplatform.models.Student;
-import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.tutor.Tutor;
 
 import org.springframework.stereotype.Component;
 

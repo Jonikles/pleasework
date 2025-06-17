@@ -1,4 +1,4 @@
-package com.tutoringplatform.models;
+package com.tutoringplatform.file;
 
 import java.time.LocalDateTime;
 

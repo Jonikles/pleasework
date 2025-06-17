@@ -1,9 +1,8 @@
-package com.tutoringplatform.controllers;
+package com.tutoringplatform.subject;
 
-import com.tutoringplatform.dto.response.SubjectListResponse;
-import com.tutoringplatform.dto.response.SubjectResponse;
-import com.tutoringplatform.services.SubjectService;
-import com.tutoringplatform.dto.request.CreateSubjectRequest;
+import com.tutoringplatform.shared.dto.response.SubjectListResponse;
+import com.tutoringplatform.shared.dto.response.SubjectResponse;
+import com.tutoringplatform.shared.dto.request.CreateSubjectRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

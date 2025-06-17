@@ -1,18 +1,17 @@
-package com.tutoringplatform.services;
+package com.tutoringplatform.subject;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.tutoringplatform.models.Subject;
-import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.dto.response.SubjectResponse;
-import com.tutoringplatform.dto.request.CreateSubjectRequest;
-import com.tutoringplatform.dto.response.SubjectListResponse;
-import com.tutoringplatform.dto.response.CategorySubjects;
-import com.tutoringplatform.dto.response.info.SubjectInfo;
-import com.tutoringplatform.repositories.interfaces.ISubjectRepository;
-import com.tutoringplatform.util.DTOMapper;
+import com.tutoringplatform.user.tutor.Tutor;
+import com.tutoringplatform.shared.dto.response.SubjectResponse;
+import com.tutoringplatform.shared.dto.request.CreateSubjectRequest;
+import com.tutoringplatform.shared.dto.response.SubjectListResponse;
+import com.tutoringplatform.shared.dto.response.CategorySubjects;
+import com.tutoringplatform.shared.dto.response.info.SubjectInfo;
+import com.tutoringplatform.shared.util.DTOMapper;
+import com.tutoringplatform.user.tutor.TutorService;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 

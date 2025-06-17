@@ -5,17 +5,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import com.tutoringplatform.services.BookingService;
-import com.tutoringplatform.services.PaymentService;
-import com.tutoringplatform.services.ReviewService;
-import com.tutoringplatform.services.StudentService;
-import com.tutoringplatform.services.SubjectService;
-import com.tutoringplatform.services.TutorService;
+import com.tutoringplatform.booking.BookingService;
+import com.tutoringplatform.payment.PaymentService;
+import com.tutoringplatform.review.ReviewService;
+import com.tutoringplatform.user.student.StudentService;
+import com.tutoringplatform.subject.SubjectService;
+import com.tutoringplatform.user.tutor.TutorService;
 @Configuration
 @Profile("!test")
 public class DataInitializationConfiguration {
 
     @Bean
+    @SuppressWarnings("unused")
     CommandLineRunner init(SubjectService subjectService, TutorService tutorService, StudentService studentService,
             BookingService bookingService, PaymentService paymentService, ReviewService reviewService) {
         return args -> {

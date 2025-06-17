@@ -1,9 +1,8 @@
-package com.tutoringplatform.controllers;
+package com.tutoringplatform.security.authentication;
 
-import com.tutoringplatform.dto.request.LoginRequest;
-import com.tutoringplatform.dto.request.SignupRequest;
-import com.tutoringplatform.dto.response.AuthResponse;
-import com.tutoringplatform.services.AuthenticationService;
+import com.tutoringplatform.shared.dto.request.LoginRequest;
+import com.tutoringplatform.shared.dto.request.SignupRequest;
+import com.tutoringplatform.shared.dto.response.AuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

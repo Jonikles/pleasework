@@ -1,4 +1,4 @@
-package com.tutoringplatform.repositories.impl;
+package com.tutoringplatform.payment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Repository;
-
-import com.tutoringplatform.models.Payment;
-import com.tutoringplatform.repositories.interfaces.IPaymentRepository;
 
 @Repository
 public class PaymentRepository implements IPaymentRepository {

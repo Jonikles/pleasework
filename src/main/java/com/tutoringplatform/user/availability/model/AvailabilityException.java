@@ -1,4 +1,4 @@
-package com.tutoringplatform.models.availability;
+package com.tutoringplatform.user.availability.model;
 
 import java.time.*;
 

@@ -10,10 +10,10 @@ import com.tutoringplatform.shared.dto.response.info.TutorSearchResultInfo;
 import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.subject.ISubjectRepository;
 import com.tutoringplatform.subject.Subject;
-import com.tutoringplatform.user.ITutorRepository;
-import com.tutoringplatform.user.Tutor;
+import com.tutoringplatform.user.tutor.ITutorRepository;
+import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.user.availability.AvailabilityService;
-import com.tutoringplatform.user.availability.availability.TutorAvailability;
+import com.tutoringplatform.user.availability.model.TutorAvailability;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;

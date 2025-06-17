@@ -1,10 +1,10 @@
-package com.tutoringplatform.dto.response;
+package com.tutoringplatform.shared.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.tutoringplatform.dto.response.info.PaymentInfo;
-import com.tutoringplatform.dto.response.info.TutorInfo;
-import com.tutoringplatform.dto.response.info.UserInfo;
+import com.tutoringplatform.shared.dto.response.info.PaymentInfo;
+import com.tutoringplatform.shared.dto.response.info.TutorInfo;
+import com.tutoringplatform.shared.dto.response.info.UserInfo;
 
 public class BookingDetailResponse {
     private String id;

@@ -1,4 +1,4 @@
-package com.tutoringplatform.dto.response;
+package com.tutoringplatform.shared.dto.response;
 
 public class AuthResponse {
     private String id;

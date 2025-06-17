@@ -1,4 +1,4 @@
-package com.tutoringplatform.dto.request;
+package com.tutoringplatform.shared.dto.request;
 
 public class LoginRequest {
     private String email;

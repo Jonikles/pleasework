@@ -1,15 +1,14 @@
-package com.tutoringplatform.services;
+package com.tutoringplatform.security.authentication;
 
-import com.tutoringplatform.dto.request.SignupRequest;
-import com.tutoringplatform.dto.response.AuthResponse;
-import com.tutoringplatform.models.User;
-import com.tutoringplatform.models.Student;
-import com.tutoringplatform.models.Tutor;
-import com.tutoringplatform.repositories.interfaces.IAuthenticationRepository;
-import com.tutoringplatform.repositories.interfaces.IStudentRepository;
-import com.tutoringplatform.repositories.interfaces.ITutorRepository;
-import com.tutoringplatform.factory.UserFactory;
-import com.tutoringplatform.util.DTOMapper;
+import com.tutoringplatform.shared.dto.request.SignupRequest;
+import com.tutoringplatform.shared.dto.response.AuthResponse;
+import com.tutoringplatform.user.User;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.tutor.Tutor;
+import com.tutoringplatform.user.student.IStudentRepository;
+import com.tutoringplatform.user.tutor.ITutorRepository;
+import com.tutoringplatform.shared.factory.UserFactory;
+import com.tutoringplatform.shared.util.DTOMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

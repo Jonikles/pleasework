@@ -1,9 +1,9 @@
-package com.tutoringplatform.dto.response.info;
+package com.tutoringplatform.shared.dto.response.info;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tutoringplatform.dto.response.SubjectResponse;
+import com.tutoringplatform.shared.dto.response.SubjectResponse;
 
 public class TutorSearchResultInfo {
     private String id;

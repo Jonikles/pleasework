@@ -1,4 +1,4 @@
-package com.tutoringplatform.observer;
+package com.tutoringplatform.booking.observer;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;

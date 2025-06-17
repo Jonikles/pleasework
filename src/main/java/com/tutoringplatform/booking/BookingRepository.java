@@ -1,4 +1,4 @@
-package com.tutoringplatform.repositories.impl;
+package com.tutoringplatform.booking;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,9 +8,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
-
-import com.tutoringplatform.models.Booking;
-import com.tutoringplatform.repositories.interfaces.IBookingRepository;
 
 @Repository
 public class BookingRepository implements IBookingRepository {

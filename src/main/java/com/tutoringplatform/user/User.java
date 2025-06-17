@@ -1,9 +1,11 @@
-package com.tutoringplatform.models;
+package com.tutoringplatform.user;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.time.ZoneId;
+
+import com.tutoringplatform.booking.Booking;
 
 public abstract class User {
     protected String id;

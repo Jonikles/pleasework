@@ -1,4 +1,4 @@
-package com.tutoringplatform.dto.response;
+package com.tutoringplatform.shared.dto.response;
 
 import java.time.LocalDate;
 

@@ -1,13 +1,12 @@
-package com.tutoringplatform.controllers;
+package com.tutoringplatform.user.tutor;
 
-import com.tutoringplatform.dto.request.UpdateProfileRequest;
-import com.tutoringplatform.dto.request.TutorAvailabilityRequest;
-import com.tutoringplatform.dto.request.AddSubjectToTutorRequest;
-import com.tutoringplatform.dto.response.TutorProfileResponse;
-import com.tutoringplatform.dto.response.ValueResponse;
-import com.tutoringplatform.dto.response.AvailabilityResponse;
-import com.tutoringplatform.services.TutorService;
-import com.tutoringplatform.services.AvailabilityService;
+import com.tutoringplatform.shared.dto.request.UpdateProfileRequest;
+import com.tutoringplatform.shared.dto.response.TutorProfileResponse;
+import com.tutoringplatform.shared.dto.response.ValueResponse;
+import com.tutoringplatform.user.availability.AvailabilityService;
+import com.tutoringplatform.shared.dto.request.AddSubjectToTutorRequest;
+import com.tutoringplatform.shared.dto.response.AvailabilityResponse;
+import com.tutoringplatform.shared.dto.request.TutorAvailabilityRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,5 @@
-package com.tutoringplatform.repositories.impl;
+package com.tutoringplatform.file;
 
-import com.tutoringplatform.models.FileMetaData;
-import com.tutoringplatform.repositories.interfaces.IFileRepository;
 import org.springframework.stereotype.Repository;
 import java.util.*;
 import java.util.stream.Collectors;

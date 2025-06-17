@@ -13,8 +13,8 @@ import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.subject.ISubjectRepository;
 import com.tutoringplatform.subject.Subject;
 import com.tutoringplatform.user.availability.IAvailabilityRepository;
-import com.tutoringplatform.user.availability.availability.RecurringAvailability;
-import com.tutoringplatform.user.availability.availability.TutorAvailability;
+import com.tutoringplatform.user.availability.model.RecurringAvailability;
+import com.tutoringplatform.user.availability.model.TutorAvailability;
 import com.tutoringplatform.user.UserService;
 
 import org.springframework.stereotype.Service;

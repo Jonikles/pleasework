@@ -1,4 +1,4 @@
-package com.tutoringplatform.dto.response;
+package com.tutoringplatform.shared.dto.response;
 
 public class SubjectResponse {
     private String id;
