@@ -11,11 +11,11 @@ import com.tutoringplatform.shared.dto.response.BookingListResponse;
 import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.subject.ISubjectRepository;
 import com.tutoringplatform.subject.Subject;
-import com.tutoringplatform.user.IStudentRepository;
-import com.tutoringplatform.user.ITutorRepository;
-import com.tutoringplatform.user.Student;
-import com.tutoringplatform.user.Tutor;
 import com.tutoringplatform.user.availability.AvailabilityService;
+import com.tutoringplatform.user.student.IStudentRepository;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.tutor.ITutorRepository;
+import com.tutoringplatform.user.tutor.Tutor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +73,10 @@ public class BookingService {
         Tutor tutor = tutorRepository.findById(request.getTutorId());
         if (tutor == null) {
             throw new Exception("Tutor not found");
+        }
+
+        if (student.getBalance() < request.getDurationHours() * tutor.getHourlyRate()) {
+            throw new Exception("Student does not have enough money to book this tutor");
         }
 
         Subject subject = subjectRepository.findById(request.getSubjectId());
