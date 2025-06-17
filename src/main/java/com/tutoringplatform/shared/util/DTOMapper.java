@@ -11,11 +11,11 @@ import com.tutoringplatform.shared.dto.response.info.TutorInfo;
 import com.tutoringplatform.shared.dto.response.info.TutorSearchResultInfo;
 import com.tutoringplatform.shared.dto.response.info.UserInfo;
 import com.tutoringplatform.subject.Subject;
-import com.tutoringplatform.user.Student;
-import com.tutoringplatform.user.Tutor;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.user.User;
-import com.tutoringplatform.user.availability.availability.AvailabilityException;
-import com.tutoringplatform.user.availability.availability.RecurringAvailability;
+import com.tutoringplatform.user.availability.model.AvailabilityException;
+import com.tutoringplatform.user.availability.model.RecurringAvailability;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

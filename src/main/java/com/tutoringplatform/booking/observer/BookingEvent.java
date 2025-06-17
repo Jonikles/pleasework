@@ -1,8 +1,9 @@
-package com.tutoringplatform.observer;
+package com.tutoringplatform.booking.observer;
 
-import com.tutoringplatform.models.Booking;
-import com.tutoringplatform.models.Student;
-import com.tutoringplatform.models.Tutor;
+import com.tutoringplatform.booking.Booking;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.tutor.Tutor;
+
 import org.springframework.context.ApplicationEvent;
 
 public class BookingEvent extends ApplicationEvent {
