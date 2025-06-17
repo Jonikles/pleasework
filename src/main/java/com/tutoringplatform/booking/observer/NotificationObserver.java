@@ -3,6 +3,7 @@ package com.tutoringplatform.booking.observer;
 import com.tutoringplatform.notification.NotificationType;
 import com.tutoringplatform.notification.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;

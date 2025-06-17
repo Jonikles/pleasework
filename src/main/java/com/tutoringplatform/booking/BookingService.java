@@ -1,6 +1,9 @@
 package com.tutoringplatform.booking;
 
 import com.tutoringplatform.booking.observer.BookingEvent;
+import com.tutoringplatform.exceptions.BookingNotFoundException;
+import com.tutoringplatform.exceptions.InsufficientBalanceException;
+import com.tutoringplatform.exceptions.PaymentNotFoundException;
 import com.tutoringplatform.payment.IPaymentRepository;
 import com.tutoringplatform.payment.Payment;
 import com.tutoringplatform.payment.PaymentService;
@@ -17,6 +20,8 @@ import com.tutoringplatform.user.student.Student;
 import com.tutoringplatform.user.tutor.ITutorRepository;
 import com.tutoringplatform.user.tutor.Tutor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +35,7 @@ import java.util.ArrayList;
 @Service
 public class BookingService {
 
+    private final Logger logger = LoggerFactory.getLogger(BookingService.class);
     private final IBookingRepository bookingRepository;
     private final IStudentRepository studentRepository;
     private final ITutorRepository tutorRepository;
@@ -203,14 +209,13 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingDetailResponse confirmBooking(String bookingId) throws Exception {
-        Booking booking = bookingRepository.findById(bookingId);
-        if (booking == null) {
-            throw new Exception("Booking not found");
-        }
+    public BookingDetailResponse confirmBooking(String bookingId) throws BookingNotFoundException, InsufficientBalanceException {
+        logger.info("Confirming booking {}", bookingId);
+
+        Booking booking = findBookingOrThrow(bookingId);
 
         if (booking.getStatus() != Booking.BookingStatus.PENDING) {
-            throw new Exception("Booking is not in pending status");
+            throw new IllegalStateException("Booking is not in pending status");
         }
 
         Student student = studentRepository.findById(booking.getStudentId());
@@ -227,11 +232,7 @@ public class BookingService {
         booking.setStatus(Booking.BookingStatus.CONFIRMED);
         bookingRepository.update(booking);
 
-        // Update user bookings
-        student.addBooking(booking);
-        tutor.addBooking(booking);
-        studentRepository.update(student);
-        tutorRepository.update(tutor);
+        logger.info("Booking {} confirmed. Payment: {}", bookingId, payment.getId());
 
         // Publish event
         eventPublisher.publishEvent(new BookingEvent(
@@ -245,14 +246,13 @@ public class BookingService {
     }
 
     @Transactional
-    public void cancelBooking(String bookingId) throws Exception {
-        Booking booking = bookingRepository.findById(bookingId);
-        if (booking == null) {
-            throw new Exception("Booking not found");
-        }
+    public void cancelBooking(String bookingId) throws BookingNotFoundException, PaymentNotFoundException {
+        logger.info("Cancelling booking {}", bookingId);
+
+        Booking booking = findBookingOrThrow(bookingId);
 
         if (booking.getStatus() == Booking.BookingStatus.COMPLETED) {
-            throw new Exception("Cannot cancel completed booking");
+            throw new IllegalStateException("Cannot cancel completed booking");
         }
 
         Student student = studentRepository.findById(booking.getStudentId());
@@ -266,12 +266,6 @@ public class BookingService {
         // Update status
         booking.setStatus(Booking.BookingStatus.CANCELLED);
         bookingRepository.update(booking);
-
-        // Remove from user bookings
-        student.removeBooking(booking);
-        tutor.removeBooking(booking);
-        studentRepository.update(student);
-        tutorRepository.update(tutor);
 
         // Publish event
         eventPublisher.publishEvent(new BookingEvent(
@@ -338,5 +332,14 @@ public class BookingService {
         }
 
         return dtoMapper.toBookingListResponse(upcomingBookings, pastBookings, cancelledBookings);
+    }
+
+    private Booking findBookingOrThrow(String bookingId) throws BookingNotFoundException {
+        Booking booking = bookingRepository.findById(bookingId);
+        if (booking == null) {
+            logger.warn("Booking not found: {}", bookingId);
+            throw new BookingNotFoundException(bookingId);
+        }
+        return booking;
     }
 }

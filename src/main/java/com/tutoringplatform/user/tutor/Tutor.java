@@ -3,7 +3,6 @@ package com.tutoringplatform.user.tutor;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tutoringplatform.review.Review;
 import com.tutoringplatform.subject.Subject;
 import com.tutoringplatform.user.User;
 import com.tutoringplatform.user.UserType;
@@ -12,7 +11,6 @@ public class Tutor extends User {
     private List<Subject> subjects;
     private double hourlyRate;
     private String description;
-    private List<Review> reviewsReceived;
     private double earnings;
 
     public Tutor(String name, String email, String password, double hourlyRate, String description) {
@@ -20,7 +18,6 @@ public class Tutor extends User {
         this.subjects = new ArrayList<>();
         this.hourlyRate = hourlyRate;
         this.description = description;
-        this.reviewsReceived = new ArrayList<>();
         this.earnings = 0.0;
     }
 
@@ -35,14 +32,6 @@ public class Tutor extends User {
 
     public void removeSubject(Subject subject) {
         subjects.remove(subject);
-    }
-    
-    public List<Review> getReviewsReceived() {
-        return reviewsReceived;
-    }
-
-    public void addReview(Review review) {
-        reviewsReceived.add(review);
     }
 
     public double getHourlyRate() { return hourlyRate; }

@@ -1,4 +1,4 @@
-package com.tutoringplatform.security.authentication;
+package com.tutoringplatform.authentication;
 
 import com.tutoringplatform.user.student.Student;
 import com.tutoringplatform.user.tutor.Tutor;
