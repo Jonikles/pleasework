@@ -1,6 +1,6 @@
-package com.tutoringplatform.payment.paymentExceptions;
+package com.tutoringplatform.payment.exceptions;
 
-import com.tutoringplatform.exceptions.TutoringPlatformException;
+import com.tutoringplatform.shared.exceptions.TutoringPlatformException;
 
 public abstract class PaymentException extends TutoringPlatformException {
     protected PaymentException(String errorCode, String message) {

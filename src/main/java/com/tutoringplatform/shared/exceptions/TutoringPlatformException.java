@@ -1,4 +1,4 @@
-package com.tutoringplatform.exceptions;
+package com.tutoringplatform.shared.exceptions;
 
 public abstract class TutoringPlatformException extends Exception {
     private final String errorCode; 

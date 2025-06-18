@@ -1,4 +1,4 @@
-package com.tutoringplatform.booking.bookingExceptions;
+package com.tutoringplatform.booking.exceptions;
 
 import com.tutoringplatform.shared.exceptions.TutoringPlatformException;
 

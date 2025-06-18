@@ -2,9 +2,9 @@ package com.tutoringplatform.payment.command;
 
 import com.tutoringplatform.payment.Payment;
 import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.student.exceptions.InsufficientBalanceException;
 import com.tutoringplatform.payment.IPaymentRepository;
 import com.tutoringplatform.user.student.IStudentRepository;
-import com.tutoringplatform.exceptions.InsufficientBalanceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

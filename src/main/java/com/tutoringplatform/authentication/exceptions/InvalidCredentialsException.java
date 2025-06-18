@@ -1,4 +1,4 @@
-package com.tutoringplatform.authentication.authExceptions;
+package com.tutoringplatform.authentication.exceptions;
 
 public class InvalidCredentialsException extends AuthenticationException {
     public InvalidCredentialsException() {

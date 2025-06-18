@@ -1,4 +1,4 @@
-package com.tutoringplatform.payment.paymentExceptions;
+package com.tutoringplatform.payment.exceptions;
 
 public class PaymentNotFoundException extends PaymentException {
     private final String paymentId;

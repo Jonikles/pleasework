@@ -1,8 +1,8 @@
 package com.tutoringplatform.payment;
 
 import com.tutoringplatform.shared.dto.response.PaymentResponse;
+import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
 import com.tutoringplatform.shared.dto.response.PaymentHistoryResponse;
-import com.tutoringplatform.exceptions.PaymentNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

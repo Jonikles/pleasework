@@ -9,6 +9,7 @@ import com.tutoringplatform.payment.exceptions.PaymentException;
 import com.tutoringplatform.review.exceptions.ReviewException;
 import com.tutoringplatform.subject.exceptions.SubjectException;
 import com.tutoringplatform.shared.dto.response.ErrorResponse;
+import com.tutoringplatform.file.exception.FileException;
 
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -115,6 +116,18 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(status).body(error);
         }
 
+        @ExceptionHandler(FileException.class)
+        public ResponseEntity<ErrorResponse> handleFileException(FileException e) {
+            HttpStatus status = determineFileStatus(e);
+            logger.warn("File error: {} - {}", e.getErrorCode(), e.getMessage());
+
+            ErrorResponse error = new ErrorResponse(
+                    e.getErrorCode(),
+                    e.getMessage());
+
+            return ResponseEntity.status(status).body(error);
+        }
+
 
     // ========== ILLEGAL EXCEPTIONS ==========
 
@@ -162,6 +175,41 @@ public class GlobalExceptionHandler {
                 return HttpStatus.UNAUTHORIZED;
             case "EMAIL_EXISTS":
                 return HttpStatus.CONFLICT;
+            case "INVALID_TIME_ZONE":
+                return HttpStatus.BAD_REQUEST;
+            case "INVALID_TUTOR_REGISTRATION":
+                return HttpStatus.BAD_REQUEST;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determineBookingStatus(BookingException e) {
+        switch (e.getErrorCode()) {
+            case "BOOKING_NOT_FOUND":
+                return HttpStatus.NOT_FOUND;
+            case "BOOKED_TIME_SLOT":
+                return HttpStatus.CONFLICT;
+            case "TUTOR_NOT_AVAILABLE":
+                return HttpStatus.CONFLICT;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determineFileStatus(FileException e) {
+        switch (e.getErrorCode()) {
+            case "FILE_NOT_FOUND":
+                return HttpStatus.NOT_FOUND;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determinePaymentStatus(PaymentException e) {
+        switch (e.getErrorCode()) {
+            case "PAYMENT_NOT_FOUND":
+                return HttpStatus.NOT_FOUND;
             default:
                 return HttpStatus.BAD_REQUEST;
         }
@@ -173,26 +221,8 @@ public class GlobalExceptionHandler {
                 return HttpStatus.FORBIDDEN;
             case "INVALID_RATING":
                 return HttpStatus.BAD_REQUEST;
-            default:
-                return HttpStatus.BAD_REQUEST;
-        }
-    }
-
-    private HttpStatus determineBookingStatus(BookingException e) {
-        switch (e.getErrorCode()) {
-            case "BOOKING_NOT_FOUND":
+            case "REVIEW_NOT_FOUND":
                 return HttpStatus.NOT_FOUND;
-            default:
-                return HttpStatus.BAD_REQUEST;
-        }
-    }
-
-    private HttpStatus determinePaymentStatus(PaymentException e) {
-        switch (e.getErrorCode()) {
-            case "PAYMENT_NOT_FOUND":
-                return HttpStatus.NOT_FOUND;
-            case "INSUFFICIENT_BALANCE":
-                return HttpStatus.BAD_REQUEST;
             default:
                 return HttpStatus.BAD_REQUEST;
         }

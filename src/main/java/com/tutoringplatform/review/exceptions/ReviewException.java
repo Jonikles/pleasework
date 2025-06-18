@@ -1,6 +1,6 @@
-package com.tutoringplatform.review.reviewExceptions;
+package com.tutoringplatform.review.exceptions;
 
-import com.tutoringplatform.exceptions.TutoringPlatformException;
+import com.tutoringplatform.shared.exceptions.TutoringPlatformException;
 
 public abstract class ReviewException extends TutoringPlatformException {
     protected ReviewException(String errorCode, String message) {

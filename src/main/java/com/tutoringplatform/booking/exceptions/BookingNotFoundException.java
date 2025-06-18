@@ -1,4 +1,4 @@
-package com.tutoringplatform.booking.bookingExceptions;
+package com.tutoringplatform.booking.exceptions;
 
 public class BookingNotFoundException extends BookingException {
     private final String bookingId;

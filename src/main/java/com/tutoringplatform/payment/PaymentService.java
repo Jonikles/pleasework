@@ -2,14 +2,14 @@ package com.tutoringplatform.payment;
 
 import com.tutoringplatform.booking.Booking;
 import com.tutoringplatform.booking.IBookingRepository;
-import com.tutoringplatform.exceptions.BookingNotFoundException;
+import com.tutoringplatform.booking.exceptions.BookingNotFoundException;
 import com.tutoringplatform.user.student.IStudentRepository;
 import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.student.exceptions.InsufficientBalanceException;
 import com.tutoringplatform.payment.command.IPaymentCommand;
 import com.tutoringplatform.payment.command.ProcessPaymentCommand;
 import com.tutoringplatform.payment.command.RefundPaymentCommand;
-import com.tutoringplatform.payment.paymentExceptions.InsufficientBalanceException;
-import com.tutoringplatform.payment.paymentExceptions.PaymentNotFoundException;
+import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
 import com.tutoringplatform.shared.dto.response.PaymentResponse;
 import com.tutoringplatform.shared.dto.response.PaymentHistoryResponse;
 
