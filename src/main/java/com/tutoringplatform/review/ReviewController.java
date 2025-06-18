@@ -1,8 +1,8 @@
 package com.tutoringplatform.review;
 
+import com.tutoringplatform.review.exceptions.*;
 import com.tutoringplatform.shared.dto.request.CreateReviewRequest;
 import com.tutoringplatform.shared.dto.response.ReviewResponse;
-import com.tutoringplatform.review.reviewExceptions.ReviewException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,28 +27,28 @@ public class ReviewController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createReview(@RequestBody @Valid CreateReviewRequest request) throws ReviewException {
+    public ResponseEntity<?> createReview(@RequestBody @Valid CreateReviewRequest request) throws NoCompletedBookingsException, InvalidRatingException {
         logger.debug("Creating review for tutor {} by student {}", request.getTutorId(), request.getStudentId());
         ReviewResponse review = reviewService.createReview(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(review);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteReview(@PathVariable String id) throws ReviewException {
+    public ResponseEntity<?> deleteReview(@PathVariable String id) throws ReviewNotFoundException {
         logger.debug("Deleting review with id {}", id);
         reviewService.deleteReview(id);
         return ResponseEntity.status(HttpStatus.OK).body("Review deleted successfully");
     }
 
     @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<?> getTutorReviews(@PathVariable String tutorId) throws ReviewException {
+    public ResponseEntity<?> getTutorReviews(@PathVariable String tutorId) throws NoCompletedBookingsException {
         logger.debug("Getting reviews for tutor {}", tutorId);
         List<ReviewResponse> reviews = reviewService.getTutorReviews(tutorId);
         return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<?> getStudentReviews(@PathVariable String studentId) throws ReviewException {
+    public ResponseEntity<?> getStudentReviews(@PathVariable String studentId) throws NoCompletedBookingsException {
         logger.debug("Getting reviews for student {}", studentId);
         List<ReviewResponse> reviews = reviewService.getStudentReviews(studentId);
         return ResponseEntity.ok(reviews);

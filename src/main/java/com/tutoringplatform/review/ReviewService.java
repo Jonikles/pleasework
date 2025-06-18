@@ -2,7 +2,7 @@ package com.tutoringplatform.review;
 
 import com.tutoringplatform.booking.Booking;
 import com.tutoringplatform.booking.IBookingRepository;
-import com.tutoringplatform.review.reviewExceptions.*;
+import com.tutoringplatform.review.exceptions.*;
 import com.tutoringplatform.shared.dto.request.CreateReviewRequest;
 import com.tutoringplatform.shared.dto.response.ReviewResponse;
 import com.tutoringplatform.shared.util.DTOMapper;
@@ -46,7 +46,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponse createReview(CreateReviewRequest request) throws ReviewException {
+    public ReviewResponse createReview(CreateReviewRequest request) throws NoCompletedBookingsException, InvalidRatingException {
         logger.info("Creating review for tutor {} by student {}", request.getTutorId(), request.getStudentId());
 
         validateCreateReviewRequest(request);
@@ -80,7 +80,7 @@ public class ReviewService {
         // Validate rating
         if (request.getRating() < 1 || request.getRating() > 5) {
             logger.error("Invalid rating when creating review for tutor {} by student {}: {}", tutorId, studentId, request.getRating());
-            throw new InvalidRatingException("Rating must be between 1 and 5", request.getRating());
+            throw new InvalidRatingException(request.getRating());
         }
 
         // Check if review already exists from this student for this tutor
@@ -110,10 +110,11 @@ public class ReviewService {
     }
 
     @Transactional
-    public void deleteReview(String id) throws ReviewException {
+    public void deleteReview(String id) throws ReviewNotFoundException {
         logger.debug("Deleting review with id {}", id);
         Review review = reviewRepository.findById(id);
         if (review == null) {
+            logger.error("Review not found with id {}", id);
             throw new ReviewNotFoundException(id);
         }
         
@@ -122,7 +123,7 @@ public class ReviewService {
         logger.info("Review deleted successfully with id {}", id);
     }
 
-    public List<ReviewResponse> getTutorReviews(String tutorId) throws ReviewException {
+    public List<ReviewResponse> getTutorReviews(String tutorId) throws NoCompletedBookingsException {
         logger.info("Getting reviews for tutor {}", tutorId);
         Tutor tutor = tutorRepository.findById(tutorId);
         if (tutor == null) {
@@ -147,7 +148,7 @@ public class ReviewService {
         return responses;
     }
 
-    public List<ReviewResponse> getStudentReviews(String studentId) throws ReviewException {
+    public List<ReviewResponse> getStudentReviews(String studentId) throws NoCompletedBookingsException {
         logger.info("Getting reviews for student {}", studentId);
         Student student = studentRepository.findById(studentId);
         if (student == null) {

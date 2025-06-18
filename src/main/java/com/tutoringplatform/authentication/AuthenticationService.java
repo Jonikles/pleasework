@@ -1,6 +1,6 @@
 package com.tutoringplatform.authentication;
 
-import com.tutoringplatform.authentication.authExceptions.*;
+import com.tutoringplatform.authentication.exceptions.*;
 import com.tutoringplatform.shared.dto.request.SignupRequest;
 import com.tutoringplatform.shared.dto.response.AuthResponse;
 import com.tutoringplatform.user.User;
@@ -49,7 +49,7 @@ public class AuthenticationService {
         this.dtoMapper = dtoMapper;
     }
 
-    public AuthResponse login(String email, String password) throws AuthenticationException {
+    public AuthResponse login(String email, String password) throws InvalidCredentialsException {
         logger.info("Logging in user with email: {}", email);
 
         if (email == null || email.trim().isEmpty()) {
@@ -89,7 +89,7 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public AuthResponse signup(SignupRequest request) throws AuthenticationException {
+    public AuthResponse signup(SignupRequest request) throws EmailAlreadyExistsException, InvalidTutorRegistrationException, InvalidTimezoneException {
         logger.info("Signing up user with email: {}", request.getEmail());
 
         validateSignupRequest(request);

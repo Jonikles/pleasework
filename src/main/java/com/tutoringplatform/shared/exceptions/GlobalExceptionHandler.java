@@ -1,9 +1,10 @@
 package com.tutoringplatform.shared.exceptions;
 
-import com.tutoringplatform.authentication.authExceptions.AuthenticationException;
-import com.tutoringplatform.booking.bookingExceptions.BookingException;
-import com.tutoringplatform.payment.paymentExceptions.PaymentException;
-import com.tutoringplatform.review.reviewExceptions.ReviewException;
+import com.tutoringplatform.authentication.exceptions.AuthenticationException;
+import com.tutoringplatform.booking.exceptions.BookingException;
+import com.tutoringplatform.payment.exceptions.PaymentException;
+import com.tutoringplatform.review.exceptions.ReviewException;
+import com.tutoringplatform.subject.exceptions.SubjectException;
 import com.tutoringplatform.shared.dto.response.ErrorResponse;
 
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,9 +18,8 @@ import org.slf4j.LoggerFactory;
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // ========== AUTHENTICATION EXCEPTIONS ==========
+    // ========== TUTORING PLATFORM EXCEPTIONS ==========
 
-        // Handle ALL authentication exceptions with one handler!
         @ExceptionHandler(AuthenticationException.class)
         public ResponseEntity<ErrorResponse> handleAuthException(AuthenticationException e) {
             HttpStatus status = determineAuthStatus(e);
@@ -31,7 +31,6 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(status).body(error);
         }
 
-        // Handle ALL review exceptions with one handler!
         @ExceptionHandler(ReviewException.class)
         public ResponseEntity<ErrorResponse> handleReviewException(ReviewException e) {
             HttpStatus status = determineReviewStatus(e);
@@ -57,6 +56,17 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(PaymentException.class)
         public ResponseEntity<ErrorResponse> handlePaymentException(PaymentException e) {
             HttpStatus status = determinePaymentStatus(e);
+
+            ErrorResponse error = new ErrorResponse(
+                    e.getErrorCode(),
+                    e.getMessage());
+
+            return ResponseEntity.status(status).body(error);
+        }
+
+        @ExceptionHandler(SubjectException.class)
+        public ResponseEntity<ErrorResponse> handleSubjectException(SubjectException e) {
+            HttpStatus status = determineSubjectStatus(e);
 
             ErrorResponse error = new ErrorResponse(
                     e.getErrorCode(),
@@ -143,6 +153,19 @@ public class GlobalExceptionHandler {
                 return HttpStatus.NOT_FOUND;
             case "INSUFFICIENT_BALANCE":
                 return HttpStatus.BAD_REQUEST;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determineSubjectStatus(SubjectException e) {
+        switch (e.getErrorCode()) {
+            case "SUBJECT_NOT_FOUND":
+                return HttpStatus.NOT_FOUND;
+            case "SUBJECT_EXISTS":
+                return HttpStatus.CONFLICT;
+            case "ASSIGNED_SUBJECT":
+                return HttpStatus.CONFLICT;
             default:
                 return HttpStatus.BAD_REQUEST;
         }

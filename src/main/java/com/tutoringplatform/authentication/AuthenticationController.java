@@ -1,9 +1,9 @@
 package com.tutoringplatform.authentication;
 
+import com.tutoringplatform.authentication.exceptions.*;
 import com.tutoringplatform.shared.dto.request.LoginRequest;
 import com.tutoringplatform.shared.dto.request.SignupRequest;
 import com.tutoringplatform.shared.dto.response.AuthResponse;
-import com.tutoringplatform.authentication.authExceptions.AuthenticationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +25,14 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) throws AuthenticationException {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) throws InvalidCredentialsException {
         logger.debug("Login request received for email: {}", request.getEmail());
         AuthResponse response = authenticationService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid SignupRequest request) throws AuthenticationException {
+    public ResponseEntity<?> signup(@RequestBody @Valid SignupRequest request) throws EmailAlreadyExistsException, InvalidTutorRegistrationException, InvalidTimezoneException {
         logger.debug("Signup request received for type {} email: {}", request.getUserType(), request.getEmail());
         AuthResponse response = authenticationService.signup(request);
         return ResponseEntity.ok(response);

@@ -8,7 +8,11 @@ import com.tutoringplatform.shared.dto.response.CategorySubjects;
 import com.tutoringplatform.shared.dto.response.info.SubjectInfo;
 import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.user.tutor.TutorService;
+import com.tutoringplatform.subject.exceptions.*;
+import com.tutoringplatform.user.tutor.exceptions.TutorNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,6 +25,7 @@ public class SubjectService {
     private final ISubjectRepository subjectRepository;
     private final TutorService tutorService;
     private final DTOMapper dtoMapper;
+    private final Logger logger = LoggerFactory.getLogger(SubjectService.class);
 
     @Autowired
     public SubjectService(ISubjectRepository subjectRepository, TutorService tutorService, DTOMapper dtoMapper) {
@@ -29,41 +34,53 @@ public class SubjectService {
         this.dtoMapper = dtoMapper;
     }
 
-    public SubjectResponse createSubject(CreateSubjectRequest request) throws Exception {
+    public SubjectResponse createSubject(CreateSubjectRequest request) throws SubjectExistsException {
+        logger.debug("Creating subject: {}", request.getName());
         String name = request.getName();
         String category = request.getCategory();
     
         if (subjectRepository.findByName(name) != null) {
-            throw new Exception("Subject already exists");
+            logger.warn("Subject already exists: {}", name);
+            throw new SubjectExistsException(name);
         }
 
         Subject subject = new Subject(name, category);
         subjectRepository.save(subject);
+        logger.info("Subject {} created successfully with id: {}", name, subject.getId());
         return dtoMapper.toSubjectResponse(subject);
     }
 
-    public void deleteSubject(String id) throws Exception {
+    public void deleteSubject(String id) throws AssignedSubjectException, SubjectNotFoundException {
+        logger.debug("Deleting subject: {}", id);
         Subject subject = findById(id);
         List<Tutor> tutors = tutorService.findBySubject(subject);
         if (tutors.size() > 0) {
-            throw new Exception("Subject is assigned to tutors");
+            logger.warn("Subject is assigned to tutors: {}", id);
+            throw new AssignedSubjectException(id);
         }
         subjectRepository.delete(id);
+        logger.info("Subject {} deleted successfully", id);
     }
 
-    public Subject findById(String id) throws Exception {
+    public Subject findById(String id) throws SubjectNotFoundException {
+        logger.debug("Finding subject by id: {}", id);
         Subject subject = subjectRepository.findById(id);
         if (subject == null) {
-            throw new Exception("Subject not found");
+            logger.error("Subject not found: {}", id);
+            throw new SubjectNotFoundException(id);
         }
+        logger.info("Subject {} found successfully", id);
         return subject;
     }
 
-    public Subject findByName(String name) throws Exception {
+    public Subject findByName(String name) throws SubjectNotFoundException {
+        logger.debug("Finding subject by name: {}", name);
         Subject subject = subjectRepository.findByName(name);
         if (subject == null) {
-            throw new Exception("Subject not found");
+            logger.error("Subject not found: {}", name);
+            throw new SubjectNotFoundException(name);
         }
+        logger.info("Subject {} found successfully", name);
         return subject;
     }
 
@@ -86,16 +103,18 @@ public class SubjectService {
         return getAllSubjects();
     }
 
-    public SubjectResponse getSubjectById(String id) throws Exception {
+    public SubjectResponse getSubjectById(String id) throws SubjectNotFoundException {
         Subject subject = findById(id); // This will throw exception if not found
         return dtoMapper.toSubjectResponse(subject);
     }
 
-    public List<SubjectResponse> getAvailableSubjectsForTutor(String tutorId) throws Exception {
+    public List<SubjectResponse> getAvailableSubjectsForTutor(String tutorId) throws TutorNotFoundException {
+        logger.debug("Getting available subjects for tutor: {}", tutorId);
         // Find the tutor first
         Tutor tutor = tutorService.findById(tutorId);
         if (tutor == null) {
-            throw new Exception("Tutor not found");
+            logger.error("Tutor not found: {}", tutorId);
+            throw new TutorNotFoundException(tutorId);
         }
 
         // Get all subjects and filter out the ones the tutor already teaches
@@ -106,6 +125,7 @@ public class SubjectService {
                 .filter(subject -> !tutorSubjects.contains(subject))
                 .collect(Collectors.toList());
 
+        logger.info("Available subjects for tutor {} found successfully", tutorId);
         return availableSubjects.stream()
                 .map(dtoMapper::toSubjectResponse)
                 .collect(Collectors.toList());

@@ -1,4 +1,4 @@
-package com.tutoringplatform.review.reviewExceptions;
+package com.tutoringplatform.review.exceptions;
 
 public class NoCompletedBookingsException extends ReviewException {
     private final String studentId;

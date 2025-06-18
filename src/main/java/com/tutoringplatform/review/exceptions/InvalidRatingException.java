@@ -1,10 +1,10 @@
-package com.tutoringplatform.review.reviewExceptions;
+package com.tutoringplatform.review.exceptions;
 
 public class InvalidRatingException extends ReviewException {
     private final int rating;
 
-    public InvalidRatingException(String message, int rating) {
-        super("INVALID_RATING", message);
+    public InvalidRatingException(int rating) {
+        super("INVALID_RATING", String.format("Rating %d is invalid", rating));
         this.rating = rating;
     }
 
