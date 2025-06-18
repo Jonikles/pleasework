@@ -1,10 +1,10 @@
-package com.tutoringplatform.exceptions;
+package com.tutoringplatform.booking.bookingExceptions;
 
-public class BookingNotFoundException extends Exception {
+public class BookingNotFoundException extends BookingException {
     private final String bookingId;
 
     public BookingNotFoundException(String bookingId) {
-        super("Booking not found: " + bookingId);
+        super("BOOKING_NOT_FOUND", "Booking not found: " + bookingId);
         this.bookingId = bookingId;
     }
 

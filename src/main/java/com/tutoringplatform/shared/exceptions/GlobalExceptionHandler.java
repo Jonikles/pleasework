@@ -1,6 +1,8 @@
-package com.tutoringplatform.exceptions;
+package com.tutoringplatform.shared.exceptions;
 
 import com.tutoringplatform.authentication.authExceptions.AuthenticationException;
+import com.tutoringplatform.booking.bookingExceptions.BookingException;
+import com.tutoringplatform.payment.paymentExceptions.PaymentException;
 import com.tutoringplatform.review.reviewExceptions.ReviewException;
 import com.tutoringplatform.shared.dto.response.ErrorResponse;
 
@@ -41,6 +43,31 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(status).body(error);
         }
 
+        @ExceptionHandler(BookingException.class)
+        public ResponseEntity<ErrorResponse> handleBookingException(BookingException e) {
+            HttpStatus status = determineBookingStatus(e);
+
+            ErrorResponse error = new ErrorResponse(
+                    e.getErrorCode(),
+                    e.getMessage());
+
+            return ResponseEntity.status(status).body(error);
+        }
+
+        @ExceptionHandler(PaymentException.class)
+        public ResponseEntity<ErrorResponse> handlePaymentException(PaymentException e) {
+            HttpStatus status = determinePaymentStatus(e);
+
+            ErrorResponse error = new ErrorResponse(
+                    e.getErrorCode(),
+                    e.getMessage());
+
+            return ResponseEntity.status(status).body(error);
+        }
+
+
+    // ========== ILLEGAL EXCEPTIONS ==========
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
         // This indicates a programming error - should have been caught by validation
@@ -48,7 +75,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse error = new ErrorResponse(
                 "INVALID_REQUEST",
-                "Invalid request parameters" // Don't expose internal message
+                "Invalid request parameters"
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -95,6 +122,26 @@ public class GlobalExceptionHandler {
             case "NO_COMPLETED_BOOKINGS":
                 return HttpStatus.FORBIDDEN;
             case "INVALID_RATING":
+                return HttpStatus.BAD_REQUEST;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determineBookingStatus(BookingException e) {
+        switch (e.getErrorCode()) {
+            case "BOOKING_NOT_FOUND":
+                return HttpStatus.NOT_FOUND;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determinePaymentStatus(PaymentException e) {
+        switch (e.getErrorCode()) {
+            case "PAYMENT_NOT_FOUND":
+                return HttpStatus.NOT_FOUND;
+            case "INSUFFICIENT_BALANCE":
                 return HttpStatus.BAD_REQUEST;
             default:
                 return HttpStatus.BAD_REQUEST;

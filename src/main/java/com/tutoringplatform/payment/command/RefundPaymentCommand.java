@@ -26,11 +26,12 @@ public class RefundPaymentCommand implements IPaymentCommand {
     }
 
     @Override
-    public void execute() throws IllegalStateException {
+    public void execute() {
         logger.info("Executing refund payment command for student {}, amount {}", student.getId(), amount);
 
         if (payment.getStatus() != Payment.PaymentStatus.COMPLETED) {
-            throw new IllegalStateException("Can only refund completed payments");
+            logger.error("Can only refund completed payments");
+            throw new IllegalStateException("Data corruption error: Can only refund completed payments");
         }
         student.setBalance(student.getBalance() + amount);
         payment.setStatus(Payment.PaymentStatus.REFUNDED);
@@ -40,7 +41,8 @@ public class RefundPaymentCommand implements IPaymentCommand {
     }
 
     @Override
-    public void undo() throws Exception {
+    public void undo() {
+        logger.info("Undoing refund payment command for student {}, amount {}", student.getId(), amount);
         student.setBalance(student.getBalance() - amount);
         payment.setStatus(Payment.PaymentStatus.COMPLETED);
         paymentRepository.update(payment);

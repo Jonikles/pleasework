@@ -31,10 +31,12 @@ public class ProcessPaymentCommand implements IPaymentCommand {
 
         Student student = studentRepository.findById(this.student.getId());
         if (student == null) {
-            throw new IllegalArgumentException("Student not found");
+            logger.error("Student not found for payment command");
+            throw new IllegalStateException("Data corruption error: Student not found for payment command");
         }
 
         if (student.getBalance() < amount) {
+            logger.warn("Insufficient balance for student {}, amount {}, balance {}", student.getId(), amount, student.getBalance());
             throw new InsufficientBalanceException(student.getId(), amount, student.getBalance());
         }
 
@@ -47,7 +49,8 @@ public class ProcessPaymentCommand implements IPaymentCommand {
     }
 
     @Override
-    public void undo() throws Exception {
+    public void undo() throws InsufficientBalanceException {
+        logger.info("Undoing payment command for student {}, amount {}", student.getId(), amount);
         student.setBalance(student.getBalance() + amount);
         payment.setStatus(Payment.PaymentStatus.REFUNDED);
         paymentRepository.update(payment);

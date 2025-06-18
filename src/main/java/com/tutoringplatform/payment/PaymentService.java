@@ -1,23 +1,25 @@
 package com.tutoringplatform.payment;
 
-import java.util.Stack;
-
 import com.tutoringplatform.booking.Booking;
 import com.tutoringplatform.booking.IBookingRepository;
-import com.tutoringplatform.exceptions.InsufficientBalanceException;
 import com.tutoringplatform.exceptions.BookingNotFoundException;
-import com.tutoringplatform.exceptions.PaymentNotFoundException;
 import com.tutoringplatform.user.student.IStudentRepository;
 import com.tutoringplatform.user.student.Student;
 import com.tutoringplatform.payment.command.IPaymentCommand;
 import com.tutoringplatform.payment.command.ProcessPaymentCommand;
 import com.tutoringplatform.payment.command.RefundPaymentCommand;
+import com.tutoringplatform.payment.paymentExceptions.InsufficientBalanceException;
+import com.tutoringplatform.payment.paymentExceptions.PaymentNotFoundException;
+import com.tutoringplatform.shared.dto.response.PaymentResponse;
+import com.tutoringplatform.shared.dto.response.PaymentHistoryResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Stack;
 
 @Service
 public class PaymentService {
@@ -41,7 +43,7 @@ public class PaymentService {
 
         Student student = studentRepository.findById(studentId);
         if (student == null) {
-            throw new IllegalArgumentException("Student not found");
+            throw new IllegalStateException("Data corruption error: Student not found for payment");
         }
 
         if (student.getBalance() < amount) {
@@ -69,17 +71,20 @@ public class PaymentService {
 
         Payment payment = paymentRepository.findById(paymentId);
         if (payment == null) {
+            logger.error("Payment not found for refund");
             throw new PaymentNotFoundException(paymentId);
         }
 
         Booking booking = bookingRepository.findById(payment.getBookingId());
         if (booking == null) {
+            logger.error("Booking not found for refund");
             throw new BookingNotFoundException(payment.getBookingId());
         }
 
         Student student = studentRepository.findById(booking.getStudentId());
         if (student == null) {
-            throw new IllegalStateException("Student not found");
+            logger.error("Student not found for refund");
+            throw new IllegalStateException("Data corruption error: Student not found for refund");
         }
 
         RefundPaymentCommand command = new RefundPaymentCommand(
@@ -91,20 +96,26 @@ public class PaymentService {
         logger.info("Payment refunded successfully. Payment ID: {}, amount: {}", payment.getId(), payment.getAmount());
     }
 
-    public void undoLastPaymentAction() throws Exception {
-        if (commandHistory.isEmpty()) {
-            throw new Exception("No payment action to undo");
-        }
-
-        IPaymentCommand lastCommand = commandHistory.pop();
-        lastCommand.undo();
-    }
-
-    public Payment findById(String id) throws Exception {
+    public Payment findById(String id) throws PaymentNotFoundException {
         Payment payment = paymentRepository.findById(id);
         if (payment == null) {
-            throw new Exception("Payment not found");
+            throw new PaymentNotFoundException(id);
         }
         return payment;
+    }
+
+    public PaymentResponse getPaymentDetails(String paymentId) throws PaymentNotFoundException {
+        // TODO: Implement this
+        return null;
+    }
+
+    public PaymentHistoryResponse getStudentPaymentHistory(String studentId, int page, int size) {
+        // TODO: Implement this
+        return null;
+    }
+
+    public PaymentHistoryResponse getTutorEarnings(String tutorId, int page, int size) {
+        // TODO: Implement this
+        return null;
     }
 }
