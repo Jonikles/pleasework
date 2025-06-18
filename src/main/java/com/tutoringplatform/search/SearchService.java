@@ -17,6 +17,7 @@ import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.user.exceptions.UserNotFoundException;
 import com.tutoringplatform.subject.exceptions.SubjectNotFoundException;
 import com.tutoringplatform.review.exceptions.NoCompletedBookingsException;
+import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class SearchService {
         this.dtoMapper = dtoMapper;
     }
 
-    public TutorSearchResultsResponse searchTutors(TutorSearchRequest request) throws UserNotFoundException, SubjectNotFoundException, NoCompletedBookingsException {
+    public TutorSearchResultsResponse searchTutors(TutorSearchRequest request) throws SubjectNotFoundException, NoCompletedBookingsException, UserNotFoundException, PaymentNotFoundException {
         // Start with all tutors
         logger.debug("Searching for tutors with request: {}", request);
         List<Tutor> tutors = tutorService.findAll();
@@ -97,7 +98,7 @@ public class SearchService {
         return dtoMapper.toTutorSearchResultsResponse(results, totalCount, appliedFilters);
     }
 
-    private List<Tutor> applyFilters(List<Tutor> tutors, TutorSearchRequest request) throws SubjectNotFoundException, NoCompletedBookingsException {
+    private List<Tutor> applyFilters(List<Tutor> tutors, TutorSearchRequest request) throws SubjectNotFoundException, NoCompletedBookingsException, UserNotFoundException, PaymentNotFoundException {
         // Filter by subject
         if (request.getSubjectId() != null) {
             Subject subject = subjectService.findById(request.getSubjectId());
@@ -121,13 +122,16 @@ public class SearchService {
 
         // Filter by minimum rating
         if (request.getMinRating() > 0) {
-            tutors = tutors.stream()
-                    .filter(t -> {
-                        double avgRating = calculateAverageRating(t.getId());
-                        return avgRating >= request.getMinRating();
-                    })
-                    .collect(Collectors.toList());
+            Map<Tutor, Double> tutorRatings = new HashMap<>();
+            
+            for (Tutor tutor : tutors) {
+                double avgRating = calculateAverageRating(tutor.getId());
+                tutorRatings.put(tutor, avgRating);
+            }
+            tutors.sort(Comparator.comparing(tutorRatings::get).reversed());
         }
+
+        
 
         // Filter by search text
         if (request.getSearchText() != null && !request.getSearchText().trim().isEmpty()) {
@@ -184,7 +188,7 @@ public class SearchService {
                 .collect(Collectors.toList());
     }
 
-    private List<Tutor> sortResults(List<Tutor> tutors, String sortBy) throws NoCompletedBookingsException {
+    private List<Tutor> sortResults(List<Tutor> tutors, String sortBy) throws NoCompletedBookingsException, UserNotFoundException, PaymentNotFoundException {
         if (sortBy == null) {
             sortBy = "RATING"; // Default sort
         }
@@ -197,25 +201,27 @@ public class SearchService {
                 tutors.sort(Comparator.comparing(Tutor::getHourlyRate).reversed());
                 break;
             case "RATING":
-                tutors.sort((a, b) -> {
-                    double ratingA = calculateAverageRating(a.getId());
-                    double ratingB = calculateAverageRating(b.getId());
-                    return Double.compare(ratingB, ratingA); // Descending
-                });
+                Map<Tutor, Double> tutorRatings = new HashMap<>();
+                for (Tutor tutor : tutors) {
+                    double rating = calculateAverageRating(tutor.getId());
+                    tutorRatings.put(tutor, rating);
+                }
+                tutors.sort(Comparator.comparing(tutorRatings::get).reversed());
                 break;
             case "REVIEWS":
-                tutors.sort((a, b) -> {
-                    int reviewsA = reviewService.getTutorReviews(a.getId()).size();
-                    int reviewsB = reviewService.getTutorReviews(b.getId()).size();
-                    return Integer.compare(reviewsB, reviewsA); // Descending
-                });
+                Map<Tutor, Integer> tutorReviews = new HashMap<>();
+                for (Tutor tutor : tutors) {
+                    int reviewCount = reviewService.getTutorReviews(tutor.getId()).size();
+                    tutorReviews.put(tutor, reviewCount);
+                }
+                tutors.sort(Comparator.comparing(tutorReviews::get).reversed());
                 break;
         }
 
         return tutors;
     }
 
-    private TutorSearchResultInfo buildSearchResult(Tutor tutor) throws NoCompletedBookingsException {
+    private TutorSearchResultInfo buildSearchResult(Tutor tutor) throws NoCompletedBookingsException, UserNotFoundException, PaymentNotFoundException {
         // Calculate average rating
         double averageRating = calculateAverageRating(tutor.getId());
 
@@ -239,7 +245,7 @@ public class SearchService {
                 nextAvailable);
     }
 
-    private double calculateAverageRating(String tutorId) throws NoCompletedBookingsException {
+    private double calculateAverageRating(String tutorId) throws NoCompletedBookingsException, UserNotFoundException {
         List<Review> reviews = reviewService.getTutorReviews(tutorId);
         if (reviews.isEmpty()) {
             return 0.0;
@@ -251,7 +257,7 @@ public class SearchService {
                 .orElse(0.0);
     }
 
-    private LocalDateTime findNextAvailableSlot(String tutorId) {
+    private LocalDateTime findNextAvailableSlot(String tutorId) throws UserNotFoundException, PaymentNotFoundException {
         // Get tutor's availability
         TutorAvailability availability = availabilityService.getAvailability(tutorId);
         if (availability.getRecurringSlots().isEmpty()) {
@@ -259,7 +265,8 @@ public class SearchService {
         }
 
         // Get existing bookings
-        List<Booking> bookings = bookingService.getTutorBookingList(tutorId)
+        List<Booking> bookings = bookingService.getTutorBookingList(tutorId);
+        bookings = bookings.stream()
                 .filter(b -> b.getStatus() != Booking.BookingStatus.CANCELLED)
                 .filter(b -> b.getDateTime().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());

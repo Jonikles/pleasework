@@ -2,7 +2,6 @@ package com.tutoringplatform.booking;
 
 import com.tutoringplatform.booking.exceptions.BookingNotFoundException;
 import com.tutoringplatform.booking.observer.BookingEvent;
-import com.tutoringplatform.payment.IPaymentRepository;
 import com.tutoringplatform.payment.Payment;
 import com.tutoringplatform.payment.PaymentService;
 import com.tutoringplatform.shared.dto.request.CreateBookingRequest;
@@ -10,7 +9,7 @@ import com.tutoringplatform.shared.dto.request.UpdateBookingRequest;
 import com.tutoringplatform.shared.dto.response.BookingDetailResponse;
 import com.tutoringplatform.shared.dto.response.BookingListResponse;
 import com.tutoringplatform.shared.util.DTOMapper;
-import com.tutoringplatform.subject.ISubjectRepository;
+import com.tutoringplatform.subject.SubjectService;
 import com.tutoringplatform.subject.Subject;
 import com.tutoringplatform.user.availability.AvailabilityService;
 import com.tutoringplatform.user.student.Student;
@@ -18,8 +17,7 @@ import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.user.student.StudentService;
 import com.tutoringplatform.user.tutor.TutorService;
 import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
-import com.tutoringplatform.user.student.exceptions.InsufficientBalanceException;
-import com.tutoringplatform.user.tutor.exceptions.InvalidHourlyRateException;
+import com.tutoringplatform.user.student.exceptions.InsufficientBalanceException;   
 import com.tutoringplatform.subject.exceptions.SubjectNotFoundException;
 import com.tutoringplatform.user.tutor.exceptions.TutorNotTeachingSubjectException;
 import com.tutoringplatform.booking.exceptions.*;
@@ -42,20 +40,18 @@ public class BookingService {
 
     private final Logger logger = LoggerFactory.getLogger(BookingService.class);
     private final IBookingRepository bookingRepository;
-    private final ISubjectRepository subjectRepository;
-    private final IPaymentRepository paymentRepository;
     private final AvailabilityService availabilityService;
     private final PaymentService paymentService;
     private final DTOMapper dtoMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final StudentService studentService;
     private final TutorService tutorService;
+    private final SubjectService subjectService;
 
     @Autowired
     public BookingService(
             IBookingRepository bookingRepository,
-            ISubjectRepository subjectRepository,
-            IPaymentRepository paymentRepository,
+            SubjectService subjectService,
             AvailabilityService availabilityService,
             PaymentService paymentService,
             DTOMapper dtoMapper,
@@ -63,8 +59,7 @@ public class BookingService {
             StudentService studentService,
             TutorService tutorService) {
         this.bookingRepository = bookingRepository;
-        this.subjectRepository = subjectRepository;
-        this.paymentRepository = paymentRepository;
+        this.subjectService = subjectService;
         this.availabilityService = availabilityService;
         this.paymentService = paymentService;
         this.dtoMapper = dtoMapper;
@@ -89,11 +84,7 @@ public class BookingService {
             throw new InsufficientBalanceException(student.getId(), request.getDurationHours() * tutor.getHourlyRate(), student.getBalance());
         }
 
-        Subject subject = subjectRepository.findById(request.getSubjectId());
-        if (subject == null) {
-            logger.error("Subject not found: {}", request.getSubjectId());
-            throw new SubjectNotFoundException(request.getSubjectId());
-        }
+        Subject subject = subjectService.findById(request.getSubjectId());
 
         // Validate tutor teaches this subject
         if (!tutor.getSubjects().contains(subject)) {
@@ -161,23 +152,40 @@ public class BookingService {
         return dtoMapper.toBookingDetailResponse(booking, student, tutor, payment);
     }
 
-    public BookingListResponse getStudentBookingList(String studentId) throws UserNotFoundException, PaymentNotFoundException {
+    public List<Booking> getStudentBookingList(String studentId) throws UserNotFoundException, PaymentNotFoundException {
         logger.debug("Getting booking list for student: {}", studentId);
         //Verify if student exists
-        Student student = studentService.findById(studentId);
+        studentService.validateUserExists(studentId);
 
         List<Booking> allBookings = bookingRepository.findByStudentId(studentId);
         logger.info("Booking list of size {} found successfully for student: {}", allBookings.size(), studentId);
+        return allBookings;
+    }
+
+    public BookingListResponse getStudentBookingListResponse(String studentId)
+            throws UserNotFoundException, PaymentNotFoundException {
+        logger.debug("Getting booking list for student: {}", studentId);
+        // Verify if student exists
+        studentService.validateUserExists(studentId);
+        List<Booking> allBookings = getStudentBookingList(studentId);
         return categorizeAndEnrichBookings(allBookings);
     }
 
-    public BookingListResponse getTutorBookingList(String tutorId) throws UserNotFoundException, PaymentNotFoundException {
+    public List<Booking> getTutorBookingList(String tutorId) throws UserNotFoundException {
         logger.debug("Getting booking list for tutor: {}", tutorId);
         //Verify if tutor exists
-        Tutor tutor = tutorService.findById(tutorId);
+        tutorService.validateUserExists(tutorId);
 
         List<Booking> allBookings = bookingRepository.findByTutorId(tutorId);
         logger.info("Booking list of size {} found successfully for tutor: {}", allBookings.size(), tutorId);
+        return allBookings;
+    }
+
+    public BookingListResponse getTutorBookingListResponse(String tutorId) throws UserNotFoundException, PaymentNotFoundException {
+        logger.debug("Getting booking list for tutor: {}", tutorId);
+        //Verify if tutor exists
+        tutorService.validateUserExists(tutorId);
+        List<Booking> allBookings = getTutorBookingList(tutorId);
         return categorizeAndEnrichBookings(allBookings);
     }
 
@@ -377,5 +385,15 @@ public class BookingService {
     public List<Booking> getTutorBookingsBySubject(String tutorId, String subjectId) {
         logger.debug("Getting bookings for tutor {} and subject {}", tutorId, subjectId);
         return bookingRepository.findByTutorIdAndSubjectId(tutorId, subjectId);
+    }
+
+    public List<Booking> hasStudentCompletedBookingWithTutor(String studentId, String tutorId, Booking.BookingStatus status) throws UserNotFoundException {
+        logger.debug("Checking if student {} has completed booking with tutor {}", studentId, tutorId);
+        //Verify if student exists
+        studentService.validateUserExists(studentId);
+        tutorService.validateUserExists(tutorId);
+
+        List<Booking> bookings = bookingRepository.findByStudentIdAndTutorIdAndStatus(studentId, tutorId, status);
+        return bookings;
     }
 }

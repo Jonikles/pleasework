@@ -1,6 +1,7 @@
 package com.tutoringplatform.review;
 
 import com.tutoringplatform.review.exceptions.*;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
 import com.tutoringplatform.shared.dto.request.CreateReviewRequest;
 import com.tutoringplatform.shared.dto.response.ReviewResponse;
 
@@ -27,7 +28,7 @@ public class ReviewController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createReview(@RequestBody @Valid CreateReviewRequest request) throws NoCompletedBookingsException, InvalidRatingException {
+    public ResponseEntity<?> createReview(@RequestBody @Valid CreateReviewRequest request) throws NoCompletedBookingsException, InvalidRatingException, UserNotFoundException {
         logger.debug("Creating review for tutor {} by student {}", request.getTutorId(), request.getStudentId());
         ReviewResponse review = reviewService.createReview(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(review);
@@ -41,14 +42,14 @@ public class ReviewController {
     }
 
     @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<?> getTutorReviews(@PathVariable String tutorId) throws NoCompletedBookingsException {
+    public ResponseEntity<?> getTutorReviews(@PathVariable String tutorId) throws NoCompletedBookingsException, UserNotFoundException {
         logger.debug("Getting reviews for tutor {}", tutorId);
-        List<ReviewResponse> reviews = reviewService.getTutorReviews(tutorId);
+        List<ReviewResponse> reviews = reviewService.getTutorReviewsResponse(tutorId);
         return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<?> getStudentReviews(@PathVariable String studentId) throws NoCompletedBookingsException {
+    public ResponseEntity<?> getStudentReviews(@PathVariable String studentId) throws NoCompletedBookingsException, UserNotFoundException {
         logger.debug("Getting reviews for student {}", studentId);
         List<ReviewResponse> reviews = reviewService.getStudentReviews(studentId);
         return ResponseEntity.ok(reviews);

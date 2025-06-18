@@ -13,6 +13,7 @@ import com.tutoringplatform.authentication.exceptions.EmailAlreadyExistsExceptio
 import com.tutoringplatform.authentication.exceptions.InvalidTimezoneException;
 import com.tutoringplatform.user.exceptions.InvalidPasswordException;
 import com.tutoringplatform.user.student.exceptions.InvalidFundAmountException;
+import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import java.time.ZoneId;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.io.IOException;
 
 @Service
 public class StudentService extends UserService<Student> {
@@ -51,7 +53,7 @@ public class StudentService extends UserService<Student> {
         this.dtoMapper = dtoMapper;
     }
 
-    public StudentProfileResponse getStudentProfile(String studentId) throws UserNotFoundException {
+    public StudentProfileResponse getStudentProfile(String studentId) throws UserNotFoundException, PaymentNotFoundException {
         logger.debug("Getting student profile for student: {}", studentId);
         Student student = findById(studentId);
 
@@ -68,7 +70,7 @@ public class StudentService extends UserService<Student> {
 
     @Transactional
     public StudentProfileResponse updateStudentProfile(String studentId, UpdateProfileRequest request)
-            throws UserNotFoundException, EmailAlreadyExistsException, InvalidPasswordException, InvalidTimezoneException {
+            throws UserNotFoundException, EmailAlreadyExistsException, InvalidPasswordException, InvalidTimezoneException, PaymentNotFoundException {
         logger.debug("Updating student profile for student: {}", studentId);
         Student student = findById(studentId);
 
@@ -118,7 +120,7 @@ public class StudentService extends UserService<Student> {
     }
 
     @Transactional
-    public Map<String, String> updateProfilePicture(String studentId, MultipartFile file) throws UserNotFoundException {
+    public Map<String, String> updateProfilePicture(String studentId, MultipartFile file) throws UserNotFoundException, IOException {
         Student student = findById(studentId);
 
         // Delete old profile picture if exists

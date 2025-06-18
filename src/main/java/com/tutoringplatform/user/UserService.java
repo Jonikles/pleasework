@@ -74,4 +74,19 @@ public abstract class UserService<T extends User> {
         }
         repository.delete(id);
     }
+
+    public void validateUserExists(String userId) throws UserNotFoundException {
+        logger.debug("Validating user exists: {}", userId);
+
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+
+        if (repository.findById(userId) == null) {
+            logger.error("User not found with id: {}", userId);
+            throw new UserNotFoundException(userId);
+        }
+
+        logger.debug("User validation successful: {}", userId);
+    }
 }

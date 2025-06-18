@@ -24,6 +24,8 @@ import com.tutoringplatform.user.tutor.exceptions.TutorTeachesSubjectException;
 import com.tutoringplatform.subject.exceptions.SubjectNotFoundException;
 import com.tutoringplatform.user.tutor.exceptions.TutorNotTeachingSubjectException;
 import com.tutoringplatform.user.tutor.exceptions.TutorHasBookingsException;
+import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
+import com.tutoringplatform.review.exceptions.NoCompletedBookingsException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.io.IOException;
 
 @Service
 public class TutorService extends UserService<Tutor> {
@@ -74,7 +77,8 @@ public class TutorService extends UserService<Tutor> {
         this.dtoMapper = dtoMapper;
     }
 
-    public TutorProfileResponse getTutorProfile(String tutorId) throws UserNotFoundException {
+    public TutorProfileResponse getTutorProfile(String tutorId) throws UserNotFoundException, NoCompletedBookingsException {
+        logger.debug("Getting tutor profile for tutor {}", tutorId);
         Tutor tutor = findById(tutorId);
 
         // Get reviews
@@ -99,7 +103,7 @@ public class TutorService extends UserService<Tutor> {
                 .collect(Collectors.toList());
 
         // Get availability
-        TutorAvailability availability = availabilityService.getTutorAvailability(tutorId);
+        TutorAvailability availability = availabilityService.getAvailability(tutorId);
         List<RecurringAvailability> recurringSlots = availability != null ? availability.getRecurringSlots()
                 : new ArrayList<>();
 
@@ -107,6 +111,7 @@ public class TutorService extends UserService<Tutor> {
         // Calculate joined date (would normally come from audit fields)
         LocalDate joinedDate = LocalDate.now().minusYears(1); // Placeholder
 
+        logger.info("Tutor profile retrieved for tutor {}", tutorId);
         return dtoMapper.toTutorProfileResponse(
                 tutor,
                 averageRating,
@@ -117,7 +122,8 @@ public class TutorService extends UserService<Tutor> {
                 joinedDate);
     }
 
-    public List<TutorProfileResponse> getAllTutorProfiles() throws UserNotFoundException {
+    public List<TutorProfileResponse> getAllTutorProfiles() throws UserNotFoundException, NoCompletedBookingsException {
+        logger.debug("Getting all tutor profiles");
         List<Tutor> tutors = findAll();
         List<TutorProfileResponse> profiles = new ArrayList<>();
 
@@ -125,11 +131,15 @@ public class TutorService extends UserService<Tutor> {
             profiles.add(getTutorProfile(tutor.getId()));
         }
 
+        logger.info("All tutor profiles retrieved");
         return profiles;
     }
 
     @Transactional
-    public TutorProfileResponse updateTutorProfile(String tutorId, UpdateProfileRequest request) throws UserNotFoundException, EmailAlreadyExistsException, InvalidPasswordException, InvalidTimezoneException {
+    public TutorProfileResponse updateTutorProfile(String tutorId, UpdateProfileRequest request)
+        throws UserNotFoundException, EmailAlreadyExistsException, InvalidPasswordException,
+        InvalidTimezoneException, NoCompletedBookingsException {
+        logger.debug("Updating tutor profile for tutor {}", tutorId);
         Tutor tutor = findById(tutorId);
 
         // Update name if provided
@@ -181,11 +191,13 @@ public class TutorService extends UserService<Tutor> {
 
         repository.update(tutor);
 
+        logger.info("Tutor profile updated for tutor {}", tutorId);
         return getTutorProfile(tutorId);
     }
 
     @Transactional
-    public Map<String, String> updateProfilePicture(String tutorId, MultipartFile file) throws UserNotFoundException {
+    public Map<String, String> updateProfilePicture(String tutorId, MultipartFile file) throws UserNotFoundException, IOException {
+        logger.debug("Updating profile picture for tutor {}", tutorId);
         Tutor tutor = findById(tutorId);
 
         // Delete old profile picture if exists
@@ -206,11 +218,15 @@ public class TutorService extends UserService<Tutor> {
         result.put("profilePictureId", fileId);
         result.put("profilePictureUrl", "/api/files/" + fileId);
 
+        logger.info("Profile picture updated for tutor {}", tutorId);
         return result;
     }
 
     @Transactional
-    public TutorProfileResponse addSubjectToTutor(String tutorId, String subjectId) throws UserNotFoundException, TutorTeachesSubjectException, SubjectNotFoundException {
+    public TutorProfileResponse addSubjectToTutor(String tutorId, String subjectId)
+        throws UserNotFoundException, TutorTeachesSubjectException, SubjectNotFoundException,
+        NoCompletedBookingsException {
+        logger.debug("Adding subject {} to tutor {}", subjectId, tutorId);
         Tutor tutor = findById(tutorId);
         Subject subject = subjectService.findById(subjectId);
 
@@ -227,12 +243,15 @@ public class TutorService extends UserService<Tutor> {
         tutor.addSubject(subject);
         repository.update(tutor);
 
+        logger.info("Subject {} added to tutor {}", subjectId, tutorId);
         return getTutorProfile(tutorId);
     }
 
     @Transactional
     public TutorProfileResponse removeSubjectFromTutor(String tutorId, String subjectId)
-        throws UserNotFoundException, SubjectNotFoundException, TutorNotTeachingSubjectException, TutorHasBookingsException {
+        throws UserNotFoundException, SubjectNotFoundException, TutorNotTeachingSubjectException,
+        TutorHasBookingsException, NoCompletedBookingsException, PaymentNotFoundException {
+        logger.debug("Removing subject {} from tutor {}", subjectId, tutorId);
         Tutor tutor = findById(tutorId);
         Subject subject = subjectService.findById(subjectId);
 
@@ -240,9 +259,6 @@ public class TutorService extends UserService<Tutor> {
             logger.error("Tutor {} does not teach this subject: {}", tutorId, subjectId);
             throw new TutorNotTeachingSubjectException(tutorId, subjectId);
         }
-
-        // Check if there are any bookings for this subject
-        //TODO: make bookingservicem ethod to return bookings by subject
         List<Booking> bookingsForSubject = bookingService.getTutorBookingsBySubject(tutorId, subjectId);
         if (!bookingsForSubject.isEmpty()) {
             logger.error("Cannot remove subject with existing bookings: {}", subjectId);
@@ -252,15 +268,18 @@ public class TutorService extends UserService<Tutor> {
         tutor.removeSubject(subject);
         repository.update(tutor);
 
+        logger.info("Subject {} removed from tutor {}", subjectId, tutorId);
         return getTutorProfile(tutorId);
     }
 
     public ValueResponse<Double> getEarnings(String tutorId) throws UserNotFoundException {
         Tutor tutor = findById(tutorId);
+        logger.debug("Earnings for tutor {} is {}", tutorId, tutor.getEarnings());
         return dtoMapper.toValueResponse(tutor.getEarnings());
     }
 
-    public ValueResponse<Double> getAverageRating(String tutorId) {
+    public ValueResponse<Double> getAverageRating(String tutorId) throws NoCompletedBookingsException, UserNotFoundException {
+        logger.debug("Getting average rating for tutor {}", tutorId);
         List<Review> reviews = reviewService.getTutorReviews(tutorId);
 
         double averageRating = reviews.isEmpty() ? 0.0
@@ -269,6 +288,7 @@ public class TutorService extends UserService<Tutor> {
                         .average()
                         .orElse(0.0);
 
+        logger.info("Average rating for tutor {} is {}", tutorId, averageRating);
         return dtoMapper.toValueResponse(averageRating);
     }
 
