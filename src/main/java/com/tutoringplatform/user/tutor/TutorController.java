@@ -7,6 +7,10 @@ import com.tutoringplatform.user.availability.AvailabilityService;
 import com.tutoringplatform.shared.dto.request.AddSubjectToTutorRequest;
 import com.tutoringplatform.shared.dto.response.AvailabilityResponse;
 import com.tutoringplatform.shared.dto.request.TutorAvailabilityRequest;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
+import com.tutoringplatform.subject.exceptions.SubjectNotFoundException;
+import com.tutoringplatform.user.tutor.exceptions.TutorNotTeachingSubjectException;
+import com.tutoringplatform.user.tutor.exceptions.TutorHasBookingsException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -105,7 +109,8 @@ public class TutorController {
     }
 
     @DeleteMapping("/{id}/subjects/{subjectId}")
-    public ResponseEntity<?> removeSubject(@PathVariable String id, @PathVariable String subjectId) {
+    public ResponseEntity<?> removeSubject(@PathVariable String id, @PathVariable String subjectId)
+        throws UserNotFoundException, SubjectNotFoundException, TutorNotTeachingSubjectException, TutorHasBookingsException {
         try {
             TutorProfileResponse profile = tutorService.removeSubjectFromTutor(id, subjectId);
             return ResponseEntity.ok(profile);

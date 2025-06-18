@@ -2,6 +2,9 @@ package com.tutoringplatform.shared.exceptions;
 
 import com.tutoringplatform.authentication.exceptions.AuthenticationException;
 import com.tutoringplatform.booking.exceptions.BookingException;
+import com.tutoringplatform.user.exceptions.UserException;
+import com.tutoringplatform.user.student.exceptions.StudentException;
+import com.tutoringplatform.user.tutor.exceptions.TutorException;
 import com.tutoringplatform.payment.exceptions.PaymentException;
 import com.tutoringplatform.review.exceptions.ReviewException;
 import com.tutoringplatform.subject.exceptions.SubjectException;
@@ -19,6 +22,43 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // ========== TUTORING PLATFORM EXCEPTIONS ==========
+
+        @ExceptionHandler(UserException.class)
+        public ResponseEntity<ErrorResponse> handleUserException(UserException e) {
+            HttpStatus status = determineUserStatus(e);
+            logger.warn("User error: {} - {}", e.getErrorCode(), e.getMessage());
+
+            ErrorResponse error = new ErrorResponse(
+                    e.getErrorCode(),
+                    e.getMessage());
+
+            return ResponseEntity.status(status).body(error);
+        }
+
+        @ExceptionHandler(StudentException.class)
+        public ResponseEntity<ErrorResponse> handleStudentException(StudentException e) {
+            HttpStatus status = determineStudentStatus(e);
+            logger.warn("Student error: {} - {}", e.getErrorCode(), e.getMessage());
+
+            ErrorResponse error = new ErrorResponse(
+                    e.getErrorCode(),
+                    e.getMessage());
+
+            return ResponseEntity.status(status).body(error);
+        }
+
+        // ========== TUTOR EXCEPTIONS ==========
+        @ExceptionHandler(TutorException.class)
+        public ResponseEntity<ErrorResponse> handleTutorException(TutorException e) {
+            HttpStatus status = determineTutorStatus(e);
+            logger.warn("Tutor error: {} - {}", e.getErrorCode(), e.getMessage());
+
+            ErrorResponse error = new ErrorResponse(
+                    e.getErrorCode(),
+                    e.getMessage());
+
+            return ResponseEntity.status(status).body(error);
+        }
 
         @ExceptionHandler(AuthenticationException.class)
         public ResponseEntity<ErrorResponse> handleAuthException(AuthenticationException e) {
@@ -166,6 +206,38 @@ public class GlobalExceptionHandler {
                 return HttpStatus.CONFLICT;
             case "ASSIGNED_SUBJECT":
                 return HttpStatus.CONFLICT;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determineUserStatus(UserException e) {
+        switch (e.getErrorCode()) {
+            case "USER_NOT_FOUND":
+                return HttpStatus.NOT_FOUND;
+            case "PROFILE_UPDATE_ERROR":
+                return HttpStatus.BAD_REQUEST;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determineStudentStatus(StudentException e) {
+        switch (e.getErrorCode()) {
+            case "INSUFFICIENT_BALANCE":
+                return HttpStatus.PAYMENT_REQUIRED;
+            case "INVALID_FUND_AMOUNT":
+                return HttpStatus.BAD_REQUEST;
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private HttpStatus determineTutorStatus(TutorException e) {
+        switch (e.getErrorCode()) {
+            case "INVALID_HOURLY_RATE":
+            case "SUBJECT_MANAGEMENT_ERROR":
+                return HttpStatus.BAD_REQUEST;
             default:
                 return HttpStatus.BAD_REQUEST;
         }

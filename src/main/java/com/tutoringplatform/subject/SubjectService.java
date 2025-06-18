@@ -9,7 +9,7 @@ import com.tutoringplatform.shared.dto.response.info.SubjectInfo;
 import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.user.tutor.TutorService;
 import com.tutoringplatform.subject.exceptions.*;
-import com.tutoringplatform.user.tutor.exceptions.TutorNotFoundException;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class SubjectService {
 
     public void deleteSubject(String id) throws AssignedSubjectException, SubjectNotFoundException {
         logger.debug("Deleting subject: {}", id);
-        Subject subject = findByIdOrThrow(id);
+        Subject subject = findById(id);
         List<Tutor> tutors = tutorService.findBySubject(subject);
         if (tutors.size() > 0) {
             logger.warn("Subject is assigned to tutors: {}", id);
@@ -82,18 +82,14 @@ public class SubjectService {
     }
 
     public SubjectResponse getSubjectById(String id) throws SubjectNotFoundException {
-        Subject subject = findByIdOrThrow(id);
+        Subject subject = findById(id);
         return dtoMapper.toSubjectResponse(subject);
     }
 
-    public List<SubjectResponse> getAvailableSubjectsForTutor(String tutorId) throws TutorNotFoundException {
+    public List<SubjectResponse> getAvailableSubjectsForTutor(String tutorId) throws UserNotFoundException {
         logger.debug("Getting available subjects for tutor: {}", tutorId);
         // Find the tutor first
-        Tutor tutor = tutorService.findByIdOrThrow(tutorId);
-        if (tutor == null) {
-            logger.error("Tutor not found: {}", tutorId);
-            throw new TutorNotFoundException(tutorId);
-        }
+        Tutor tutor = tutorService.findById(tutorId);
 
         // Get all subjects and filter out the ones the tutor already teaches
         List<Subject> allSubjects = subjectRepository.findAll();
@@ -149,7 +145,7 @@ public class SubjectService {
         return info;
     }  
 
-    private Subject findByIdOrThrow(String id) throws SubjectNotFoundException {
+    public Subject findById(String id) throws SubjectNotFoundException {
         logger.debug("Finding subject by id: {}", id);
         Subject subject = subjectRepository.findById(id);
         if (subject == null) {

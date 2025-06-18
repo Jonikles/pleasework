@@ -6,13 +6,12 @@ import com.tutoringplatform.shared.dto.response.BookingDetailResponse;
 import com.tutoringplatform.shared.dto.response.BookingListResponse;
 import com.tutoringplatform.booking.exceptions.BookingNotFoundException;
 import com.tutoringplatform.booking.exceptions.BookedTimeSlotException;
-import com.tutoringplatform.payment.exceptions.InsufficientBalanceException;
 import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
 import com.tutoringplatform.subject.exceptions.SubjectNotFoundException;
-import com.tutoringplatform.user.student.exceptions.StudentNotFoundException;
-import com.tutoringplatform.user.tutor.exceptions.TutorNotFoundException;
-import com.tutoringplatform.user.tutor.exceptions.TutorNotAvailableException;
+import com.tutoringplatform.user.student.exceptions.InsufficientBalanceException;
 import com.tutoringplatform.user.tutor.exceptions.TutorNotTeachingSubjectException;
+import com.tutoringplatform.booking.exceptions.TutorNotAvailableException;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +34,9 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody CreateBookingRequest request)
-        throws StudentNotFoundException, TutorNotFoundException, InsufficientBalanceException,
+        throws UserNotFoundException, InsufficientBalanceException,
         SubjectNotFoundException, TutorNotTeachingSubjectException, TutorNotAvailableException,
-        BookedTimeSlotException, TutorNotAvailableException {
+        BookedTimeSlotException {
         logger.debug("Creating booking: {}", request.getTutorId());
         BookingDetailResponse booking = bookingService.createBooking(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(booking);
@@ -51,14 +50,14 @@ public class BookingController {
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) throws StudentNotFoundException {
+    public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) throws UserNotFoundException {
         logger.debug("Getting bookings for student: {}", studentId);
         BookingListResponse bookings = bookingService.getStudentBookingList(studentId);
         return ResponseEntity.ok(bookings);
     }
 
     @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) throws TutorNotFoundException {
+    public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) throws UserNotFoundException {
         logger.debug("Getting bookings for tutor: {}", tutorId);
         BookingListResponse bookings = bookingService.getTutorBookingList(tutorId);
         return ResponseEntity.ok(bookings);
@@ -66,7 +65,7 @@ public class BookingController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable String id, @RequestBody UpdateBookingRequest request)
-        throws BookingNotFoundException, TutorNotAvailableException, TutorNotFoundException, StudentNotFoundException {
+        throws BookingNotFoundException, TutorNotAvailableException, UserNotFoundException {
         logger.debug("Updating booking: {}", id);
         BookingDetailResponse booking = bookingService.updateBooking(id, request);
         return ResponseEntity.ok(booking);
@@ -74,7 +73,7 @@ public class BookingController {
 
     @PostMapping("/{id}/confirm")
     public ResponseEntity<BookingDetailResponse> confirmBooking(@PathVariable String id)
-        throws BookingNotFoundException, InsufficientBalanceException, TutorNotFoundException, StudentNotFoundException {
+        throws BookingNotFoundException, InsufficientBalanceException, UserNotFoundException {
         logger.info("API call: confirm booking {}", id);
         BookingDetailResponse response = bookingService.confirmBooking(id);
         return ResponseEntity.ok(response);
@@ -82,7 +81,7 @@ public class BookingController {
 
     @PostMapping("/{id}/cancel")
     public ResponseEntity<?> cancelBooking(@PathVariable String id)
-        throws BookingNotFoundException, PaymentNotFoundException, TutorNotFoundException, StudentNotFoundException {
+        throws BookingNotFoundException, PaymentNotFoundException, UserNotFoundException {
         logger.debug("Cancelling booking: {}", id);
         bookingService.cancelBooking(id);
         return ResponseEntity.ok("Booking cancelled successfully");
@@ -90,7 +89,7 @@ public class BookingController {
 
     @PostMapping("/{id}/complete")
     public ResponseEntity<?> completeBooking(@PathVariable String id)
-        throws BookingNotFoundException, TutorNotFoundException, StudentNotFoundException {
+        throws BookingNotFoundException, UserNotFoundException {
         logger.debug("Completing booking: {}", id);
         bookingService.completeBooking(id);
         return ResponseEntity.ok("Booking completed successfully");

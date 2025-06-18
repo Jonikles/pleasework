@@ -4,14 +4,13 @@ import com.tutoringplatform.shared.dto.response.SubjectListResponse;
 import com.tutoringplatform.shared.dto.response.SubjectResponse;
 import com.tutoringplatform.shared.dto.request.CreateSubjectRequest;
 import com.tutoringplatform.subject.exceptions.*;
-import com.tutoringplatform.user.tutor.exceptions.TutorNotFoundException;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -63,7 +62,7 @@ public class SubjectController {
     }
 
     @GetMapping("/available/tutor/{tutorId}")
-    public ResponseEntity<?> getAvailableSubjectsForTutor(@PathVariable String tutorId) throws TutorNotFoundException {
+    public ResponseEntity<?> getAvailableSubjectsForTutor(@PathVariable String tutorId) throws UserNotFoundException {
         logger.debug("Getting available subjects for tutor: {}", tutorId);
         List<SubjectResponse> subjects = subjectService.getAvailableSubjectsForTutor(tutorId);
         return ResponseEntity.ok(subjects);

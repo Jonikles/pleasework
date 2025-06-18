@@ -1,6 +1,6 @@
-package com.tutoringplatform.payment.paymentExceptions;
+package com.tutoringplatform.user.student.exceptions;
 
-public class InsufficientBalanceException extends PaymentException {
+public class InsufficientBalanceException extends StudentException {
     private final String studentId;
     private final double required;
     private final double available;
