@@ -4,8 +4,15 @@ import com.tutoringplatform.shared.dto.request.CreateBookingRequest;
 import com.tutoringplatform.shared.dto.request.UpdateBookingRequest;
 import com.tutoringplatform.shared.dto.response.BookingDetailResponse;
 import com.tutoringplatform.shared.dto.response.BookingListResponse;
-import com.tutoringplatform.exceptions.InsufficientBalanceException;
-import com.tutoringplatform.exceptions.BookingNotFoundException;
+import com.tutoringplatform.booking.exceptions.BookingNotFoundException;
+import com.tutoringplatform.booking.exceptions.BookedTimeSlotException;
+import com.tutoringplatform.payment.exceptions.InsufficientBalanceException;
+import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
+import com.tutoringplatform.subject.exceptions.SubjectNotFoundException;
+import com.tutoringplatform.user.student.exceptions.StudentNotFoundException;
+import com.tutoringplatform.user.tutor.exceptions.TutorNotFoundException;
+import com.tutoringplatform.user.tutor.exceptions.TutorNotAvailableException;
+import com.tutoringplatform.user.tutor.exceptions.TutorNotTeachingSubjectException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,79 +34,65 @@ public class BookingController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createBooking(@RequestBody CreateBookingRequest request) {
-        try {
-            BookingDetailResponse booking = bookingService.createBooking(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(booking);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> createBooking(@RequestBody CreateBookingRequest request)
+        throws StudentNotFoundException, TutorNotFoundException, InsufficientBalanceException,
+        SubjectNotFoundException, TutorNotTeachingSubjectException, TutorNotAvailableException,
+        BookedTimeSlotException, TutorNotAvailableException {
+        logger.debug("Creating booking: {}", request.getTutorId());
+        BookingDetailResponse booking = bookingService.createBooking(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(booking);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBooking(@PathVariable String id) {
-        try {
-            BookingDetailResponse booking = bookingService.getBookingDetails(id);
-            return ResponseEntity.ok(booking);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    public ResponseEntity<?> getBooking(@PathVariable String id) throws BookingNotFoundException {
+        logger.debug("Getting booking: {}", id);
+        BookingDetailResponse booking = bookingService.getBookingDetails(id);
+        return ResponseEntity.ok(booking);
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) {
-        try {
-            BookingListResponse bookings = bookingService.getStudentBookingList(studentId);
-            return ResponseEntity.ok(bookings);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) throws StudentNotFoundException {
+        logger.debug("Getting bookings for student: {}", studentId);
+        BookingListResponse bookings = bookingService.getStudentBookingList(studentId);
+        return ResponseEntity.ok(bookings);
     }
 
     @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) {
-        try {
-            BookingListResponse bookings = bookingService.getTutorBookingList(tutorId);
-            return ResponseEntity.ok(bookings);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) throws TutorNotFoundException {
+        logger.debug("Getting bookings for tutor: {}", tutorId);
+        BookingListResponse bookings = bookingService.getTutorBookingList(tutorId);
+        return ResponseEntity.ok(bookings);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateBooking(@PathVariable String id, @RequestBody UpdateBookingRequest request) {
-        try {
-            BookingDetailResponse booking = bookingService.updateBooking(id, request);
-            return ResponseEntity.ok(booking);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> updateBooking(@PathVariable String id, @RequestBody UpdateBookingRequest request)
+        throws BookingNotFoundException, TutorNotAvailableException, TutorNotFoundException, StudentNotFoundException {
+        logger.debug("Updating booking: {}", id);
+        BookingDetailResponse booking = bookingService.updateBooking(id, request);
+        return ResponseEntity.ok(booking);
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<BookingDetailResponse> confirmBooking(@PathVariable String id) throws InsufficientBalanceException, BookingNotFoundException {
+    public ResponseEntity<BookingDetailResponse> confirmBooking(@PathVariable String id)
+        throws BookingNotFoundException, InsufficientBalanceException, TutorNotFoundException, StudentNotFoundException {
         logger.info("API call: confirm booking {}", id);
         BookingDetailResponse response = bookingService.confirmBooking(id);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<?> cancelBooking(@PathVariable String id) {
-        try {
-            bookingService.cancelBooking(id);
-            return ResponseEntity.ok("Booking cancelled successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> cancelBooking(@PathVariable String id)
+        throws BookingNotFoundException, PaymentNotFoundException, TutorNotFoundException, StudentNotFoundException {
+        logger.debug("Cancelling booking: {}", id);
+        bookingService.cancelBooking(id);
+        return ResponseEntity.ok("Booking cancelled successfully");
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<?> completeBooking(@PathVariable String id) {
-        try {
-            bookingService.completeBooking(id);
-            return ResponseEntity.ok("Booking completed successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> completeBooking(@PathVariable String id)
+        throws BookingNotFoundException, TutorNotFoundException, StudentNotFoundException {
+        logger.debug("Completing booking: {}", id);
+        bookingService.completeBooking(id);
+        return ResponseEntity.ok("Booking completed successfully");
     }
 }

@@ -52,7 +52,7 @@ public class SubjectService {
 
     public void deleteSubject(String id) throws AssignedSubjectException, SubjectNotFoundException {
         logger.debug("Deleting subject: {}", id);
-        Subject subject = findById(id);
+        Subject subject = findByIdOrThrow(id);
         List<Tutor> tutors = tutorService.findBySubject(subject);
         if (tutors.size() > 0) {
             logger.warn("Subject is assigned to tutors: {}", id);
@@ -60,28 +60,6 @@ public class SubjectService {
         }
         subjectRepository.delete(id);
         logger.info("Subject {} deleted successfully", id);
-    }
-
-    public Subject findById(String id) throws SubjectNotFoundException {
-        logger.debug("Finding subject by id: {}", id);
-        Subject subject = subjectRepository.findById(id);
-        if (subject == null) {
-            logger.error("Subject not found: {}", id);
-            throw new SubjectNotFoundException(id);
-        }
-        logger.info("Subject {} found successfully", id);
-        return subject;
-    }
-
-    public Subject findByName(String name) throws SubjectNotFoundException {
-        logger.debug("Finding subject by name: {}", name);
-        Subject subject = subjectRepository.findByName(name);
-        if (subject == null) {
-            logger.error("Subject not found: {}", name);
-            throw new SubjectNotFoundException(name);
-        }
-        logger.info("Subject {} found successfully", name);
-        return subject;
     }
 
     public List<Subject> findAll() {
@@ -104,14 +82,14 @@ public class SubjectService {
     }
 
     public SubjectResponse getSubjectById(String id) throws SubjectNotFoundException {
-        Subject subject = findById(id); // This will throw exception if not found
+        Subject subject = findByIdOrThrow(id);
         return dtoMapper.toSubjectResponse(subject);
     }
 
     public List<SubjectResponse> getAvailableSubjectsForTutor(String tutorId) throws TutorNotFoundException {
         logger.debug("Getting available subjects for tutor: {}", tutorId);
         // Find the tutor first
-        Tutor tutor = tutorService.findById(tutorId);
+        Tutor tutor = tutorService.findByIdOrThrow(tutorId);
         if (tutor == null) {
             logger.error("Tutor not found: {}", tutorId);
             throw new TutorNotFoundException(tutorId);
@@ -170,4 +148,15 @@ public class SubjectService {
         
         return info;
     }  
+
+    private Subject findByIdOrThrow(String id) throws SubjectNotFoundException {
+        logger.debug("Finding subject by id: {}", id);
+        Subject subject = subjectRepository.findById(id);
+        if (subject == null) {
+            logger.error("Subject not found: {}", id);
+            throw new SubjectNotFoundException(id);
+        }
+        logger.info("Subject {} found successfully", id);
+        return subject;
+    }
 }
