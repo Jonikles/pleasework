@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
+    private final Logger logger = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
 
     @Autowired
@@ -25,15 +28,12 @@ public class NotificationController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserNotifications(@PathVariable String userId,
             @RequestParam(defaultValue = "20") int limit) {
-        try {
-            List<Notification> notifications = notificationService.getRecentNotifications(userId, limit);
-            NotificationListResponse response = new NotificationListResponse();
-            response.setNotifications(notifications);
-            response.setUnreadCount(notificationService.getUnreadCount(userId));
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        logger.debug("Getting notifications for user: {}", userId);
+        List<Notification> notifications = notificationService.getRecentNotifications(userId, limit);
+        NotificationListResponse response = new NotificationListResponse();
+        response.setNotifications(notifications);
+        response.setUnreadCount(notificationService.getUnreadCount(userId));
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}/unread")

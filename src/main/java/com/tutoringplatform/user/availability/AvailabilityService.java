@@ -7,7 +7,6 @@ import com.tutoringplatform.shared.dto.response.AvailabilityResponse;
 import com.tutoringplatform.user.availability.model.*;
 import com.tutoringplatform.user.tutor.TutorService;
 import com.tutoringplatform.user.tutor.Tutor;
-import com.tutoringplatform.user.tutor.exceptions.InvalidHourlyRateException;
 import com.tutoringplatform.user.exceptions.UserNotFoundException;
 
 import org.slf4j.Logger;
@@ -141,6 +140,7 @@ public class AvailabilityService {
                     available.add(tutorId);
                 }
             } catch (Exception e) {
+                //TODO: handle exception
                 // Log error, skip this tutor
             }
         }

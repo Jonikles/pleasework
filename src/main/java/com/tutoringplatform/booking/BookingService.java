@@ -161,7 +161,7 @@ public class BookingService {
         return dtoMapper.toBookingDetailResponse(booking, student, tutor, payment);
     }
 
-    public  getStudentBookingList(String studentId) throws UserNotFoundException, PaymentNotFoundException {
+    public BookingListResponse getStudentBookingList(String studentId) throws UserNotFoundException, PaymentNotFoundException {
         logger.debug("Getting booking list for student: {}", studentId);
         //Verify if student exists
         Student student = studentService.findById(studentId);

@@ -1,20 +1,25 @@
 package com.tutoringplatform.search;
 
+import com.tutoringplatform.user.availability.model.TutorAvailability;
 import com.tutoringplatform.booking.Booking;
-import com.tutoringplatform.booking.IBookingRepository;
-import com.tutoringplatform.review.IReviewRepository;
+import com.tutoringplatform.review.ReviewService;
 import com.tutoringplatform.review.Review;
+import com.tutoringplatform.subject.Subject;
+import com.tutoringplatform.user.tutor.Tutor;
+import com.tutoringplatform.booking.BookingService;
+import com.tutoringplatform.subject.SubjectService;
+import com.tutoringplatform.user.tutor.TutorService;
+import com.tutoringplatform.user.availability.AvailabilityService;
 import com.tutoringplatform.shared.dto.request.TutorSearchRequest;
 import com.tutoringplatform.shared.dto.response.*;
 import com.tutoringplatform.shared.dto.response.info.TutorSearchResultInfo;
 import com.tutoringplatform.shared.util.DTOMapper;
-import com.tutoringplatform.subject.ISubjectRepository;
-import com.tutoringplatform.subject.Subject;
-import com.tutoringplatform.user.tutor.ITutorRepository;
-import com.tutoringplatform.user.tutor.Tutor;
-import com.tutoringplatform.user.availability.AvailabilityService;
-import com.tutoringplatform.user.availability.model.TutorAvailability;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
+import com.tutoringplatform.subject.exceptions.SubjectNotFoundException;
+import com.tutoringplatform.review.exceptions.NoCompletedBookingsException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -27,32 +32,34 @@ import java.util.stream.Collectors;
 @Service
 public class SearchService {
 
-    private final ITutorRepository tutorRepository;
-    private final ISubjectRepository subjectRepository;
-    private final IReviewRepository reviewRepository;
-    private final IBookingRepository bookingRepository;
+    private final Logger logger = LoggerFactory.getLogger(SearchService.class);
+    private final TutorService tutorService;
+    private final SubjectService subjectService;
+    private final ReviewService reviewService;
+    private final BookingService bookingService;
     private final AvailabilityService availabilityService;
     private final DTOMapper dtoMapper;
 
     @Autowired
     public SearchService(
-            ITutorRepository tutorRepository,
-            ISubjectRepository subjectRepository,
-            IReviewRepository reviewRepository,
-            IBookingRepository bookingRepository,
+            TutorService tutorService,
+            SubjectService subjectService,
+            ReviewService reviewService,
+            BookingService bookingService,
             AvailabilityService availabilityService,
             DTOMapper dtoMapper) {
-        this.tutorRepository = tutorRepository;
-        this.subjectRepository = subjectRepository;
-        this.reviewRepository = reviewRepository;
-        this.bookingRepository = bookingRepository;
+        this.tutorService = tutorService;
+        this.subjectService = subjectService;
+        this.reviewService = reviewService;
+        this.bookingService = bookingService;
         this.availabilityService = availabilityService;
         this.dtoMapper = dtoMapper;
     }
 
-    public TutorSearchResultsResponse searchTutors(TutorSearchRequest request) throws Exception {
+    public TutorSearchResultsResponse searchTutors(TutorSearchRequest request) throws UserNotFoundException, SubjectNotFoundException, NoCompletedBookingsException {
         // Start with all tutors
-        List<Tutor> tutors = tutorRepository.findAll();
+        logger.debug("Searching for tutors with request: {}", request);
+        List<Tutor> tutors = tutorService.findAll();
 
         // Apply filters
         tutors = applyFilters(tutors, request);
@@ -86,18 +93,17 @@ public class SearchService {
         appliedFilters.setMinRating(request.getMinRating());
         appliedFilters.setSortBy(request.getSortBy());
 
+        logger.info("found {} tutors, search result {}", results.size(), results);
         return dtoMapper.toTutorSearchResultsResponse(results, totalCount, appliedFilters);
     }
 
-    private List<Tutor> applyFilters(List<Tutor> tutors, TutorSearchRequest request) throws Exception {
+    private List<Tutor> applyFilters(List<Tutor> tutors, TutorSearchRequest request) throws SubjectNotFoundException, NoCompletedBookingsException {
         // Filter by subject
         if (request.getSubjectId() != null) {
-            Subject subject = subjectRepository.findById(request.getSubjectId());
-            if (subject != null) {
-                tutors = tutors.stream()
-                        .filter(t -> t.getSubjects().contains(subject))
-                        .collect(Collectors.toList());
-            }
+            Subject subject = subjectService.findById(request.getSubjectId());
+            tutors = tutors.stream()
+                    .filter(t -> t.getSubjects().contains(subject))
+                    .collect(Collectors.toList());
         }
 
         // Filter by price range
@@ -178,7 +184,7 @@ public class SearchService {
                 .collect(Collectors.toList());
     }
 
-    private List<Tutor> sortResults(List<Tutor> tutors, String sortBy) {
+    private List<Tutor> sortResults(List<Tutor> tutors, String sortBy) throws NoCompletedBookingsException {
         if (sortBy == null) {
             sortBy = "RATING"; // Default sort
         }
@@ -199,8 +205,8 @@ public class SearchService {
                 break;
             case "REVIEWS":
                 tutors.sort((a, b) -> {
-                    int reviewsA = reviewRepository.getTutorReviews(a.getId()).size();
-                    int reviewsB = reviewRepository.getTutorReviews(b.getId()).size();
+                    int reviewsA = reviewService.getTutorReviews(a.getId()).size();
+                    int reviewsB = reviewService.getTutorReviews(b.getId()).size();
                     return Integer.compare(reviewsB, reviewsA); // Descending
                 });
                 break;
@@ -209,12 +215,12 @@ public class SearchService {
         return tutors;
     }
 
-    private TutorSearchResultInfo buildSearchResult(Tutor tutor) throws Exception {
+    private TutorSearchResultInfo buildSearchResult(Tutor tutor) throws NoCompletedBookingsException {
         // Calculate average rating
         double averageRating = calculateAverageRating(tutor.getId());
 
         // Get review count
-        int reviewCount = reviewRepository.getTutorReviews(tutor.getId()).size();
+        int reviewCount = reviewService.getTutorReviews(tutor.getId()).size();
 
         // Create short description (first 100 chars)
         String shortDescription = tutor.getDescription();
@@ -233,8 +239,8 @@ public class SearchService {
                 nextAvailable);
     }
 
-    private double calculateAverageRating(String tutorId) {
-        List<Review> reviews = reviewRepository.getTutorReviews(tutorId);
+    private double calculateAverageRating(String tutorId) throws NoCompletedBookingsException {
+        List<Review> reviews = reviewService.getTutorReviews(tutorId);
         if (reviews.isEmpty()) {
             return 0.0;
         }
@@ -245,7 +251,7 @@ public class SearchService {
                 .orElse(0.0);
     }
 
-    private LocalDateTime findNextAvailableSlot(String tutorId) throws Exception {
+    private LocalDateTime findNextAvailableSlot(String tutorId) {
         // Get tutor's availability
         TutorAvailability availability = availabilityService.getAvailability(tutorId);
         if (availability.getRecurringSlots().isEmpty()) {
@@ -253,7 +259,7 @@ public class SearchService {
         }
 
         // Get existing bookings
-        List<Booking> bookings = bookingRepository.findByTutorId(tutorId).stream()
+        List<Booking> bookings = bookingService.getTutorBookingList(tutorId)
                 .filter(b -> b.getStatus() != Booking.BookingStatus.CANCELLED)
                 .filter(b -> b.getDateTime().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());

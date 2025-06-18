@@ -43,21 +43,21 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBooking(@PathVariable String id) throws BookingNotFoundException {
+    public ResponseEntity<?> getBooking(@PathVariable String id) throws BookingNotFoundException, UserNotFoundException, PaymentNotFoundException {
         logger.debug("Getting booking: {}", id);
         BookingDetailResponse booking = bookingService.getBookingDetails(id);
         return ResponseEntity.ok(booking);
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) throws UserNotFoundException {
+    public ResponseEntity<?> getStudentBookings(@PathVariable String studentId) throws UserNotFoundException, PaymentNotFoundException {
         logger.debug("Getting bookings for student: {}", studentId);
         BookingListResponse bookings = bookingService.getStudentBookingList(studentId);
         return ResponseEntity.ok(bookings);
     }
 
     @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) throws UserNotFoundException {
+    public ResponseEntity<?> getTutorBookings(@PathVariable String tutorId) throws UserNotFoundException, PaymentNotFoundException {
         logger.debug("Getting bookings for tutor: {}", tutorId);
         BookingListResponse bookings = bookingService.getTutorBookingList(tutorId);
         return ResponseEntity.ok(bookings);

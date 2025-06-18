@@ -9,10 +9,13 @@ import com.tutoringplatform.review.Review;
 import com.tutoringplatform.shared.dto.response.*;
 import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.user.student.IStudentRepository;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
 import com.tutoringplatform.user.tutor.ITutorRepository;
 import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.user.student.Student;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 @Service
 public class DashboardService {
 
+    private final Logger logger = LoggerFactory.getLogger(DashboardService.class);
     private final IStudentRepository studentRepository;
     private final ITutorRepository tutorRepository;
     private final IBookingRepository bookingRepository;
@@ -47,11 +51,12 @@ public class DashboardService {
         this.dtoMapper = dtoMapper;
     }
 
-    public StudentDashboardResponse getStudentDashboard(String studentId) throws Exception {
+    public StudentDashboardResponse getStudentDashboard(String studentId) throws UserNotFoundException {
         // Fetch student
         Student student = studentRepository.findById(studentId);
         if (student == null) {
-            throw new Exception("Student not found");
+            logger.error("Student not found: {}", studentId);
+            throw new UserNotFoundException(studentId);
         }
 
         // Build profile
@@ -87,11 +92,12 @@ public class DashboardService {
         return dtoMapper.toStudentDashboardResponse(profile, stats, upcomingBookings);
     }
 
-    public TutorDashboardResponse getTutorDashboard(String tutorId) throws Exception {
+    public TutorDashboardResponse getTutorDashboard(String tutorId) throws UserNotFoundException {
         // Fetch tutor
         Tutor tutor = tutorRepository.findById(tutorId);
         if (tutor == null) {
-            throw new Exception("Tutor not found");
+            logger.error("Tutor not found: {}", tutorId);
+            throw new UserNotFoundException(tutorId);
         }
 
         // Build profile
