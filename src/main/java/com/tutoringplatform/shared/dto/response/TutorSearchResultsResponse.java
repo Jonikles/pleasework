@@ -1,8 +1,8 @@
 package com.tutoringplatform.shared.dto.response;
 
-import java.util.List;
-
 import com.tutoringplatform.shared.dto.response.info.TutorSearchResultInfo;
+
+import java.util.List;
 
 public class TutorSearchResultsResponse {
     private List<TutorSearchResultInfo> results;

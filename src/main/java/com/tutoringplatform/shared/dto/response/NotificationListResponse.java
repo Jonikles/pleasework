@@ -1,7 +1,8 @@
 package com.tutoringplatform.shared.dto.response;
 
-import com.tutoringplatform.notification.Notification;
 import java.util.List;
+
+import com.tutoringplatform.notification.Notification;
 
 public class NotificationListResponse {
     private List<Notification> notifications;

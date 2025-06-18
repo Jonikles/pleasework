@@ -2,6 +2,7 @@ package com.tutoringplatform.search;
 
 import com.tutoringplatform.shared.dto.request.TutorSearchRequest;
 import com.tutoringplatform.shared.dto.response.TutorSearchResultsResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

@@ -1,9 +1,5 @@
 package com.tutoringplatform.subject;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.shared.dto.response.SubjectResponse;
 import com.tutoringplatform.shared.dto.request.CreateSubjectRequest;
@@ -12,8 +8,13 @@ import com.tutoringplatform.shared.dto.response.CategorySubjects;
 import com.tutoringplatform.shared.dto.response.info.SubjectInfo;
 import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.user.tutor.TutorService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SubjectService {

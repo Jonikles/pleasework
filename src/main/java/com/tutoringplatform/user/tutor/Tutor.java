@@ -1,11 +1,11 @@
 package com.tutoringplatform.user.tutor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.tutoringplatform.subject.Subject;
 import com.tutoringplatform.user.User;
 import com.tutoringplatform.user.UserType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Tutor extends User {
     private List<Subject> subjects;

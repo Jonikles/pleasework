@@ -1,9 +1,9 @@
 package com.tutoringplatform.shared.dto.response;
 
-import java.time.LocalDateTime;
-
 import com.tutoringplatform.shared.dto.response.info.ReviewInfo;
 import com.tutoringplatform.shared.dto.response.info.UserInfo;
+
+import java.time.LocalDateTime;
 
 public class ReviewResponse {
     private String id;
