@@ -66,12 +66,6 @@ public class ReviewService {
             throw new NoCompletedBookingsException(studentId, tutorId);
         }
 
-        // Validate rating
-        if (request.getRating() < 1 || request.getRating() > 5) {
-            logger.error("Invalid rating when creating review for tutor {} by student {}: {}", tutorId, studentId, request.getRating());
-            throw new InvalidRatingException(request.getRating());
-        }
-
         // Check if review already exists from this student for this tutor
         Review existingReview = reviewRepository.findByStudentIdAndTutorId(studentId, tutorId);
 
@@ -158,9 +152,13 @@ public class ReviewService {
         return responses;
     }
 
-    private void validateCreateReviewRequest(CreateReviewRequest request) {
+    private void validateCreateReviewRequest(CreateReviewRequest request) throws InvalidRatingException {
         if (request == null) {
             throw new IllegalArgumentException("Review request cannot be null");
+        }
+        if (request.getRating() < 1 || request.getRating() > 5) {
+            logger.error("Invalid rating when creating review for tutor {} by student {}: {}", request.getTutorId(), request.getStudentId(), request.getRating());
+            throw new InvalidRatingException(request.getRating());
         }
         if (request.getComment().trim().length() < 50) {
             throw new IllegalArgumentException("Comment must be at least 50 characters");

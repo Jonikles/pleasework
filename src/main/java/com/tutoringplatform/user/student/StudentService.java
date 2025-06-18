@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.io.IOException;
+import java.time.DateTimeException;
 
 @Service
 public class StudentService extends UserService<Student> {
@@ -83,7 +84,7 @@ public class StudentService extends UserService<Student> {
         if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             Student existing = repository.findByEmail(request.getEmail());
             if (existing != null && !existing.getId().equals(studentId)) {
-
+                logger.warn("Email already exists: {}", request.getEmail());
                 throw new EmailAlreadyExistsException(request.getEmail());
             }
             student.setEmail(request.getEmail());
@@ -92,10 +93,12 @@ public class StudentService extends UserService<Student> {
         // Update password if provided with current password verification
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             if (request.getCurrentPassword() == null || request.getCurrentPassword().isEmpty()) {
+                logger.warn("Current password is required");
                 throw new InvalidPasswordException("Current password is required");
             }
 
             if (!passwordEncoder.matches(request.getCurrentPassword(), student.getPassword())) {
+                logger.warn("Current password is incorrect");
                 throw new InvalidPasswordException("Current password is incorrect");
             }
 
@@ -107,8 +110,8 @@ public class StudentService extends UserService<Student> {
             try {
                 ZoneId zone = ZoneId.of(request.getTimeZoneId());
                 student.setTimeZone(zone);
-            } catch (IllegalArgumentException e) {
-                logger.error("Invalid timezone: {}", request.getTimeZoneId());
+            } catch (DateTimeException e) {
+                logger.warn("Invalid timezone: {}", request.getTimeZoneId());
                 throw new InvalidTimezoneException(request.getTimeZoneId());
             }
         }

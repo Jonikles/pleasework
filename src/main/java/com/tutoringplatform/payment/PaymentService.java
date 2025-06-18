@@ -1,7 +1,7 @@
 package com.tutoringplatform.payment;
 
-import com.tutoringplatform.booking.Booking;
 import com.tutoringplatform.booking.IBookingRepository;
+import com.tutoringplatform.booking.Booking;
 import com.tutoringplatform.booking.exceptions.BookingNotFoundException;
 import com.tutoringplatform.user.student.IStudentRepository;
 import com.tutoringplatform.user.student.Student;
@@ -10,8 +10,6 @@ import com.tutoringplatform.payment.command.IPaymentCommand;
 import com.tutoringplatform.payment.command.ProcessPaymentCommand;
 import com.tutoringplatform.payment.command.RefundPaymentCommand;
 import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
-import com.tutoringplatform.shared.dto.response.PaymentResponse;
-import com.tutoringplatform.shared.dto.response.PaymentHistoryResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,20 +100,5 @@ public class PaymentService {
             throw new PaymentNotFoundException(id);
         }
         return payment;
-    }
-
-    public PaymentResponse getPaymentDetails(String paymentId) throws PaymentNotFoundException {
-        // TODO: Implement this
-        return null;
-    }
-
-    public PaymentHistoryResponse getStudentPaymentHistory(String studentId, int page, int size) {
-        // TODO: Implement this
-        return null;
-    }
-
-    public PaymentHistoryResponse getTutorEarnings(String tutorId, int page, int size) {
-        // TODO: Implement this
-        return null;
     }
 }

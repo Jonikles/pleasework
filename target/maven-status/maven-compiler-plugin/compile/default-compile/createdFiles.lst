@@ -33,7 +33,6 @@ com\tutoringplatform\user\exceptions\UserNotFoundException.class
 com\tutoringplatform\user\student\exceptions\InvalidFundAmountException.class
 com\tutoringplatform\booking\exceptions\BookedTimeSlotException.class
 com\tutoringplatform\booking\observer\BookingEvent$EventType.class
-com\tutoringplatform\payment\PaymentController.class
 com\tutoringplatform\payment\PaymentRepository.class
 com\tutoringplatform\shared\exceptions\GlobalExceptionHandler.class
 com\tutoringplatform\booking\observer\EmailNotifier.class
