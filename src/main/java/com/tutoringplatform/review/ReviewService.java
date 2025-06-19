@@ -50,14 +50,12 @@ public class ReviewService {
     public ReviewResponse createReview(CreateReviewRequest request) throws NoCompletedBookingsException, InvalidRatingException, UserNotFoundException {
         validateCreateReviewRequest(request);
         logger.info("Creating review for tutor {} by student {}", request.getTutorId(), request.getStudentId());
-        // Extract student and tutor IDs from request
         String studentId = request.getStudentId();
         String tutorId = request.getTutorId();
 
         Student student = studentService.findById(studentId);
         Tutor tutor = tutorRepository.findById(tutorId);
 
-        // Check if student has completed any bookings with this tutor
         List<Booking> completedBookings = bookingRepository.findByStudentIdAndTutorIdAndStatus(studentId, tutorId, Booking.BookingStatus.COMPLETED);
 
         if (completedBookings.isEmpty()) {
@@ -65,11 +63,9 @@ public class ReviewService {
             throw new NoCompletedBookingsException(studentId, tutorId);
         }
 
-        // Check if review already exists from this student for this tutor
         Review existingReview = reviewRepository.findByStudentIdAndTutorId(studentId, tutorId);
 
         if (existingReview != null) {
-            // Update existing review
             existingReview.setRating(request.getRating());
             existingReview.setComment(request.getComment());
             existingReview.setTimestamp(LocalDateTime.now());
@@ -78,7 +74,6 @@ public class ReviewService {
             return dtoMapper.toReviewResponse(existingReview, student, tutor);
         }
 
-        // Create new review
         Review review = new Review(
                 studentId,
                 tutorId,
@@ -129,7 +124,6 @@ public class ReviewService {
             responses.add(response);
         }
 
-        // Sort by most recent first
         responses.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
         return responses;
     }

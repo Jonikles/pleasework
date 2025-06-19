@@ -48,7 +48,6 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(status).body(error);
         }
 
-        // ========== TUTOR EXCEPTIONS ==========
         @ExceptionHandler(TutorException.class)
         public ResponseEntity<ErrorResponse> handleTutorException(TutorException e) {
             HttpStatus status = determineTutorStatus(e);

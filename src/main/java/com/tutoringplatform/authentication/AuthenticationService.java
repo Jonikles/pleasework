@@ -60,14 +60,12 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Password cannot be empty");
         }
 
-        // Find user by email
         User user = authenticationRepository.findByEmail(email.toLowerCase().trim());
         if (user == null) {
             logger.warn("Invalid credentials: user not found for email: {}", email);
             throw new InvalidCredentialsException();
         }
 
-        // Verify password
         if (!passwordEncoder.matches(password, user.getPassword())) {
             logger.warn("Invalid credentials: password does not match for email: {}", email);
             throw new InvalidCredentialsException();
@@ -75,7 +73,6 @@ public class AuthenticationService {
 
         logger.info("Login successful for user: {} ", email);
 
-        // Build response based on user type
         double balance = 0;
         double hourlyRate = 0;
 
@@ -96,13 +93,11 @@ public class AuthenticationService {
 
         String normalizedEmail = request.getEmail().toLowerCase().trim();
 
-        // Validate email doesn't exist
         if (authenticationRepository.emailExists(normalizedEmail)) {
             logger.warn("Email already exists: {}", normalizedEmail);
             throw new EmailAlreadyExistsException(normalizedEmail);
         }
 
-        // Validate timezone
         ZoneId timeZone = parseTimezone(request.getTimeZoneId());
 
         User user;
@@ -148,12 +143,10 @@ public class AuthenticationService {
             throw new IllegalArgumentException("User type must be STUDENT or TUTOR");
         }
 
-        // Basic email format check
         if (!request.getEmail().contains("@")) {
             throw new IllegalArgumentException("Invalid email format");
         }
 
-        // Password strength check
         if (request.getPassword().length() < 8) {
             throw new IllegalArgumentException("Password must be at least 8 characters");
         }

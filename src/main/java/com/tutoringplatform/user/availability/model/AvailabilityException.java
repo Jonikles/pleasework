@@ -6,24 +6,21 @@ public class AvailabilityException {
     private Long id;
     private LocalDate startDate;
     private LocalDate endDate;
-    private LocalTime startTime; // null means all day
-    private LocalTime endTime; // null means all day
-    private boolean available; // true = extra availability, false = blackout
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private boolean available;
 
     public boolean covers(ZonedDateTime start, ZonedDateTime end) {
         LocalDate date = start.toLocalDate();
 
-        // Check if date is in range
         if (date.isBefore(startDate) || date.isAfter(endDate)) {
             return false;
         }
 
-        // If all-day exception
         if (startTime == null || endTime == null) {
             return true;
         }
 
-        // Check time overlap
         LocalTime requestStart = start.toLocalTime();
         LocalTime requestEnd = end.toLocalTime();
 

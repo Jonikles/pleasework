@@ -61,7 +61,7 @@ class PaymentServiceTest {
         assertEquals(Payment.PaymentStatus.COMPLETED, result.getStatus());
         verify(paymentRepository).save(any(Payment.class));
         verify(studentRepository).update(student);
-        assertEquals(100.0, student.getBalance()); // 200 - 100
+        assertEquals(100.0, student.getBalance());
     }
 
     @Test
@@ -73,7 +73,7 @@ class PaymentServiceTest {
 
         Student student = new Student("John", "john@email.com", "password");
         student.setId(studentId);
-        student.setBalance(50.0); // Insufficient
+        student.setBalance(50.0);
 
         when(studentRepository.findById(studentId)).thenReturn(student);
 
@@ -113,7 +113,7 @@ class PaymentServiceTest {
 
         // Assert
         assertEquals(Payment.PaymentStatus.REFUNDED, payment.getStatus());
-        assertEquals(150.0, student.getBalance()); // 50 + 100
+        assertEquals(150.0, student.getBalance());
         verify(paymentRepository).update(payment);
         verify(studentRepository).update(student);
     }
@@ -170,7 +170,7 @@ class PaymentServiceTest {
 
         Payment payment = new Payment(bookingId, 100.0);
         payment.setId(paymentId);
-        payment.setStatus(Payment.PaymentStatus.PENDING); // Not completed
+        payment.setStatus(Payment.PaymentStatus.PENDING);
 
         when(paymentRepository.findById(paymentId)).thenReturn(payment);
 

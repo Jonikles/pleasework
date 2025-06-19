@@ -81,35 +81,28 @@ public class TutorService extends UserService<Tutor> {
         logger.debug("Getting tutor profile for tutor {}", tutorId);
         Tutor tutor = findById(tutorId);
 
-        // Get reviews
         List<Review> allReviews = reviewService.getTutorReviews(tutorId);
 
-        // Calculate average rating
         double averageRating = allReviews.isEmpty() ? 0.0
                 : allReviews.stream()
                         .mapToDouble(Review::getRating)
                         .average()
                         .orElse(0.0);
 
-        // Count completed sessions
         List<Booking> bookings = bookingRepository.findByTutorId(tutorId);
         int completedSessions = (int) bookings.stream()
                 .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
                 .count();
 
-        // Map subjects
         List<SubjectResponse> subjects = tutor.getSubjects().stream()
                 .map(dtoMapper::toSubjectResponse)
                 .collect(Collectors.toList());
 
-        // Get availability
         TutorAvailability availability = availabilityService.getAvailability(tutorId);
         List<RecurringAvailability> recurringSlots = availability != null ? availability.getRecurringSlots()
                 : new ArrayList<>();
 
-        
-        // Calculate joined date (would normally come from audit fields)
-        LocalDate joinedDate = LocalDate.now().minusYears(1); // Placeholder
+        LocalDate joinedDate = LocalDate.now().minusYears(1);
 
         logger.info("Tutor profile retrieved for tutor {}", tutorId);
         return dtoMapper.toTutorProfileResponse(
@@ -142,12 +135,10 @@ public class TutorService extends UserService<Tutor> {
         logger.debug("Updating tutor profile for tutor {}", tutorId);
         Tutor tutor = findById(tutorId);
 
-        // Update name if provided
         if (request.getName() != null && !request.getName().trim().isEmpty()) {
             tutor.setName(request.getName());
         }
 
-        // Update email if provided and not taken
         if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             Tutor existing = repository.findByEmail(request.getEmail());
             if (existing != null && !existing.getId().equals(tutorId)) {
@@ -156,7 +147,6 @@ public class TutorService extends UserService<Tutor> {
             tutor.setEmail(request.getEmail());
         }
 
-        // Update password if provided with current password verification
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             if (request.getCurrentPassword() == null || request.getCurrentPassword().isEmpty()) {
                 throw new InvalidPasswordException("Current password is required");
@@ -169,7 +159,6 @@ public class TutorService extends UserService<Tutor> {
             tutor.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        // Update timezone if provided
         if (request.getTimeZoneId() != null) {
             try {
                 ZoneId zone = ZoneId.of(request.getTimeZoneId());
@@ -180,7 +169,6 @@ public class TutorService extends UserService<Tutor> {
             }
         }
 
-        // Update tutor-specific fields
         if (request.getHourlyRate() > 0) {
             tutor.setHourlyRate(request.getHourlyRate());
         }
@@ -200,7 +188,6 @@ public class TutorService extends UserService<Tutor> {
         logger.debug("Updating profile picture for tutor {}", tutorId);
         Tutor tutor = findById(tutorId);
 
-        // Delete old profile picture if exists
         if (tutor.getProfilePictureId() != null) {
             try {
                 fileService.deleteFile(tutor.getProfilePictureId());
@@ -209,7 +196,6 @@ public class TutorService extends UserService<Tutor> {
             }
         }
 
-        // Store new profile picture
         String fileId = fileService.storeFile(tutorId, file, "profile");
         tutor.setProfilePictureId(fileId);
         repository.update(tutor);

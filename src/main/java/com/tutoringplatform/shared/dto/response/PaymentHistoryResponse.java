@@ -7,9 +7,8 @@ public class PaymentHistoryResponse {
     private int currentPage;
     private int totalPages;
     private long totalItems;
-    private double totalAmount; // Sum of all payments in the result
+    private double totalAmount;
 
-    // Getters and setters
     public List<PaymentResponse> getPayments() {
         return payments;
     }

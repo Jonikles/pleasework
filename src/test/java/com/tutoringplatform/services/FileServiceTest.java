@@ -75,7 +75,7 @@ class FileServiceTest {
         String userId = "user123";
         String fileType = "profile";
         String fileName = "document.pdf";
-        String contentType = "application/pdf"; // Not allowed for profile
+        String contentType = "application/pdf";
 
         when(multipartFile.getOriginalFilename()).thenReturn(fileName);
         when(multipartFile.getContentType()).thenReturn(contentType);

@@ -20,7 +20,6 @@ public class TutorProfileResponse {
     private int completedSessions;
     private LocalDate joinedDate;
 
-    // All getters and setters
     public String getId() {
         return id;
     }

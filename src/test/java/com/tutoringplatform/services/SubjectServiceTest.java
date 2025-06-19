@@ -192,7 +192,7 @@ class SubjectServiceTest {
 
         Tutor tutor = new Tutor("John", "john@email.com", "password", 50.0, "Teacher");
         tutor.setId(tutorId);
-        tutor.getSubjects().add(math); // Tutor already teaches math
+        tutor.getSubjects().add(math);
 
         SubjectResponse physicsResponse = new SubjectResponse();
         SubjectResponse englishResponse = new SubjectResponse();

@@ -88,10 +88,8 @@ public class SubjectService {
 
     public List<SubjectResponse> getAvailableSubjectsForTutor(String tutorId) throws UserNotFoundException {
         logger.debug("Getting available subjects for tutor: {}", tutorId);
-        // Find the tutor first
         Tutor tutor = tutorService.findById(tutorId);
 
-        // Get all subjects and filter out the ones the tutor already teaches
         List<Subject> allSubjects = subjectRepository.findAll();
         List<Subject> tutorSubjects = tutor.getSubjects();
         
@@ -106,11 +104,9 @@ public class SubjectService {
     }
 
     private List<CategorySubjects> groupSubjectsByCategory(List<Subject> subjects) {
-        // Group subjects by category
         Map<String, List<Subject>> subjectsByCategory = subjects.stream()
                 .collect(Collectors.groupingBy(Subject::getCategory));
 
-        // Convert to CategorySubjects DTOs
         return subjectsByCategory.entrySet().stream()
                 .map(entry -> {
                     CategorySubjects categorySubjects = new CategorySubjects();
@@ -131,11 +127,9 @@ public class SubjectService {
         info.setId(subject.getId());
         info.setName(subject.getName());
         
-        // Calculate tutor count for this subject
         List<Tutor> tutorsForSubject = tutorService.findBySubject(subject);
         info.setTutorCount(tutorsForSubject.size());
         
-        // Calculate average price for this subject
         double averagePrice = tutorsForSubject.stream()
                 .mapToDouble(Tutor::getHourlyRate)
                 .average()

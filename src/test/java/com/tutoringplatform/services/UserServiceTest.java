@@ -22,7 +22,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    // Concrete implementation for testing the abstract class
     private static class ConcreteUser extends User {
         public ConcreteUser(String id, String name, String email, String password) {
             super(name, email, password, UserType.STUDENT);

@@ -135,7 +135,7 @@ class AuthenticationServiceTest {
         request.setName("Jane Doe");
         request.setEmail("jane@email.com");
         request.setPassword("password123");
-        request.setHourlyRate(-10); // Invalid rate
+        request.setHourlyRate(-10);
 
         when(authenticationRepository.emailExists("jane@email.com")).thenReturn(false);
 
@@ -215,7 +215,7 @@ class AuthenticationServiceTest {
         request.setUserType("STUDENT");
         request.setName("John Doe");
         request.setEmail("john@email.com");
-        request.setPassword("123"); // Too short
+        request.setPassword("123");
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
@@ -231,7 +231,7 @@ class AuthenticationServiceTest {
         request.setEmail("jane@email.com");
         request.setPassword("password123");
         request.setHourlyRate(50.0);
-        request.setDescription(""); // Empty description
+        request.setDescription("");
 
         when(authenticationRepository.emailExists("jane@email.com")).thenReturn(false);
 

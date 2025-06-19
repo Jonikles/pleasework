@@ -9,7 +9,6 @@ public class TutorSearchResultsResponse {
     private int totalCount;
     private SearchFilters filters;
 
-    // All getters and setters
     public List<TutorSearchResultInfo> getResults() {
         return results;
     }

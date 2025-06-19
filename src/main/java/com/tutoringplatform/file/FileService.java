@@ -48,16 +48,13 @@ public class FileService {
             throw new IllegalArgumentException("File type not allowed");
         }
 
-        // Generate unique file ID
         String fileId = UUID.randomUUID().toString();
         String extension = fileName.substring(fileName.lastIndexOf("."));
         String storedFileName = fileId + extension;
 
-        // Store file
         Path targetLocation = this.fileStorageLocation.resolve(storedFileName);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-        // Store metadata
         FileMetaData metadata = new FileMetaData(fileId, userId, fileName, fileType, storedFileName);
         fileRepository.save(metadata);
 

@@ -246,7 +246,7 @@ class TutorServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(4.0, result.getValue()); // (5 + 3 + 4) / 3
+        assertEquals(4.0, result.getValue());
     }
 
     @Test

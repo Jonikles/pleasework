@@ -141,7 +141,7 @@ class ReviewServiceTest {
     @Test
     void createReview_invalidRating_throwsException() {
         // Arrange
-        createReviewRequest.setRating(6); // Invalid rating
+        createReviewRequest.setRating(6);
 
         // Act & Assert
         assertThrows(InvalidRatingException.class, () -> reviewService.createReview(createReviewRequest));

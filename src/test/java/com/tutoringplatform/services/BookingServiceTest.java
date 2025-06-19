@@ -254,7 +254,6 @@ class BookingServiceTest {
         Student student = createStudentWithBalance(200.0);
         Tutor tutor = createTutor();
         Subject subject = new Subject("Physics", "Science");
-        // Tutor doesn't have this subject
 
         when(studentRepository.findById(studentId)).thenReturn(student);
         when(tutorRepository.findById(tutorId)).thenReturn(tutor);
@@ -292,7 +291,6 @@ class BookingServiceTest {
         Student student = createStudentWithBalance(200.0);
         Tutor tutor = createTutorWithSubject();
 
-        // Existing booking at the same time
         Booking existingBooking = new Booking("other-student", tutorId, subject, dateTime, 1, 50.0);
 
         when(studentRepository.findById(studentId)).thenReturn(student);
@@ -337,7 +335,7 @@ class BookingServiceTest {
         assertNotNull(result);
         assertEquals(newDateTime, booking.getDateTime());
         assertEquals(3, booking.getDurationHours());
-        assertEquals(150.0, booking.getTotalCost()); // 3 hours * 50.0 rate
+        assertEquals(150.0, booking.getTotalCost());
         verify(bookingRepository).update(booking);
     }
 
@@ -346,7 +344,7 @@ class BookingServiceTest {
         // Arrange
         String bookingId = "booking123";
         Booking booking = createConfirmedBooking();
-        Student student = createStudentWithBalance(0); // Already paid
+        Student student = createStudentWithBalance(0);
         Tutor tutor = createTutor();
         tutor.setEarnings(500.0);
 
@@ -359,7 +357,7 @@ class BookingServiceTest {
 
         // Assert
         assertEquals(Booking.BookingStatus.COMPLETED, booking.getStatus());
-        assertEquals(600.0, tutor.getEarnings()); // 500 + 100
+        assertEquals(600.0, tutor.getEarnings());
         verify(tutorRepository).update(tutor);
         verify(eventPublisher).publishEvent(any());
     }

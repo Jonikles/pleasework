@@ -9,7 +9,6 @@ public class NotificationListResponse {
     private int unreadCount;
     private int totalCount;
 
-    // Getters and setters
     public List<Notification> getNotifications() {
         return notifications;
     }

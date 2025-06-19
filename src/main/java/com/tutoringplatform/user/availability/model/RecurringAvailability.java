@@ -18,7 +18,6 @@ public class RecurringAvailability {
         return !requestStart.isBefore(startTime) && !requestEnd.isAfter(endTime);
     }
 
-    // Getters/setters
     public Long getId() {
         return id;
     }

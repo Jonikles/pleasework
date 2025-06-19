@@ -10,9 +10,8 @@ public class NotificationResponse {
     private String actionUrl;
     private boolean read;
     private LocalDateTime createdAt;
-    private String timeAgo; // "5 minutes ago", "2 hours ago", etc.
+    private String timeAgo;
 
-    // Getters and setters
     public String getId() {
         return id;
     }

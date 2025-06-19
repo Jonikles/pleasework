@@ -4,7 +4,6 @@ import com.tutoringplatform.shared.dto.response.info.BookingInfo;
 
 import java.time.LocalDateTime;
 
-// Single payment details
 public class PaymentResponse {
     private String id;
     private String bookingId;
@@ -14,7 +13,6 @@ public class PaymentResponse {
     private String transactionId;
     private BookingInfo bookingInfo;
 
-    // Getters and setters
     public String getId() {
         return id;
     }

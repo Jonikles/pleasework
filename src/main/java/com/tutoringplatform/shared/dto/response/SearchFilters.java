@@ -7,7 +7,6 @@ public class SearchFilters {
     private double minRating;
     private String sortBy;
 
-    // All getters and setters
     public String getSubjectId() {
         return subjectId;
     }

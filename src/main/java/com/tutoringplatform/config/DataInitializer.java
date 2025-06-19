@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@Profile("!test") // Don't run in test environment
+@Profile("!test")
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
@@ -68,14 +68,12 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         logger.info("Starting data initialization...");
 
-        // Check if data already exists
         if (!subjectRepository.findAll().isEmpty()) {
             logger.info("Data already exists, skipping initialization");
             return;
         }
 
         try {
-            // Initialize in order of dependencies
             initializeSubjects();
             initializeStudents();
             initializeTutors();
@@ -367,7 +365,6 @@ public class DataInitializer implements CommandLineRunner {
         logger.info("Created sample notifications");
     }
 
-    // Helper methods
     private Student createStudent(String name, String email, double balance) {
         Student student = new Student(name, email, passwordEncoder.encode("password123"));
         student.setBalance(balance);
