@@ -16,7 +16,6 @@ public class TutorSearchResultInfo {
     private String shortDescription;
     private LocalDateTime nextAvailable;
 
-    // All getters and setters
     public String getId() {
         return id;
     }

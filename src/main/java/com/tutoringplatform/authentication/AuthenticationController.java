@@ -1,17 +1,22 @@
-package com.tutoringplatform.security.authentication;
+package com.tutoringplatform.authentication;
 
+import com.tutoringplatform.authentication.exceptions.*;
 import com.tutoringplatform.shared.dto.request.LoginRequest;
 import com.tutoringplatform.shared.dto.request.SignupRequest;
 import com.tutoringplatform.shared.dto.response.AuthResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
 
+    private final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
     private final AuthenticationService authenticationService;
 
     @Autowired
@@ -20,22 +25,16 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        try {
-            AuthResponse response = authenticationService.login(request.getEmail(), request.getPassword());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) throws InvalidCredentialsException {
+        logger.debug("Login request received for email: {}", request.getEmail());
+        AuthResponse response = authenticationService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        try {
-            AuthResponse response = authenticationService.signup(request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    public ResponseEntity<?> signup(@RequestBody @Valid SignupRequest request) throws EmailAlreadyExistsException, InvalidTutorRegistrationException, InvalidTimezoneException {
+        logger.debug("Signup request received for type {} email: {}", request.getUserType(), request.getEmail());
+        AuthResponse response = authenticationService.signup(request);
+        return ResponseEntity.ok(response);
     }
 }

@@ -2,11 +2,10 @@ package com.tutoringplatform.shared.dto.response;
 
 public class UserProfile {
     private String name;
-    private double balance; // Students only
-    private double hourlyRate; // Tutors only
+    private double balance;
+    private double hourlyRate;
     private String profilePictureUrl;
 
-    // All getters and setters
     public String getName() {
         return name;
     }

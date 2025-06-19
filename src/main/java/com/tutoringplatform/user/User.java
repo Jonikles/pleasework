@@ -1,11 +1,7 @@
 package com.tutoringplatform.user;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import java.time.ZoneId;
-
-import com.tutoringplatform.booking.Booking;
+import java.util.UUID;
 
 public abstract class User {
     protected String id;
@@ -13,7 +9,6 @@ public abstract class User {
     protected String email;
     protected String password;
     protected UserType userType;
-    protected List<Booking> bookings;
     protected String timeZoneId;
     protected String profilePictureId;
 
@@ -23,16 +18,7 @@ public abstract class User {
         this.email = email;
         this.password = password;
         this.userType = userType;
-        this.bookings = new ArrayList<>();
         this.timeZoneId = ZoneId.systemDefault().getId();
-    }
-
-    public void addBooking(Booking booking) {
-        bookings.add(booking);
-    }
-
-    public void removeBooking(Booking booking) {
-        bookings.remove(booking);
     }
 
     public String getId() {
@@ -73,14 +59,6 @@ public abstract class User {
 
     public void setUserType(UserType userType) {
         this.userType = userType;
-    }
-
-    public List<Booking> getBookings() {
-        return bookings;
-    }
-
-    public void setBookings(List<Booking> bookings) {
-        this.bookings = bookings;
     }
 
     public ZoneId getTimeZone() {

@@ -5,7 +5,6 @@ public class UserInfo {
     private String name;
     private String profilePictureUrl;
 
-    // All getters and setters
     public String getId() {
         return id;
     }

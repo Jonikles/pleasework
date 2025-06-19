@@ -1,16 +1,17 @@
 package com.tutoringplatform.config;
 
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-
 import com.tutoringplatform.booking.BookingService;
 import com.tutoringplatform.payment.PaymentService;
 import com.tutoringplatform.review.ReviewService;
 import com.tutoringplatform.user.student.StudentService;
 import com.tutoringplatform.subject.SubjectService;
 import com.tutoringplatform.user.tutor.TutorService;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
 @Configuration
 @Profile("!test")
 public class DataInitializationConfiguration {

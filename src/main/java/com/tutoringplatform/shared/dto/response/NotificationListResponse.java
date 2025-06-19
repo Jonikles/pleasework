@@ -1,14 +1,14 @@
 package com.tutoringplatform.shared.dto.response;
 
-import com.tutoringplatform.notification.Notification;
 import java.util.List;
+
+import com.tutoringplatform.notification.Notification;
 
 public class NotificationListResponse {
     private List<Notification> notifications;
     private int unreadCount;
     private int totalCount;
 
-    // Getters and setters
     public List<Notification> getNotifications() {
         return notifications;
     }

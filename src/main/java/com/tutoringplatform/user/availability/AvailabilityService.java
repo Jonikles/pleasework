@@ -5,35 +5,41 @@ import com.tutoringplatform.booking.IBookingRepository;
 import com.tutoringplatform.shared.dto.request.TutorAvailabilityRequest;
 import com.tutoringplatform.shared.dto.response.AvailabilityResponse;
 import com.tutoringplatform.user.availability.model.*;
-import com.tutoringplatform.user.tutor.TutorService;
+import com.tutoringplatform.user.tutor.ITutorRepository;
 import com.tutoringplatform.user.tutor.Tutor;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import java.time.*;
 import java.util.*;
 
 @Service
 public class AvailabilityService {
 
+    private final Logger logger = LoggerFactory.getLogger(AvailabilityService.class);
     private final IAvailabilityRepository availabilityRepository;
-    private final TutorService tutorService;
+    private final ITutorRepository tutorRepository;
     private final IBookingRepository bookingRepository;
 
     @Autowired
     public AvailabilityService(IAvailabilityRepository availabilityRepository,
-            TutorService tutorService,
+            ITutorRepository tutorRepository,
             IBookingRepository bookingRepository) {
         this.availabilityRepository = availabilityRepository;
-        this.tutorService = tutorService;
+        this.tutorRepository = tutorRepository;
         this.bookingRepository = bookingRepository;
     }
 
-    public TutorAvailability getAvailability(String tutorId) throws Exception {
+    public TutorAvailability getAvailability(String tutorId) throws UserNotFoundException {
+        logger.debug("Getting availability for tutor {}", tutorId);
         TutorAvailability availability = availabilityRepository.findByTutorId(tutorId);
 
         if (availability == null) {
-            Tutor tutor = tutorService.findById(tutorId);
+            Tutor tutor = tutorRepository.findById(tutorId);
             availability = new TutorAvailability(tutorId, tutor.getTimeZone());
             availabilityRepository.save(availability);
         }
@@ -42,13 +48,15 @@ public class AvailabilityService {
     }
 
     public void addRecurringAvailability(String tutorId, DayOfWeek day, LocalTime start, LocalTime end)
-            throws Exception {
+            throws UserNotFoundException {
+        logger.debug("Adding recurring availability for tutor {}", tutorId);
         TutorAvailability availability = getAvailability(tutorId);
 
         // Check for overlaps
         for (RecurringAvailability existing : availability.getRecurringSlots()) {
             if (existing.getDayOfWeek() == day) {
                 if (!(end.isBefore(existing.getStartTime()) || start.isAfter(existing.getEndTime()))) {
+                    logger.warn("Time slot overlaps with existing availability for tutor {}", tutorId);
                     throw new IllegalArgumentException("Time slot overlaps with existing availability");
                 }
             }
@@ -56,21 +64,25 @@ public class AvailabilityService {
 
         availability.getRecurringSlots().add(new RecurringAvailability(day, start, end));
         availabilityRepository.update(availability);
+        logger.info("Recurring availability from {} to {} added successfully for tutor {}", start, end, tutorId);
     }
 
     public void removeRecurringAvailability(String tutorId, DayOfWeek day, LocalTime start, LocalTime end)
-            throws Exception {
+            throws UserNotFoundException {
+        logger.debug("Removing recurring availability for tutor {}", tutorId);
         TutorAvailability availability = getAvailability(tutorId);
 
         availability.getRecurringSlots().removeIf(slot -> slot.getDayOfWeek() == day &&
                 slot.getStartTime().equals(start) &&
                 slot.getEndTime().equals(end));
 
+        logger.info("Recurring availability from {} to {} removed successfully for tutor {}", start, end, tutorId);
         availabilityRepository.update(availability);
     }
 
     public void addException(String tutorId, LocalDate startDate, LocalDate endDate,
-            LocalTime startTime, LocalTime endTime, boolean available) throws Exception {
+            LocalTime startTime, LocalTime endTime, boolean available) throws UserNotFoundException {
+        logger.debug("Adding exception for tutor {}", tutorId);
         TutorAvailability availability = getAvailability(tutorId);
 
         AvailabilityException exception = new AvailabilityException();
@@ -82,10 +94,12 @@ public class AvailabilityService {
 
         availability.getExceptions().add(exception);
         availabilityRepository.update(availability);
+        logger.info("Exception added successfully for tutor {}", tutorId);
     }
 
     public boolean isAvailable(String tutorId, ZonedDateTime start, ZonedDateTime end, ZoneId studentTimeZone)
-            throws Exception {
+            throws UserNotFoundException {
+        logger.debug("Checking availability for tutor {}", tutorId);
         TutorAvailability availability = getAvailability(tutorId);
 
         // First check basic availability (recurring slots and exceptions)
@@ -116,7 +130,8 @@ public class AvailabilityService {
     }
 
     public List<String> findAvailableTutors(List<String> tutorIds, ZonedDateTime start, ZonedDateTime end,
-            ZoneId studentTimeZone) {
+            ZoneId studentTimeZone) throws UserNotFoundException {
+        logger.debug("Finding available tutors for start {} and end {}", start, end);
         List<String> available = new ArrayList<>();
 
         for (String tutorId : tutorIds) {
@@ -125,6 +140,7 @@ public class AvailabilityService {
                     available.add(tutorId);
                 }
             } catch (Exception e) {
+                //TODO: handle exception
                 // Log error, skip this tutor
             }
         }
@@ -134,19 +150,23 @@ public class AvailabilityService {
 
     // New methods required by TutorController
     public AvailabilityResponse updateTutorAvailability(String tutorId, TutorAvailabilityRequest request)
-            throws Exception {
+            throws UserNotFoundException {
+        logger.debug("Updating tutor availability for tutor {}", tutorId);
         if ("ADD".equalsIgnoreCase(request.getAction())) {
             addRecurringAvailability(tutorId, request.getDayOfWeek(), request.getStartTime(), request.getEndTime());
         } else if ("REMOVE".equalsIgnoreCase(request.getAction())) {
             removeRecurringAvailability(tutorId, request.getDayOfWeek(), request.getStartTime(), request.getEndTime());
         } else {
+            logger.error("Invalid action: {}", request.getAction());
             throw new IllegalArgumentException("Action must be either 'ADD' or 'REMOVE'");
         }
 
+        logger.info("Tutor availability updated successfully for tutor {}", tutorId);
         return getTutorAvailability(tutorId);
     }
 
-    public AvailabilityResponse getTutorAvailability(String tutorId) throws Exception {
+    public AvailabilityResponse getTutorAvailability(String tutorId) throws UserNotFoundException {
+        logger.debug("Getting tutor availability for tutor {}", tutorId);
         TutorAvailability availability = getAvailability(tutorId);
 
         AvailabilityResponse response = new AvailabilityResponse();
@@ -163,7 +183,7 @@ public class AvailabilityService {
     }
 
     private LocalDateTime calculateNextAvailableSlot(TutorAvailability availability) {
-        // Simplified implementation - find the next recurring slot from now
+        logger.debug("Calculating next available slot for tutor {}", availability.getTutorId());
         LocalDateTime now = LocalDateTime.now();
         DayOfWeek currentDay = now.getDayOfWeek();
 

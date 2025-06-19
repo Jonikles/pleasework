@@ -1,4 +1,4 @@
-package com.tutoringplatform.security;
+package com.tutoringplatform.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -8,7 +8,6 @@ public class TutorDashboardResponse {
     private List<BookingDetailResponse> upcomingBookings;
     private List<BookingDetailResponse> todaysSchedule;
 
-    // All getters and setters
     public UserProfile getProfile() {
         return profile;
     }

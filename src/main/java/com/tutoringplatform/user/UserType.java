@@ -3,7 +3,6 @@ package com.tutoringplatform.user;
 public enum UserType {
     STUDENT("Student"),
     TUTOR("Tutor");
-    // Future: ADMIN("Admin")
     
     private final String displayName;
     

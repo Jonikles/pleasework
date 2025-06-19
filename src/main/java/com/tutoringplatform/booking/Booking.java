@@ -1,10 +1,10 @@
 package com.tutoringplatform.booking;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import com.tutoringplatform.payment.Payment;
 import com.tutoringplatform.subject.Subject;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Booking {
     private String id;

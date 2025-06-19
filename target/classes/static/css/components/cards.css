@@ -1,0 +1,41 @@
+/* Card Styles */
+.card {
+    background: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+}
+
+/* Review Display Card */
+.review-card {
+    border-left: 4px solid var(--primary);
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.review-date {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+}

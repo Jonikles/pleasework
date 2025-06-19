@@ -5,12 +5,11 @@ public class AuthResponse {
     private String name;
     private String email;
     private String userType;
-    private double balance; // Students only
-    private double hourlyRate; // Tutors only
+    private double balance;
+    private double hourlyRate;
     private String profilePictureUrl;
     private String timeZoneId;
 
-    // All getters and setters
     public String getId() {
         return id;
     }

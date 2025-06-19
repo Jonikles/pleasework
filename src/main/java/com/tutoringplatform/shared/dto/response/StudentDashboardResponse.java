@@ -7,7 +7,6 @@ public class StudentDashboardResponse {
     private DashboardStats stats;
     private List<BookingDetailResponse> upcomingBookings;
 
-    // All getters and setters
     public UserProfile getProfile() {
         return profile;
     }

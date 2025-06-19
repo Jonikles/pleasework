@@ -6,7 +6,6 @@ public class SubjectInfo {
     private int tutorCount;
     private double averagePrice;
 
-    // All getters and setters
     public String getId() {
         return id;
     }

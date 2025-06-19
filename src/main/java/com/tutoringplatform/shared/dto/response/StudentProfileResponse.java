@@ -12,7 +12,6 @@ public class StudentProfileResponse {
     private LocalDate joinedDate;
     private int totalSessions;
 
-    // All getters and setters
     public String getId() {
         return id;
     }

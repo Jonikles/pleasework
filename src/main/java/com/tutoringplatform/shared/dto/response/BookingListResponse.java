@@ -7,7 +7,6 @@ public class BookingListResponse {
     private List<BookingDetailResponse> pastBookings;
     private List<BookingDetailResponse> cancelledBookings;
 
-    // All getters and setters
     public List<BookingDetailResponse> getUpcomingBookings() {
         return upcomingBookings;
     }

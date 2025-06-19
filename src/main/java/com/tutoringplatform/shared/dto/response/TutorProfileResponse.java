@@ -1,8 +1,9 @@
 package com.tutoringplatform.shared.dto.response;
 
+import com.tutoringplatform.user.availability.model.RecurringAvailability;
+
 import java.time.LocalDate;
 import java.util.List;
-import com.tutoringplatform.user.availability.model.RecurringAvailability;
 
 public class TutorProfileResponse {
     private String id;
@@ -19,7 +20,6 @@ public class TutorProfileResponse {
     private int completedSessions;
     private LocalDate joinedDate;
 
-    // All getters and setters
     public String getId() {
         return id;
     }

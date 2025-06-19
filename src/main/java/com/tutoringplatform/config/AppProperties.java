@@ -22,7 +22,6 @@ public class AppProperties {
         }
     }
 
-    // Getters and Setters
     public String[] getAllowedOrigins() {
         return allowedOrigins;
     }

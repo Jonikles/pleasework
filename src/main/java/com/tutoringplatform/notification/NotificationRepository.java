@@ -1,10 +1,10 @@
 package com.tutoringplatform.notification;
 
+import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class NotificationRepository implements INotificationRepository {

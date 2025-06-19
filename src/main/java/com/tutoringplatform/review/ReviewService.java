@@ -1,18 +1,23 @@
 package com.tutoringplatform.review;
 
 import com.tutoringplatform.booking.Booking;
+import com.tutoringplatform.user.student.Student;
+import com.tutoringplatform.user.tutor.ITutorRepository;
+import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.booking.IBookingRepository;
+import com.tutoringplatform.user.student.StudentService;
+import com.tutoringplatform.review.exceptions.*;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
 import com.tutoringplatform.shared.dto.request.CreateReviewRequest;
 import com.tutoringplatform.shared.dto.response.ReviewResponse;
 import com.tutoringplatform.shared.util.DTOMapper;
-import com.tutoringplatform.user.student.IStudentRepository;
-import com.tutoringplatform.user.tutor.ITutorRepository;
-import com.tutoringplatform.user.student.Student;
-import com.tutoringplatform.user.tutor.Tutor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
@@ -20,57 +25,47 @@ import java.util.ArrayList;
 @Service
 public class ReviewService {
 
+    private final Logger logger = LoggerFactory.getLogger(ReviewService.class);
     private final IReviewRepository reviewRepository;
-    private final IBookingRepository bookingRepository;
-    private final IStudentRepository studentRepository;
+    private final StudentService studentService;
     private final ITutorRepository tutorRepository;
+    private final IBookingRepository bookingRepository;
     private final DTOMapper dtoMapper;
 
     @Autowired
     public ReviewService(
             IReviewRepository reviewRepository,
-            IBookingRepository bookingRepository,
-            IStudentRepository studentRepository,
+            StudentService studentService,
             ITutorRepository tutorRepository,
+            IBookingRepository bookingRepository,
             DTOMapper dtoMapper) {
         this.reviewRepository = reviewRepository;
-        this.bookingRepository = bookingRepository;
-        this.studentRepository = studentRepository;
+        this.studentService = studentService;
         this.tutorRepository = tutorRepository;
+        this.bookingRepository = bookingRepository;
         this.dtoMapper = dtoMapper;
     }
 
     @Transactional
-    public ReviewResponse createReview(CreateReviewRequest request) throws Exception {
-        // Extract student and tutor IDs from request
+    public ReviewResponse createReview(CreateReviewRequest request) throws NoCompletedBookingsException, InvalidRatingException, UserNotFoundException {
+        validateCreateReviewRequest(request);
+        logger.info("Creating review for tutor {} by student {}", request.getTutorId(), request.getStudentId());
         String studentId = request.getStudentId();
         String tutorId = request.getTutorId();
 
-        // Verify student exists
-        Student student = studentRepository.findById(studentId);
-        if (student == null) {
-            throw new Exception("Student not found");
-        }
-
-        // Verify tutor exists
+        Student student = studentService.findById(studentId);
         Tutor tutor = tutorRepository.findById(tutorId);
-        if (tutor == null) {
-            throw new Exception("Tutor not found");
-        }
 
-        // Check if student has completed any bookings with this tutor
-        List<Booking> completedBookings = bookingRepository.findByStudentIdAndTutorIdAndStatus(
-                studentId, tutorId, Booking.BookingStatus.COMPLETED);
+        List<Booking> completedBookings = bookingRepository.findByStudentIdAndTutorIdAndStatus(studentId, tutorId, Booking.BookingStatus.COMPLETED);
 
         if (completedBookings.isEmpty()) {
-            throw new Exception("Can only review tutors you've had completed sessions with");
+            logger.warn("No completed bookings found for student {} with tutor {}", studentId, tutorId);
+            throw new NoCompletedBookingsException(studentId, tutorId);
         }
 
-        // Check if review already exists from this student for this tutor
         Review existingReview = reviewRepository.findByStudentIdAndTutorId(studentId, tutorId);
 
         if (existingReview != null) {
-            // Update existing review
             existingReview.setRating(request.getRating());
             existingReview.setComment(request.getComment());
             existingReview.setTimestamp(LocalDateTime.now());
@@ -79,12 +74,6 @@ public class ReviewService {
             return dtoMapper.toReviewResponse(existingReview, student, tutor);
         }
 
-        // Validate rating
-        if (request.getRating() < 1 || request.getRating() > 5) {
-            throw new Exception("Rating must be between 1 and 5");
-        }
-
-        // Create new review
         Review review = new Review(
                 studentId,
                 tutorId,
@@ -93,61 +82,55 @@ public class ReviewService {
 
         reviewRepository.save(review);
 
-        // Update tutor's reviews list
-        tutor.getReviewsReceived().add(review);
-        tutorRepository.update(tutor);
-
-        // Update student's reviews list
-        student.getReviewsGiven().add(review);
-        studentRepository.update(student);
-
+        logger.info("Review created successfully for tutor {} by student {}", tutorId, studentId);
         return dtoMapper.toReviewResponse(review, student, tutor);
     }
 
     @Transactional
-    public void deleteReview(String id) throws Exception {
+    public void deleteReview(String id) throws ReviewNotFoundException {
+        logger.debug("Deleting review with id {}", id);
         Review review = reviewRepository.findById(id);
         if (review == null) {
-            throw new Exception("Review not found");
+            logger.error("Review not found with id {}", id);
+            throw new ReviewNotFoundException(id);
         }
-        Tutor tutor = tutorRepository.findById(review.getTutorId());
-        tutor.getReviewsReceived().remove(review);
-        tutorRepository.update(tutor);
-
-        Student student = studentRepository.findById(review.getStudentId());
-        student.getReviewsGiven().remove(review);
-        studentRepository.update(student);
         
         reviewRepository.delete(id);
+
+        logger.info("Review deleted successfully with id {}", id);
     }
 
-    public List<ReviewResponse> getTutorReviews(String tutorId) throws Exception {
-        Tutor tutor = tutorRepository.findById(tutorId);
-        if (tutor == null) {
-            throw new Exception("Tutor not found");
-        }
+    public List<Review> getTutorReviews(String tutorId) throws NoCompletedBookingsException, UserNotFoundException {
+        logger.info("Getting reviews for tutor {}", tutorId);
+        tutorRepository.findById(tutorId);
 
         List<Review> reviews = reviewRepository.getTutorReviews(tutorId);
+
+        logger.info("Reviews for tutor {} retrieved successfully", tutorId);
+        return reviews;
+    }
+
+    public List<ReviewResponse> getTutorReviewsResponse(String tutorId) throws NoCompletedBookingsException, UserNotFoundException {
+        logger.info("Getting review DTOs for tutor {}", tutorId);
+        List<Review> reviews = getTutorReviews(tutorId);
+        
         List<ReviewResponse> responses = new ArrayList<>();
 
         for (Review review : reviews) {
-            Student student = studentRepository.findById(review.getStudentId());
+            Student student = studentService.findById(review.getStudentId());
+            Tutor tutor = tutorRepository.findById(review.getTutorId());
 
             ReviewResponse response = dtoMapper.toReviewResponse(review, student, tutor);
             responses.add(response);
         }
 
-        // Sort by most recent first
         responses.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
-
         return responses;
     }
 
-    public List<ReviewResponse> getStudentReviews(String studentId) throws Exception {
-        Student student = studentRepository.findById(studentId);
-        if (student == null) {
-            throw new Exception("Student not found");
-        }
+    public List<ReviewResponse> getStudentReviews(String studentId) throws NoCompletedBookingsException, UserNotFoundException {
+        logger.info("Getting reviews for student {}", studentId);
+        Student student = studentService.findById(studentId);
         List<Review> reviews = reviewRepository.getStudentReviews(studentId);
         List<ReviewResponse> responses = new ArrayList<>();
         for (Review review : reviews) {
@@ -158,6 +141,23 @@ public class ReviewService {
 
         responses.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
 
+        logger.info("Reviews for student {} retrieved successfully", studentId);
         return responses;
+    }
+
+    private void validateCreateReviewRequest(CreateReviewRequest request) throws InvalidRatingException {
+        if (request == null) {
+            throw new IllegalArgumentException("Review request cannot be null");
+        }
+        if (request.getRating() < 1 || request.getRating() > 5) {
+            logger.error("Invalid rating when creating review for tutor {} by student {}: {}", request.getTutorId(), request.getStudentId(), request.getRating());
+            throw new InvalidRatingException(request.getRating());
+        }
+        if (request.getComment().trim().length() < 50) {
+            throw new IllegalArgumentException("Comment must be at least 50 characters");
+        }
+        if (request.getComment().length() > 1000) {
+            throw new IllegalArgumentException("Comment cannot exceed 1000 characters");
+        }
     }
 }

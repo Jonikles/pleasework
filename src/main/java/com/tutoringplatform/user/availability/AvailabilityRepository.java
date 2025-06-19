@@ -1,9 +1,8 @@
-// FILE: src/main/java/com/tutoringplatform/repositories/impl/AvailabilityRepository.java
 package com.tutoringplatform.user.availability;
 
-import org.springframework.stereotype.Repository;
-
 import com.tutoringplatform.user.availability.model.TutorAvailability;
+
+import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.Map;

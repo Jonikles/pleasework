@@ -9,13 +9,11 @@ public class Notification {
     private NotificationType type;
     private String title;
     private String message;
-    private String actionUrl; // Optional URL to navigate when clicked
-    private String relatedEntityId; // ID of related booking, review, etc.
+    private String actionUrl;
+    private String relatedEntityId;
     private boolean read;
     private LocalDateTime createdAt;
-    private LocalDateTime readAt;
-
-    
+    private LocalDateTime readAt;    
 
     public Notification(String userId, NotificationType type, String title, String message) {
         this.id = UUID.randomUUID().toString();
@@ -27,7 +25,6 @@ public class Notification {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Getters and setters
     public String getId() {
         return id;
     }

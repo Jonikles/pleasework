@@ -4,12 +4,11 @@ public class DashboardStats {
     private int totalSessions;
     private int completedSessions;
     private int upcomingSessions;
-    private double totalEarnings; // Tutors only
-    private double thisMonthEarnings; // Tutors only
-    private double averageRating; // Tutors only
-    private int totalReviews; // Tutors only
+    private double totalEarnings;
+    private double thisMonthEarnings;
+    private double averageRating;
+    private int totalReviews;
 
-    // All getters and setters
     public int getTotalSessions() {
         return totalSessions;
     }

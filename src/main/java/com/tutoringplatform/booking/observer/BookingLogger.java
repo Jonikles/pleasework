@@ -1,10 +1,11 @@
 package com.tutoringplatform.booking.observer;
 
+import org.springframework.stereotype.Component;
+import org.springframework.context.event.EventListener;
+
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.stereotype.Component;
-import org.springframework.context.event.EventListener;
 
 @Component
 public class BookingLogger {

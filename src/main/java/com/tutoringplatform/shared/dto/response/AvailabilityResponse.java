@@ -1,10 +1,10 @@
 package com.tutoringplatform.shared.dto.response;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.tutoringplatform.user.availability.model.AvailabilityException;
 import com.tutoringplatform.user.availability.model.RecurringAvailability;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class AvailabilityResponse {
     private String tutorId;

@@ -1,10 +1,11 @@
-package com.tutoringplatform.security.authentication;
+package com.tutoringplatform.authentication;
 
 import com.tutoringplatform.user.student.Student;
 import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.user.User;
 import com.tutoringplatform.user.student.IStudentRepository;
 import com.tutoringplatform.user.tutor.ITutorRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
