@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.InOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -37,7 +38,7 @@ class PaymentServiceTest {
         paymentService = new PaymentService(paymentRepository, studentRepository, bookingRepository);
     }
 
-@Test
+    @Test
     void processPayment_Success() throws Exception {
         // Arrange
         String studentId = "student123";
@@ -154,5 +155,63 @@ class PaymentServiceTest {
         // Act & Assert
         assertThrows(PaymentNotFoundException.class,
                 () -> paymentService.findById(paymentId));
+    }
+    
+    @Test
+    void processPayment_StudentNotFound_ThrowsException() {
+        // Arrange
+        String studentId = "nonexistent";
+        String bookingId = "booking456";
+        double amount = 100.0;
+
+        when(studentRepository.findById(studentId)).thenReturn(null);
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> paymentService.processPayment(studentId, bookingId, amount));
+
+        assertTrue(exception.getMessage().contains("Student not found"));
+    }
+
+    @Test
+    void refundPayment_NotCompletedPayment_ThrowsException() {
+        // Arrange
+        String paymentId = "payment123";
+        String bookingId = "booking456";
+
+        Payment payment = new Payment(bookingId, 100.0);
+        payment.setId(paymentId);
+        payment.setStatus(Payment.PaymentStatus.PENDING); // Not completed
+
+        when(paymentRepository.findById(paymentId)).thenReturn(payment);
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> paymentService.refundPayment(paymentId));
+
+        assertTrue(exception.getMessage().contains("Can only refund completed payments"));
+    }
+
+    @Test
+    void processPayment_VerifyTransactionOrder() throws Exception {
+        // Arrange
+        String studentId = "student123";
+        String bookingId = "booking456";
+        double amount = 100.0;
+
+        Student student = new Student("John", "john@email.com", "password");
+        student.setId(studentId);
+        student.setBalance(200.0);
+
+        when(studentRepository.findById(studentId)).thenReturn(student);
+
+        // Act
+        paymentService.processPayment(studentId, bookingId, amount);
+
+        // Assert - verify order of operations
+        InOrder inOrder = inOrder(paymentRepository, studentRepository);
+        inOrder.verify(studentRepository).findById(studentId);
+        inOrder.verify(paymentRepository).save(any(Payment.class));
+        inOrder.verify(studentRepository).update(student);
     }
 }

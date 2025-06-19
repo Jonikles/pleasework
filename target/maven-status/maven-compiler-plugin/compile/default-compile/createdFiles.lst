@@ -137,6 +137,7 @@ com\tutoringplatform\notification\NotificationController.class
 com\tutoringplatform\subject\SubjectRepository.class
 com\tutoringplatform\user\tutor\exceptions\TutorNotTeachingSubjectException.class
 com\tutoringplatform\payment\command\ProcessPaymentCommand.class
+com\tutoringplatform\config\DataInitializer.class
 com\tutoringplatform\shared\dto\request\SignupRequest.class
 com\tutoringplatform\shared\dto\response\ReviewResponse.class
 com\tutoringplatform\config\SecurityConfig.class

@@ -29,7 +29,6 @@ public class ProcessPaymentCommand implements IPaymentCommand {
     public void execute() throws InsufficientBalanceException {
         logger.info("Executing payment command for student {}, amount {}", student.getId(), amount);
 
-        Student student = studentRepository.findById(this.student.getId());
         if (student == null) {
             logger.error("Student not found for payment command");
             throw new IllegalStateException("Data corruption error: Student not found for payment command");

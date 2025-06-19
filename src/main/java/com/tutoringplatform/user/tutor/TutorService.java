@@ -1,11 +1,11 @@
 package com.tutoringplatform.user.tutor;
 
 import com.tutoringplatform.booking.Booking;
+import com.tutoringplatform.booking.IBookingRepository;
 import com.tutoringplatform.review.Review;
 import com.tutoringplatform.subject.Subject;
-import com.tutoringplatform.booking.BookingService;
 import com.tutoringplatform.file.FileService;
-import com.tutoringplatform.subject.SubjectService;
+import com.tutoringplatform.subject.ISubjectRepository;
 import com.tutoringplatform.review.ReviewService;
 import com.tutoringplatform.user.UserService;
 import com.tutoringplatform.user.availability.AvailabilityService;
@@ -49,8 +49,8 @@ public class TutorService extends UserService<Tutor> {
 
     private final Logger logger = LoggerFactory.getLogger(TutorService.class);
     private final ITutorRepository repository;
-    private final SubjectService subjectService;
-    private final BookingService bookingService;
+    private final ISubjectRepository subjectRepository;
+    private final IBookingRepository bookingRepository;
     private final ReviewService reviewService;
     private final AvailabilityService availabilityService;
     private final FileService fileService;
@@ -59,8 +59,8 @@ public class TutorService extends UserService<Tutor> {
     @Autowired
     public TutorService(
             ITutorRepository repository,
-            SubjectService subjectService,
-            BookingService bookingService,
+            ISubjectRepository subjectRepository,
+            IBookingRepository bookingRepository,
             ReviewService reviewService,
             AvailabilityService availabilityService,
             FileService fileService,
@@ -68,8 +68,8 @@ public class TutorService extends UserService<Tutor> {
             DTOMapper dtoMapper) {
         super(repository);
         this.repository = repository;
-        this.subjectService = subjectService;
-        this.bookingService = bookingService;
+        this.subjectRepository = subjectRepository;
+        this.bookingRepository = bookingRepository;
         this.reviewService = reviewService;
         this.availabilityService = availabilityService;
         this.fileService = fileService;
@@ -92,7 +92,7 @@ public class TutorService extends UserService<Tutor> {
                         .orElse(0.0);
 
         // Count completed sessions
-        List<Booking> bookings = bookingService.getTutorBookingList(tutorId);
+        List<Booking> bookings = bookingRepository.findByTutorId(tutorId);
         int completedSessions = (int) bookings.stream()
                 .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
                 .count();
@@ -228,7 +228,7 @@ public class TutorService extends UserService<Tutor> {
         NoCompletedBookingsException {
         logger.debug("Adding subject {} to tutor {}", subjectId, tutorId);
         Tutor tutor = findById(tutorId);
-        Subject subject = subjectService.findById(subjectId);
+        Subject subject = subjectRepository.findById(subjectId);
 
         if (subject == null) {
             logger.error("Subject not found: {}", subjectId);
@@ -253,13 +253,13 @@ public class TutorService extends UserService<Tutor> {
         TutorHasBookingsException, NoCompletedBookingsException, PaymentNotFoundException {
         logger.debug("Removing subject {} from tutor {}", subjectId, tutorId);
         Tutor tutor = findById(tutorId);
-        Subject subject = subjectService.findById(subjectId);
+        Subject subject = subjectRepository.findById(subjectId);
 
         if (!tutor.getSubjects().contains(subject)) {
             logger.error("Tutor {} does not teach this subject: {}", tutorId, subjectId);
             throw new TutorNotTeachingSubjectException(tutorId, subjectId);
         }
-        List<Booking> bookingsForSubject = bookingService.getTutorBookingsBySubject(tutorId, subjectId);
+        List<Booking> bookingsForSubject = bookingRepository.findByTutorIdAndSubjectId(tutorId, subjectId);
         if (!bookingsForSubject.isEmpty()) {
             logger.error("Cannot remove subject with existing bookings: {}", subjectId);
             throw new TutorHasBookingsException(tutorId, subjectId);

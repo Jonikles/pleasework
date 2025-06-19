@@ -268,6 +268,10 @@ public class GlobalExceptionHandler {
             case "INVALID_HOURLY_RATE":
             case "SUBJECT_MANAGEMENT_ERROR":
                 return HttpStatus.BAD_REQUEST;
+            case "TUTOR_TEACHES_SUBJECT":
+                return HttpStatus.CONFLICT;
+            case "TUTOR_HAS_BOOKINGS":
+                return HttpStatus.CONFLICT;
             default:
                 return HttpStatus.BAD_REQUEST;
         }

@@ -3,7 +3,7 @@ package com.tutoringplatform.services;
 import com.tutoringplatform.authentication.exceptions.EmailAlreadyExistsException;
 import com.tutoringplatform.authentication.exceptions.InvalidTimezoneException;
 import com.tutoringplatform.booking.Booking;
-import com.tutoringplatform.booking.BookingService;
+import com.tutoringplatform.booking.IBookingRepository;
 import com.tutoringplatform.file.FileService;
 import com.tutoringplatform.shared.dto.request.UpdateProfileRequest;
 import com.tutoringplatform.shared.dto.response.StudentProfileResponse;
@@ -43,7 +43,7 @@ class StudentServiceTest {
     @Mock
     private IStudentRepository studentRepository;
     @Mock
-    private BookingService bookingService;
+    private IBookingRepository bookingRepository;
     @Mock
     private FileService fileService;
     @Mock
@@ -62,7 +62,7 @@ class StudentServiceTest {
 
     @BeforeEach
     void setUp() {
-        studentService = new StudentService(studentRepository, bookingService, fileService, passwordEncoder, dtoMapper);
+        studentService = new StudentService(studentRepository, bookingRepository, fileService, passwordEncoder, dtoMapper);
         student = new Student("John Doe", "john.doe@example.com", "encodedPassword");
         student.setId(studentId);
         student.setBalance(100.0);
@@ -74,7 +74,7 @@ class StudentServiceTest {
         // Arrange
         StudentProfileResponse expectedResponse = new StudentProfileResponse();
         when(studentRepository.findById(studentId)).thenReturn(student);
-        when(bookingService.getStudentBookingList(studentId)).thenReturn(Collections.singletonList(new Booking(studentId, tutorId, subject, dateTime, durationHours, hourlyRate)));
+        when(bookingRepository.findByStudentId(studentId)).thenReturn(Collections.singletonList(new Booking(studentId, tutorId, subject, dateTime, durationHours, hourlyRate)));
         when(dtoMapper.toStudentProfileResponse(eq(student), any(), eq(1))).thenReturn(expectedResponse);
 
         // Act
@@ -84,7 +84,7 @@ class StudentServiceTest {
         assertNotNull(actualResponse);
         assertEquals(expectedResponse, actualResponse);
         verify(studentRepository).findById(studentId);
-        verify(bookingService).getStudentBookingList(studentId);
+        verify(bookingRepository).findByStudentId(studentId);
     }
 
     @Test
@@ -103,7 +103,7 @@ class StudentServiceTest {
         when(studentRepository.findByEmail(request.getEmail())).thenReturn(null);
         when(passwordEncoder.matches("oldPassword", "encodedPassword")).thenReturn(true);
         when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedPassword");
-        when(bookingService.getStudentBookingList(studentId)).thenReturn(Collections.emptyList());
+        when(bookingRepository.findByStudentId(studentId)).thenReturn(Collections.emptyList());
         when(dtoMapper.toStudentProfileResponse(any(Student.class), any(), anyInt())).thenReturn(expectedResponse);
 
         // Act

@@ -5,7 +5,7 @@ import com.tutoringplatform.booking.IBookingRepository;
 import com.tutoringplatform.shared.dto.request.TutorAvailabilityRequest;
 import com.tutoringplatform.shared.dto.response.AvailabilityResponse;
 import com.tutoringplatform.user.availability.model.*;
-import com.tutoringplatform.user.tutor.TutorService;
+import com.tutoringplatform.user.tutor.ITutorRepository;
 import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.user.exceptions.UserNotFoundException;
 
@@ -22,15 +22,15 @@ public class AvailabilityService {
 
     private final Logger logger = LoggerFactory.getLogger(AvailabilityService.class);
     private final IAvailabilityRepository availabilityRepository;
-    private final TutorService tutorService;
+    private final ITutorRepository tutorRepository;
     private final IBookingRepository bookingRepository;
 
     @Autowired
     public AvailabilityService(IAvailabilityRepository availabilityRepository,
-            TutorService tutorService,
+            ITutorRepository tutorRepository,
             IBookingRepository bookingRepository) {
         this.availabilityRepository = availabilityRepository;
-        this.tutorService = tutorService;
+        this.tutorRepository = tutorRepository;
         this.bookingRepository = bookingRepository;
     }
 
@@ -39,7 +39,7 @@ public class AvailabilityService {
         TutorAvailability availability = availabilityRepository.findByTutorId(tutorId);
 
         if (availability == null) {
-            Tutor tutor = tutorService.findById(tutorId);
+            Tutor tutor = tutorRepository.findById(tutorId);
             availability = new TutorAvailability(tutorId, tutor.getTimeZone());
             availabilityRepository.save(availability);
         }

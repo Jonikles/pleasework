@@ -73,6 +73,12 @@ public class PaymentService {
             throw new PaymentNotFoundException(paymentId);
         }
 
+        if (payment.getStatus() != Payment.PaymentStatus.COMPLETED) {
+            logger.error("Attempted to refund a payment that is not completed. Status: {}", payment.getStatus());
+            throw new IllegalStateException(
+                    "Can only refund completed payments. Current status: " + payment.getStatus());
+        }
+
         Booking booking = bookingRepository.findById(payment.getBookingId());
         if (booking == null) {
             logger.error("Booking not found for refund");

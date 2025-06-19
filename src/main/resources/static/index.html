@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutoring Platform</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -18,6 +19,26 @@
                 <div class="navbar-nav ms-auto">
                     <span class="navbar-text me-3" id="userNameDisplay"></span>
                     <span class="navbar-text me-3" id="balanceDisplay"></span>
+                    <!-- Notification bell -->
+                    <div class="dropdown me-3">
+                        <button class="btn btn-outline-light position-relative" id="notificationBell"
+                            data-bs-toggle="dropdown">
+                            <i class="bi bi-bell"></i>
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                id="notificationCount" style="display: none;">
+                                0
+                            </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" id="notificationDropdown" style="width: 350px;">
+                            <h6 class="dropdown-header">Notifications</h6>
+                            <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
+                                <!-- Notifications will be populated here -->
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-center" href="#" id="markAllReadBtn">Mark all as read</a>
+                        </div>
+                    </div>
                     <button class="btn btn-outline-light" id="logoutBtn">Logout</button>
                 </div>
             </div>
@@ -69,10 +90,13 @@
                                 <div class="mb-3">
                                     <label for="signupEmail" class="form-label">Email</label>
                                     <input type="email" class="form-control" id="signupEmail" required>
+                                    <div class="invalid-feedback">Please enter a valid email address</div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="signupPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="signupPassword" required>
+                                    <div class="invalid-feedback">Password must be at least 8 characters</div>
+                                    <small id="passwordStrength" class="form-text"></small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="signupTimeZone" class="form-label">Time Zone</label>
@@ -115,6 +139,10 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Profile</h5>
+                            <div class="text-center mb-3">
+                                <img id="studentProfilePic" src="/api/files/default-avatar" alt="Profile"
+                                    class="profile-picture-preview">
+                            </div>
                             <p>Name: <span id="studentName"></span></p>
                             <p>Balance: $<span id="studentBalance"></span></p>
                             <button class="btn btn-sm btn-primary" id="addFundsBtn">Add Funds</button>
@@ -156,9 +184,13 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Profile</h5>
+                            <div class="text-center mb-3">
+                                <img id="tutorProfilePic" src="/api/files/default-avatar" alt="Profile"
+                                    class="profile-picture-preview">
+                            </div>
                             <p>Name: <span id="tutorName"></span></p>
                             <p>Rate: $<span id="tutorRate"></span>/hr</p>
-                            <p>Rating: <span id="tutorRating"></span> ⭐</p>
+                            <p>Rating: <span id="tutorRating"></span></p>
                             <p>Earnings: $<span id="tutorEarnings"></span></p>
                             <button class="btn btn-sm btn-secondary" id="editTutorProfileBtn">Edit Profile</button>
                         </div>
@@ -339,6 +371,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="alert alert-danger modal-error" style="display: none;"></div>
                         <form id="profileEditForm">
                             <div class="mb-3">
                                 <label for="editName" class="form-label">Name</label>
@@ -369,6 +402,11 @@
                                     <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <label for="profilePictureUpload" class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" id="profilePictureUpload" accept="image/*">
+                                <small class="text-muted">Accepted formats: JPG, PNG (Max 5MB)</small>
+                            </div>
                             <div id="tutorEditFields" style="display: none;">
                                 <div class="mb-3">
                                     <label for="editHourlyRate" class="form-label">Hourly Rate ($)</label>
@@ -377,6 +415,7 @@
                                 <div class="mb-3">
                                     <label for="editDescription" class="form-label">Description</label>
                                     <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                                    <small id="autoSaveIndicator" class="text-muted"></small>
                                 </div>
                             </div>
                         </form>
@@ -398,6 +437,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="alert alert-danger modal-error" style="display: none;"></div>
                         <form id="addFundsForm">
                             <div class="mb-3">
                                 <label for="fundAmount" class="form-label">Amount ($)</label>
@@ -422,6 +462,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="alert alert-danger modal-error" style="display: none;"></div>
                         <form id="createBookingForm">
                             <input type="hidden" id="bookingTutorId">
                             <div class="mb-3">
@@ -432,7 +473,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="bookingDate" class="form-label">Date</label>
-                                <input type="date" class="form-control" id="bookingDate" required>
+                                <input type="date" class="form-control" id="bookingDate" required min="">
                             </div>
                             <div class="mb-3">
                                 <label for="bookingTime" class="form-label">Time</label>
@@ -463,6 +504,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="alert alert-danger modal-error" style="display: none;"></div>
                         <form id="reviewForm">
                             <input type="hidden" id="reviewTutorId">
                             <div class="mb-3">
@@ -479,6 +521,7 @@
                             <div class="mb-3">
                                 <label for="reviewComment" class="form-label">Comment</label>
                                 <textarea class="form-control" id="reviewComment" rows="3" required></textarea>
+                                <small class="text-muted">Minimum 50 characters required</small>
                             </div>
                         </form>
                     </div>
@@ -506,6 +549,44 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Generic Confirmation Modal -->
+        <div class="modal fade" id="confirmModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmTitle">Confirm Action</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="confirmMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="confirmCancelBtn">Cancel</button>
+                        <button type="button" class="btn btn-warning" id="confirmActionBtn">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="loading-message mt-3">Loading...</p>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
         </div>
     </div>
 

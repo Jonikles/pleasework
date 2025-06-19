@@ -8,6 +8,7 @@ import com.tutoringplatform.shared.dto.response.AuthResponse;
 import com.tutoringplatform.user.student.Student;
 import com.tutoringplatform.user.student.IStudentRepository;
 import com.tutoringplatform.user.tutor.ITutorRepository;
+import com.tutoringplatform.user.tutor.Tutor;
 import com.tutoringplatform.shared.factory.UserFactory;
 import com.tutoringplatform.shared.util.DTOMapper;
 
@@ -135,6 +136,102 @@ class AuthenticationServiceTest {
         request.setEmail("jane@email.com");
         request.setPassword("password123");
         request.setHourlyRate(-10); // Invalid rate
+
+        when(authenticationRepository.emailExists("jane@email.com")).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(InvalidTutorRegistrationException.class,
+                () -> authenticationService.signup(request));
+    }
+    
+    @Test
+    void signup_Tutor_Success() throws Exception {
+        // Arrange
+        SignupRequest request = new SignupRequest();
+        request.setUserType("TUTOR");
+        request.setName("Jane Doe");
+        request.setEmail("jane@email.com");
+        request.setPassword("password123");
+        request.setTimeZoneId("America/New_York");
+        request.setHourlyRate(50.0);
+        request.setDescription("Experienced math tutor with 5 years of teaching experience.");
+
+        Tutor tutor = new Tutor("Jane Doe", "jane@email.com", "encodedPassword", 50.0, "Experienced math tutor");
+        AuthResponse expectedResponse = new AuthResponse();
+
+        when(authenticationRepository.emailExists("jane@email.com")).thenReturn(false);
+        when(userFactory.createTutor(anyString(), anyString(), anyString(), anyDouble(), anyString()))
+                .thenReturn(tutor);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(dtoMapper.toAuthResponse(any(Tutor.class), eq(0.0), eq(50.0))).thenReturn(expectedResponse);
+
+        // Act
+        AuthResponse result = authenticationService.signup(request);
+
+        // Assert
+        assertNotNull(result);
+        verify(tutorRepository).save(any(Tutor.class));
+        verify(tutorRepository).save(argThat(t -> t.getHourlyRate() == 50.0));
+    }
+
+    @Test
+    void signup_InvalidTimezone_ThrowsException() {
+        // Arrange
+        SignupRequest request = new SignupRequest();
+        request.setUserType("STUDENT");
+        request.setName("John Doe");
+        request.setEmail("john@email.com");
+        request.setPassword("password123");
+        request.setTimeZoneId("Invalid/Timezone");
+
+        when(authenticationRepository.emailExists("john@email.com")).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(InvalidTimezoneException.class,
+                () -> authenticationService.signup(request));
+    }
+
+    @Test
+    void login_WrongPassword_ThrowsException() {
+        // Arrange
+        String email = "test@email.com";
+        String password = "wrongpassword";
+        String encodedPassword = "encodedPassword";
+
+        Student student = new Student("Test User", email, encodedPassword);
+
+        when(authenticationRepository.findByEmail(email)).thenReturn(student);
+        when(passwordEncoder.matches(password, encodedPassword)).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(InvalidCredentialsException.class,
+                () -> authenticationService.login(email, password));
+    }
+
+    @Test
+    void signup_WeakPassword_ThrowsException() {
+        // Arrange
+        SignupRequest request = new SignupRequest();
+        request.setUserType("STUDENT");
+        request.setName("John Doe");
+        request.setEmail("john@email.com");
+        request.setPassword("123"); // Too short
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> authenticationService.signup(request));
+    }
+
+    @Test
+    void signup_TutorWithoutDescription_ThrowsException() {
+        // Arrange
+        SignupRequest request = new SignupRequest();
+        request.setUserType("TUTOR");
+        request.setName("Jane Doe");
+        request.setEmail("jane@email.com");
+        request.setPassword("password123");
+        request.setHourlyRate(50.0);
+        request.setDescription(""); // Empty description
 
         when(authenticationRepository.emailExists("jane@email.com")).thenReturn(false);
 

@@ -6,7 +6,7 @@ import com.tutoringplatform.shared.dto.response.StudentProfileResponse;
 import com.tutoringplatform.shared.dto.response.ValueResponse;
 import com.tutoringplatform.shared.util.DTOMapper;
 import com.tutoringplatform.user.UserService;
-import com.tutoringplatform.booking.BookingService;
+import com.tutoringplatform.booking.IBookingRepository;
 import com.tutoringplatform.booking.Booking;
 import com.tutoringplatform.user.exceptions.UserNotFoundException;
 import com.tutoringplatform.authentication.exceptions.EmailAlreadyExistsException;
@@ -35,7 +35,7 @@ import java.time.DateTimeException;
 public class StudentService extends UserService<Student> {
 
     private final Logger logger = LoggerFactory.getLogger(StudentService.class);
-    private final BookingService bookingService;
+    private final IBookingRepository bookingRepository;
     private final FileService fileService;
     private final PasswordEncoder passwordEncoder;
     private final DTOMapper dtoMapper;
@@ -43,12 +43,12 @@ public class StudentService extends UserService<Student> {
     @Autowired
     public StudentService(
             IStudentRepository studentRepository,
-            BookingService bookingService,
+            IBookingRepository bookingRepository,
             FileService fileService,
             PasswordEncoder passwordEncoder,
             DTOMapper dtoMapper) {
         super(studentRepository);
-        this.bookingService = bookingService;
+        this.bookingRepository = bookingRepository;
         this.fileService = fileService;
         this.passwordEncoder = passwordEncoder;
         this.dtoMapper = dtoMapper;
@@ -62,7 +62,7 @@ public class StudentService extends UserService<Student> {
         LocalDate joinedDate = LocalDate.now().minusYears(1); // Placeholder
 
         // Count total sessions
-        List<Booking> bookings = bookingService.getStudentBookingList(studentId);
+        List<Booking> bookings = bookingRepository.findByStudentId(studentId);
         int totalSessions = bookings.size();
 
         logger.info("Student profile found successfully for student: {}", studentId);

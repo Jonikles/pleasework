@@ -1,7 +1,7 @@
 $outputFile = "java_project_dump.txt"
 Clear-Content -Path $outputFile -ErrorAction SilentlyContinue
 
-$extensions = @(".java", ".css", ".js", ".html")
+$extensions = @(".js", ".html", ".css")
 
 Get-ChildItem -Recurse -File | Where-Object { $_.Extension -in $extensions } | ForEach-Object {
     $relativePath = $_.FullName.Substring($PWD.Path.Length + 1)

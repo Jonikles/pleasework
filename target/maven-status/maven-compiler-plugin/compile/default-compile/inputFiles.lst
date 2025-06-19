@@ -23,6 +23,7 @@ C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\bookin
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\booking\observer\NotificationObserver.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\config\AppProperties.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\config\DataInitializationConfiguration.java
+C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\config\DataInitializer.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\config\SecurityConfig.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\config\WebConfiguration.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\file\exception\FileException.java
@@ -35,7 +36,6 @@ C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\file\I
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\notification\INotificationRepository.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\notification\Notification.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\notification\NotificationController.java
-C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\notification\NotificationObserver.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\notification\NotificationRepository.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\notification\NotificationService.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\notification\NotificationType.java

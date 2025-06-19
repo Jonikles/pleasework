@@ -1,11 +1,11 @@
 package com.tutoringplatform.user.tutor.exceptions;
 
-public class TutorTeachesSubjectException extends Exception {
-    private String tutorId;
-    private String subjectId;
+public class TutorTeachesSubjectException extends TutorException {
+    private final String tutorId;
+    private final String subjectId;
 
     public TutorTeachesSubjectException(String tutorId, String subjectId) {
-        super(String.format("Tutor already teaches this subject: %s", subjectId));
+        super("TUTOR_TEACHES_SUBJECT", String.format("Tutor %s already teaches this subject: %s", tutorId, subjectId));
         this.tutorId = tutorId;
         this.subjectId = subjectId;
     }

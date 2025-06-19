@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.tutoringplatform.services.AuthenticationServiceTest" time="0.029" tests="5" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.tutoringplatform.services.AuthenticationServiceTest" time="0.067" tests="10" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="24"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -16,7 +16,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-24\bin"/>
-    <property name="sun.java.command" value="C:\Users\Joni\AppData\Local\Temp\surefire10638109521562549615\surefirebooter-20250619015619730_3.jar C:\Users\Joni\AppData\Local\Temp\surefire10638109521562549615 2025-06-19T01-56-19_588-jvmRun1 surefire-20250619015619730_1tmp surefire_0-20250619015619730_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\Joni\AppData\Local\Temp\surefire17124969379657964857\surefirebooter-20250619182519348_3.jar C:\Users\Joni\AppData\Local\Temp\surefire17124969379657964857 2025-06-19T18-25-19_184-jvmRun1 surefire-20250619182519348_1tmp surefire_0-20250619182519348_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\Joni\Desktop\tutoringPlatform\target\test-classes;C:\Users\Joni\Desktop\tutoringPlatform\target\classes;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.5.0\spring-boot-starter-web-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter\3.5.0\spring-boot-starter-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.5.0\spring-boot-starter-logging-3.5.0.jar;C:\Users\Joni\.m2\repository\ch\qos\logback\logback-classic\1.5.18\logback-classic-1.5.18.jar;C:\Users\Joni\.m2\repository\ch\qos\logback\logback-core\1.5.18\logback-core-1.5.18.jar;C:\Users\Joni\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.24.3\log4j-to-slf4j-2.24.3.jar;C:\Users\Joni\.m2\repository\org\apache\logging\log4j\log4j-api\2.24.3\log4j-api-2.24.3.jar;C:\Users\Joni\.m2\repository\org\slf4j\jul-to-slf4j\2.0.17\jul-to-slf4j-2.0.17.jar;C:\Users\Joni\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Joni\.m2\repository\org\yaml\snakeyaml\2.4\snakeyaml-2.4.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.5.0\spring-boot-starter-json-3.5.0.jar;C:\Users\Joni\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.19.0\jackson-databind-2.19.0.jar;C:\Users\Joni\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.19.0\jackson-annotations-2.19.0.jar;C:\Users\Joni\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.19.0\jackson-core-2.19.0.jar;C:\Users\Joni\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.19.0\jackson-datatype-jdk8-2.19.0.jar;C:\Users\Joni\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.19.0\jackson-datatype-jsr310-2.19.0.jar;C:\Users\Joni\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.19.0\jackson-module-parameter-names-2.19.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.5.0\spring-boot-starter-tomcat-3.5.0.jar;C:\Users\Joni\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.41\tomcat-embed-core-10.1.41.jar;C:\Users\Joni\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.41\tomcat-embed-websocket-10.1.41.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-web\6.2.7\spring-web-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-beans\6.2.7\spring-beans-6.2.7.jar;C:\Users\Joni\.m2\repository\io\micrometer\micrometer-observation\1.15.0\micrometer-observation-1.15.0.jar;C:\Users\Joni\.m2\repository\io\micrometer\micrometer-commons\1.15.0\micrometer-commons-1.15.0.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-webmvc\6.2.7\spring-webmvc-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-context\6.2.7\spring-context-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-expression\6.2.7\spring-expression-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.5.0\spring-boot-starter-security-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-aop\6.2.7\spring-aop-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\security\spring-security-config\6.5.0\spring-security-config-6.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\security\spring-security-core\6.5.0\spring-security-core-6.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\security\spring-security-crypto\6.5.0\spring-security-crypto-6.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\security\spring-security-web\6.5.0\spring-security-web-6.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.5.0\spring-boot-starter-jdbc-3.5.0.jar;C:\Users\Joni\.m2\repository\com\zaxxer\HikariCP\6.3.0\HikariCP-6.3.0.jar;C:\Users\Joni\.m2\repository\org\slf4j\slf4j-api\2.0.17\slf4j-api-2.0.17.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-jdbc\6.2.7\spring-jdbc-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-tx\6.2.7\spring-tx-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-configuration-processor\3.5.0\spring-boot-configuration-processor-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-devtools\3.5.0\spring-boot-devtools-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot\3.5.0\spring-boot-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.5.0\spring-boot-autoconfigure-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.5.0\spring-boot-starter-test-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-test\3.5.0\spring-boot-test-3.5.0.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.5.0\spring-boot-test-autoconfigure-3.5.0.jar;C:\Users\Joni\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\Joni\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\Joni\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\Joni\.m2\repository\net\minidev\json-smart\2.5.2\json-smart-2.5.2.jar;C:\Users\Joni\.m2\repository\net\minidev\accessors-smart\2.5.2\accessors-smart-2.5.2.jar;C:\Users\Joni\.m2\repository\org\ow2\asm\asm\9.7.1\asm-9.7.1.jar;C:\Users\Joni\.m2\repository\org\assertj\assertj-core\3.27.3\assertj-core-3.27.3.jar;C:\Users\Joni\.m2\repository\net\bytebuddy\byte-buddy\1.17.5\byte-buddy-1.17.5.jar;C:\Users\Joni\.m2\repository\org\awaitility\awaitility\4.3.0\awaitility-4.3.0.jar;C:\Users\Joni\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\Joni\.m2\repository\org\junit\jupiter\junit-jupiter\5.12.2\junit-jupiter-5.12.2.jar;C:\Users\Joni\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.12.2\junit-jupiter-api-5.12.2.jar;C:\Users\Joni\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Joni\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.12.2\junit-jupiter-params-5.12.2.jar;C:\Users\Joni\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.12.2\junit-jupiter-engine-5.12.2.jar;C:\Users\Joni\.m2\repository\org\mockito\mockito-core\5.17.0\mockito-core-5.17.0.jar;C:\Users\Joni\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.5\byte-buddy-agent-1.17.5.jar;C:\Users\Joni\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Joni\.m2\repository\org\mockito\mockito-junit-jupiter\5.17.0\mockito-junit-jupiter-5.17.0.jar;C:\Users\Joni\.m2\repository\org\skyscreamer\jsonassert\1.5.3\jsonassert-1.5.3.jar;C:\Users\Joni\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-core\6.2.7\spring-core-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-jcl\6.2.7\spring-jcl-6.2.7.jar;C:\Users\Joni\.m2\repository\org\springframework\spring-test\6.2.7\spring-test-6.2.7.jar;C:\Users\Joni\.m2\repository\org\xmlunit\xmlunit-core\2.10.1\xmlunit-core-2.10.1.jar;C:\Users\Joni\.m2\repository\org\junit\platform\junit-platform-suite\1.12.2\junit-platform-suite-1.12.2.jar;C:\Users\Joni\.m2\repository\org\junit\platform\junit-platform-suite-api\1.12.2\junit-platform-suite-api-1.12.2.jar;C:\Users\Joni\.m2\repository\org\junit\platform\junit-platform-commons\1.12.2\junit-platform-commons-1.12.2.jar;C:\Users\Joni\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Joni\.m2\repository\org\junit\platform\junit-platform-suite-engine\1.12.2\junit-platform-suite-engine-1.12.2.jar;C:\Users\Joni\.m2\repository\org\junit\platform\junit-platform-engine\1.12.2\junit-platform-engine-1.12.2.jar;C:\Users\Joni\.m2\repository\org\junit\platform\junit-platform-suite-commons\1.12.2\junit-platform-suite-commons-1.12.2.jar;C:\Users\Joni\.m2\repository\org\junit\platform\junit-platform-launcher\1.12.2\junit-platform-launcher-1.12.2.jar;C:\Users\Joni\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.5.0\spring-boot-starter-validation-3.5.0.jar;C:\Users\Joni\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.41\tomcat-embed-el-10.1.41.jar;C:\Users\Joni\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.2.Final\hibernate-validator-8.0.2.Final.jar;C:\Users\Joni\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Joni\.m2\repository\org\jboss\logging\jboss-logging\3.6.1.Final\jboss-logging-3.6.1.Final.jar;C:\Users\Joni\.m2\repository\com\fasterxml\classmate\1.7.0\classmate-1.7.0.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -31,7 +31,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\Joni\AppData\Local\Temp\surefire10638109521562549615\surefirebooter-20250619015619730_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\Joni\AppData\Local\Temp\surefire17124969379657964857\surefirebooter-20250619182519348_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="24.0.1+9-30"/>
@@ -59,9 +59,9 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="68.0"/>
   </properties>
-  <testcase name="signup_EmailExists_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="1.163">
-    <system-out><![CDATA[01:56:21.705 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: existing@email.com
-01:56:21.712 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Email already exists: existing@email.com
+  <testcase name="signup_EmailExists_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="1.246">
+    <system-out><![CDATA[18:25:21.424 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: existing@email.com
+18:25:21.434 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Email already exists: existing@email.com
 ]]></system-out>
     <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
 WARNING: A Java agent has been loaded dynamically (C:\Users\Joni\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.5\byte-buddy-agent-1.17.5.jar)
@@ -70,47 +70,93 @@ WARNING: If a serviceability tool is not in use, please run with -Djdk.instrumen
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 ]]></system-err>
   </testcase>
-  <testcase name="signup_EmailExists_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.003">
-    <system-out><![CDATA[01:56:23.263 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: existing@email.com
-01:56:23.264 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Email already exists: existing@email.com
+  <testcase name="signup_EmailExists_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.007">
+    <system-out><![CDATA[18:25:23.084 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: existing@email.com
+18:25:23.085 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Email already exists: existing@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="login_WrongPassword_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.009">
+    <system-out><![CDATA[18:25:21.470 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
+18:25:21.470 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid credentials: password does not match for email: test@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="login_WrongPassword_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.006">
+    <system-out><![CDATA[18:25:23.095 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
+18:25:23.095 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid credentials: password does not match for email: test@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="signup_InvalidTimezone_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.007">
+    <system-out><![CDATA[18:25:21.476 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
+18:25:21.477 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid timezone: Invalid/Timezone
+]]></system-out>
+  </testcase>
+  <testcase name="signup_InvalidTimezone_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.004">
+    <system-out><![CDATA[18:25:23.100 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
+18:25:23.101 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid timezone: Invalid/Timezone
 ]]></system-out>
   </testcase>
   <testcase name="signup_Student_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.031">
-    <system-out><![CDATA[01:56:21.753 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
-01:56:21.754 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Student created successfully: b12ef887-1cf3-4c3e-b84e-484393c84107
+    <system-out><![CDATA[18:25:21.493 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
+18:25:21.495 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Student created successfully: 60e035ef-1f72-4776-9c8b-3645092893e0
 ]]></system-out>
   </testcase>
-  <testcase name="signup_Student_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.007">
-    <system-out><![CDATA[01:56:23.269 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
-01:56:23.270 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Student created successfully: df5b304d-79cb-41ac-912c-31bf05a75ebf
+  <testcase name="signup_Student_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.004">
+    <system-out><![CDATA[18:25:23.105 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
+18:25:23.105 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Student created successfully: 13c208da-164e-40bc-9152-416d57519bc4
 ]]></system-out>
   </testcase>
-  <testcase name="signup_InvalidTutorRegistration_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.005">
-    <system-out><![CDATA[01:56:21.770 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
+  <testcase name="signup_InvalidTutorRegistration_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.006">
+    <system-out><![CDATA[18:25:21.515 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
 ]]></system-out>
   </testcase>
-  <testcase name="signup_InvalidTutorRegistration_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.005">
-    <system-out><![CDATA[01:56:23.277 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
+  <testcase name="signup_InvalidTutorRegistration_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.006">
+    <system-out><![CDATA[18:25:23.112 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
 ]]></system-out>
   </testcase>
-  <testcase name="login_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.014">
-    <system-out><![CDATA[01:56:21.781 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
-01:56:21.782 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Login successful for user: test@email.com 
+  <testcase name="signup_Tutor_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.008">
+    <system-out><![CDATA[18:25:21.522 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
+18:25:21.523 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Tutor created successfully: ebcb5374-6bfb-4048-9326-ecc97c28b609
 ]]></system-out>
   </testcase>
-  <testcase name="login_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.004">
-    <system-out><![CDATA[01:56:23.281 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
-01:56:23.282 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Login successful for user: test@email.com 
+  <testcase name="signup_Tutor_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.006">
+    <system-out><![CDATA[18:25:23.120 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
+18:25:23.120 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Tutor created successfully: dfa67ea2-bde5-4494-be6c-4a5e4f0bcc0c
 ]]></system-out>
   </testcase>
-  <testcase name="login_InvalidCredentials_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.01">
-    <system-out><![CDATA[01:56:21.796 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
-01:56:21.797 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid credentials: user not found for email: test@email.com
+  <testcase name="signup_WeakPassword_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.006">
+    <system-out><![CDATA[18:25:21.531 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="signup_WeakPassword_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.005">
+    <system-out><![CDATA[18:25:23.126 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: john@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="login_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.009">
+    <system-out><![CDATA[18:25:21.538 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
+18:25:21.538 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Login successful for user: test@email.com 
+]]></system-out>
+  </testcase>
+  <testcase name="login_Success" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.005">
+    <system-out><![CDATA[18:25:23.132 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
+18:25:23.132 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Login successful for user: test@email.com 
 ]]></system-out>
   </testcase>
   <testcase name="login_InvalidCredentials_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.005">
-    <system-out><![CDATA[01:56:23.286 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
-01:56:23.287 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid credentials: user not found for email: test@email.com
+    <system-out><![CDATA[18:25:21.546 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
+18:25:21.547 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid credentials: user not found for email: test@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="login_InvalidCredentials_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.004">
+    <system-out><![CDATA[18:25:23.137 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Logging in user with email: test@email.com
+18:25:23.137 [main] WARN com.tutoringplatform.authentication.AuthenticationService -- Invalid credentials: user not found for email: test@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="signup_TutorWithoutDescription_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.006">
+    <system-out><![CDATA[18:25:21.554 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
+]]></system-out>
+  </testcase>
+  <testcase name="signup_TutorWithoutDescription_ThrowsException" classname="com.tutoringplatform.services.AuthenticationServiceTest" time="0.006">
+    <system-out><![CDATA[18:25:23.143 [main] INFO com.tutoringplatform.authentication.AuthenticationService -- Signing up user with email: jane@email.com
 ]]></system-out>
   </testcase>
 </testsuite>
