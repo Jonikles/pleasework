@@ -223,6 +223,7 @@ class SubjectServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unused")
     void groupSubjectsByCategory_Success() {
         // Arrange
         Subject math = new Subject("Math", "Science");
