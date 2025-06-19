@@ -1,0 +1,41 @@
+/* Profile Page Specifics */
+.profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    object-fit: cover;
+}
+
+.profile-picture-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--gray-200);
+    margin-bottom: 1rem;
+}
+
+/* Availability Management */
+.availability-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--gray-100);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+/* Subject List Items */
+.subject-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.subject-item:last-child {
+    border-bottom: none;
+}
