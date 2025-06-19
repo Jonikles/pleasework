@@ -1,0 +1,17 @@
+/* Badge Styles */
+.badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+}
+
+/* Subject Tags */
+.subject-tag {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    display: inline-block;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
