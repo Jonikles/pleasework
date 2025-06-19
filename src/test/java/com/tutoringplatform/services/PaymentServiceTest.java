@@ -145,17 +145,6 @@ class PaymentServiceTest {
         assertNotNull(result);
         assertEquals(paymentId, result.getId());
     }
-
-    @Test
-    void findById_NotFound_ThrowsException() {
-        // Arrange
-        String paymentId = "nonexistent";
-        when(paymentRepository.findById(paymentId)).thenReturn(null);
-
-        // Act & Assert
-        assertThrows(PaymentNotFoundException.class,
-                () -> paymentService.findById(paymentId));
-    }
     
     @Test
     void processPayment_StudentNotFound_ThrowsException() {

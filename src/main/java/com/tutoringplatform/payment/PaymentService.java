@@ -100,11 +100,9 @@ public class PaymentService {
         logger.info("Payment refunded successfully. Payment ID: {}, amount: {}", payment.getId(), payment.getAmount());
     }
 
-    public Payment findById(String id) throws PaymentNotFoundException {
-        Payment payment = paymentRepository.findById(id);
-        if (payment == null) {
-            throw new PaymentNotFoundException(id);
-        }
-        return payment;
+    public Payment findById(String id) {
+        if (id == null)
+            return null;
+        return paymentRepository.findById(id);
     }
 }

@@ -1012,16 +1012,21 @@ function clearSearchFilters() {
 
 // Booking management
 async function showBookingTab(tab) {
+    console.log("showbookingtab called with tab:", tab);
   const userId = state.currentUser.id;
   const endpoint =
     state.currentView === "studentBookings"
       ? `${API_BASE_URL}/bookings/student/${userId}`
       : `${API_BASE_URL}/bookings/tutor/${userId}`;
 
+  console.log("Endpoint:", endpoint);
+
   try {
     const response = await fetch(endpoint);
+    console.log("Response status:", response.status);
     if (response.ok) {
       const data = await response.json();
+      console.log("Data received:", data);
       const bookings =
         tab === "upcoming"
           ? data.upcomingBookings
@@ -1038,9 +1043,34 @@ async function showBookingTab(tab) {
           link.classList.remove("active");
         });
       document.getElementById(`${tab}Tab`).classList.add("active");
+    } else {
+      const errorText = await response.text();
+      console.error("Error response:", response.status, errorText);
+
+      // Try to parse error as JSON
+      try {
+        const errorJson = JSON.parse(errorText);
+        console.error("Error details:", errorJson);
+      } catch (e) {
+        // Not JSON, just log the text
+      }
+
+      // Show empty state or error message
+      const container = document.getElementById("bookingsList");
+      container.innerHTML = `
+                <div class="alert alert-danger">
+                    Failed to load bookings. Please try again later.
+                </div>
+            `;
     }
   } catch (error) {
     console.error("Error loading bookings:", error);
+    const container = document.getElementById("bookingsList");
+    container.innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load bookings. Please try again later.
+            </div>
+        `;
   }
 }
 

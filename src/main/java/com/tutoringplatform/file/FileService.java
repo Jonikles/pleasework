@@ -68,7 +68,7 @@ public class FileService {
     public Resource loadFile(String fileId) throws FileNotFoundException, MalformedURLException {
         FileMetaData metadata = fileRepository.findById(fileId);
         if (metadata == null) {
-            logger.error("File not found: {}", fileId);
+            logger.warn("File not found: {}", fileId);
             throw new FileNotFoundException("File not found");
         }
 
@@ -85,7 +85,7 @@ public class FileService {
     public void deleteFile(String fileId) throws IOException, FileNotFoundException {
         FileMetaData metadata = fileRepository.findById(fileId);
         if (metadata == null) {
-            logger.error("File not found: {}", fileId);
+            logger.warn("File not found: {}", fileId);
             throw new FileNotFoundException(fileId);
         }
 
