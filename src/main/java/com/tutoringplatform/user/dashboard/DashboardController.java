@@ -2,11 +2,14 @@ package com.tutoringplatform.user.dashboard;
 
 import com.tutoringplatform.shared.dto.response.StudentDashboardResponse;
 import com.tutoringplatform.shared.dto.response.TutorDashboardResponse;
+import com.tutoringplatform.user.exceptions.UserNotFoundException;
+import com.tutoringplatform.review.exceptions.NoCompletedBookingsException;
+import com.tutoringplatform.payment.exceptions.PaymentNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
+
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -20,22 +23,14 @@ public class DashboardController {
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<?> getStudentDashboard(@PathVariable String studentId) {
-        try {
-            StudentDashboardResponse dashboard = dashboardService.getStudentDashboard(studentId);
-            return ResponseEntity.ok(dashboard);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    public ResponseEntity<?> getStudentDashboard(@PathVariable String studentId) throws UserNotFoundException, NoCompletedBookingsException, PaymentNotFoundException {
+        StudentDashboardResponse dashboard = dashboardService.getStudentDashboard(studentId);
+        return ResponseEntity.ok(dashboard);
     }
 
     @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<?> getTutorDashboard(@PathVariable String tutorId) {
-        try {
-            TutorDashboardResponse dashboard = dashboardService.getTutorDashboard(tutorId);
-            return ResponseEntity.ok(dashboard);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    public ResponseEntity<?> getTutorDashboard(@PathVariable String tutorId) throws UserNotFoundException, NoCompletedBookingsException {
+        TutorDashboardResponse dashboard = dashboardService.getTutorDashboard(tutorId);
+        return ResponseEntity.ok(dashboard);
     }
 }
