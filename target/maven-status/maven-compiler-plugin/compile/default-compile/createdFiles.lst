@@ -35,7 +35,6 @@ com\tutoringplatform\booking\exceptions\BookedTimeSlotException.class
 com\tutoringplatform\booking\observer\BookingEvent$EventType.class
 com\tutoringplatform\payment\PaymentRepository.class
 com\tutoringplatform\shared\exceptions\GlobalExceptionHandler.class
-com\tutoringplatform\booking\observer\EmailNotifier.class
 com\tutoringplatform\booking\Booking$BookingStatus.class
 com\tutoringplatform\search\SearchController.class
 com\tutoringplatform\payment\PaymentService.class
@@ -95,7 +94,6 @@ com\tutoringplatform\file\exception\FileException.class
 com\tutoringplatform\payment\Payment$PaymentStatus.class
 com\tutoringplatform\shared\dto\response\PaymentResponse.class
 com\tutoringplatform\shared\dto\request\AddSubjectToTutorRequest.class
-com\tutoringplatform\booking\observer\EmailNotifier$1.class
 com\tutoringplatform\review\ReviewService.class
 com\tutoringplatform\user\student\Student.class
 com\tutoringplatform\user\student\StudentService.class
@@ -104,12 +102,10 @@ com\tutoringplatform\user\availability\IAvailabilityRepository.class
 com\tutoringplatform\payment\IPaymentRepository.class
 com\tutoringplatform\review\Review.class
 com\tutoringplatform\user\dashboard\DashboardController.class
-com\tutoringplatform\booking\observer\EmailService$EmailSendException.class
 com\tutoringplatform\shared\dto\request\TutorSearchRequest.class
 com\tutoringplatform\user\dashboard\DashboardService.class
 com\tutoringplatform\user\student\exceptions\StudentException.class
 com\tutoringplatform\user\tutor\TutorController.class
-com\tutoringplatform\booking\observer\EmailService.class
 com\tutoringplatform\shared\IRepository.class
 com\tutoringplatform\shared\dto\response\SearchFilters.class
 com\tutoringplatform\user\exceptions\InvalidPasswordException.class

@@ -18,8 +18,6 @@ C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\bookin
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\booking\IBookingRepository.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\booking\observer\BookingEvent.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\booking\observer\BookingLogger.java
-C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\booking\observer\EmailNotifier.java
-C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\booking\observer\EmailService.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\booking\observer\NotificationObserver.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\config\AppProperties.java
 C:\Users\Joni\Desktop\tutoringPlatform\src\main\java\com\tutoringplatform\config\DataInitializationConfiguration.java
