@@ -3,8 +3,6 @@ package com.tutoringplatform.shared.dto.response.info;
 public class SubjectInfo {
     private String id;
     private String name;
-    private int tutorCount;
-    private double averagePrice;
 
     public String getId() {
         return id;
@@ -20,21 +18,5 @@ public class SubjectInfo {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public int getTutorCount() {
-        return tutorCount;
-    }
-
-    public void setTutorCount(int tutorCount) {
-        this.tutorCount = tutorCount;
-    }
-
-    public double getAveragePrice() {
-        return averagePrice;
-    }
-
-    public void setAveragePrice(double averagePrice) {
-        this.averagePrice = averagePrice;
     }
 }

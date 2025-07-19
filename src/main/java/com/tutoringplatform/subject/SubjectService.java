@@ -127,15 +127,6 @@ public class SubjectService {
         info.setId(subject.getId());
         info.setName(subject.getName());
         
-        List<Tutor> tutorsForSubject = tutorService.findBySubject(subject);
-        info.setTutorCount(tutorsForSubject.size());
-        
-        double averagePrice = tutorsForSubject.stream()
-                .mapToDouble(Tutor::getHourlyRate)
-                .average()
-                .orElse(0.0);
-        info.setAveragePrice(averagePrice);
-        
         return info;
     }  
 
