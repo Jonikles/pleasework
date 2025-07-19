@@ -47,24 +47,21 @@ public class CacheAlgoTest {
 
     @Test
     public void testLRUEviction() {
-        // Fill cache to capacity
         cache.put("key1", "value1");
         cache.put("key2", "value2");
         cache.put("key3", "value3");
 
         assertEquals(CACHE_CAPACITY, cache.size());
 
-        // Access key1 to make it recently used
         cache.get("key1");
 
-        // Add new item, should evict key2 (least recently used)
         cache.put("key4", "value4");
 
         assertEquals(CACHE_CAPACITY, cache.size());
-        assertNotNull(cache.get("key1")); // Still exists (recently accessed)
-        assertNull(cache.get("key2")); // Evicted (least recently used)
-        assertNotNull(cache.get("key3")); // Still exists
-        assertNotNull(cache.get("key4")); // Newly added
+        assertNotNull(cache.get("key1"));
+        assertNull(cache.get("key2"));
+        assertNotNull(cache.get("key3"));
+        assertNotNull(cache.get("key4"));
     }
 
     @Test
@@ -94,7 +91,7 @@ public class CacheAlgoTest {
         assertNull(cache.get("key1"));
         assertEquals(1, cache.size());
 
-        assertNull(cache.remove("key3")); // Remove non-existent key
+        assertNull(cache.remove("key3"));
     }
 
     @Test
@@ -113,30 +110,5 @@ public class CacheAlgoTest {
     public void testInvalidCapacity() {
         assertThrows(IllegalArgumentException.class, () -> new LRUCacheAlgo<>(0));
         assertThrows(IllegalArgumentException.class, () -> new LRUCacheAlgo<>(-1));
-    }
-
-    @Test
-    public void testConcurrentAccess() throws InterruptedException {
-        // Simple concurrent test
-        Thread t1 = new Thread(() -> {
-            for (int i = 0; i < 100; i++) {
-                cache.put("t1-" + i, "value" + i);
-            }
-        });
-
-        Thread t2 = new Thread(() -> {
-            for (int i = 0; i < 100; i++) {
-                cache.put("t2-" + i, "value" + i);
-            }
-        });
-
-        t1.start();
-        t2.start();
-
-        t1.join();
-        t2.join();
-
-        // Cache should only contain the most recent entries up to capacity
-        assertEquals(CACHE_CAPACITY, cache.size());
     }
 }

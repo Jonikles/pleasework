@@ -78,7 +78,6 @@ public class CachedTutorRepository implements ITutorRepository {
         List<Tutor> tutors = actualRepository.findAll();
         listCache.put("ALL_TUTORS", tutors);
 
-        // Cache individual tutors
         for (Tutor tutor : tutors) {
             tutorCache.put(tutor.getId(), tutor);
         }
@@ -106,32 +105,25 @@ public class CachedTutorRepository implements ITutorRepository {
     public void save(Tutor tutor) {
         actualRepository.save(tutor);
 
-        // Update cache
         tutorCache.put(tutor.getId(), tutor);
         tutorCache.put("email:" + tutor.getEmail(), tutor);
-
-        // Invalidate list caches
         listCache.clear();
         logger.debug("Saved tutor and invalidated list caches");
     }
 
     @Override
     public void update(Tutor tutor) {
-        // Get old tutor to clear old email key if changed
         Tutor oldTutor = actualRepository.findById(tutor.getId());
 
         actualRepository.update(tutor);
 
-        // Update cache
         tutorCache.put(tutor.getId(), tutor);
         tutorCache.put("email:" + tutor.getEmail(), tutor);
 
-        // Remove old email key if email changed
-        if (oldTutor != null && !oldTutor.getEmail().equals(tutor.getEmail())) {
+        if (!oldTutor.getEmail().equals(tutor.getEmail())) {
             tutorCache.remove("email:" + oldTutor.getEmail());
         }
 
-        // Invalidate list caches (subjects might have changed)
         listCache.clear();
         logger.debug("Updated tutor and invalidated list caches");
     }
@@ -141,20 +133,15 @@ public class CachedTutorRepository implements ITutorRepository {
         Tutor tutor = findById(id);
         actualRepository.delete(id);
 
-        // Remove from cache
         tutorCache.remove(id);
-        if (tutor != null) {
-            tutorCache.remove("email:" + tutor.getEmail());
-        }
+        tutorCache.remove("email:" + tutor.getEmail());
 
-        // Invalidate list caches
         listCache.clear();
         logger.debug("Deleted tutor and invalidated caches");
     }
 
     @Override
     public boolean emailExists(String email) {
-        // Don't cache this as it's a boolean check
         return actualRepository.emailExists(email);
     }
 }

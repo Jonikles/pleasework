@@ -78,7 +78,6 @@ public class CachedSubjectRepository implements ISubjectRepository {
         List<Subject> subjects = actualRepository.findAll();
         listCache.put(ALL_SUBJECTS_KEY, subjects);
 
-        // Also cache individual subjects
         for (Subject subject : subjects) {
             subjectCache.put(subject.getId(), subject);
         }
@@ -99,7 +98,6 @@ public class CachedSubjectRepository implements ISubjectRepository {
         List<Subject> subjects = actualRepository.findByCategory(category);
         listCache.put(key, subjects);
 
-        // Also cache individual subjects
         for (Subject subject : subjects) {
             subjectCache.put(subject.getId(), subject);
         }
@@ -111,11 +109,9 @@ public class CachedSubjectRepository implements ISubjectRepository {
     public void save(Subject subject) {
         actualRepository.save(subject);
 
-        // Update cache
         subjectCache.put(subject.getId(), subject);
         subjectCache.put("name:" + subject.getName(), subject);
 
-        // Invalidate list caches
         listCache.clear();
         logger.debug("Saved subject and invalidated list caches");
     }
@@ -124,11 +120,9 @@ public class CachedSubjectRepository implements ISubjectRepository {
     public void update(Subject subject) {
         actualRepository.update(subject);
 
-        // Update cache
         subjectCache.put(subject.getId(), subject);
         subjectCache.put("name:" + subject.getName(), subject);
 
-        // Invalidate list caches
         listCache.clear();
         logger.debug("Updated subject and invalidated list caches");
     }
@@ -138,13 +132,10 @@ public class CachedSubjectRepository implements ISubjectRepository {
         Subject subject = findById(id);
         actualRepository.delete(id);
 
-        // Remove from cache
         subjectCache.remove(id);
-        if (subject != null) {
-            subjectCache.remove("name:" + subject.getName());
-        }
+        subjectCache.remove("name:" + subject.getName());
 
-        // Invalidate list caches
+
         listCache.clear();
         logger.debug("Deleted subject and invalidated caches");
     }

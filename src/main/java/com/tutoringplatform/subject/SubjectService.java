@@ -98,7 +98,7 @@ public class SubjectService {
                 .collect(Collectors.toList());
 
         logger.info("Available subjects for tutor {} found successfully", tutorId);
-        return availableSubjects.stream()
+        return availableSubjects.stream() 
                 .map(dtoMapper::toSubjectResponse)
                 .collect(Collectors.toList());
     }

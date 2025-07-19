@@ -77,7 +77,6 @@ public class CachedStudentRepository implements IStudentRepository {
         List<Student> students = actualRepository.findAll();
         listCache.put("ALL_STUDENTS", students);
 
-        // Cache individual students
         for (Student student : students) {
             studentCache.put(student.getId(), student);
         }
@@ -105,32 +104,26 @@ public class CachedStudentRepository implements IStudentRepository {
     public void save(Student student) {
         actualRepository.save(student);
 
-        // Update cache
         studentCache.put(student.getId(), student);
         studentCache.put("email:" + student.getEmail(), student);
 
-        // Invalidate list caches
         listCache.clear();
         logger.debug("Saved student and invalidated list caches");
     }
 
     @Override
     public void update(Student student) {
-        // Get old student to clear old email key if changed
         Student oldStudent = actualRepository.findById(student.getId());
 
         actualRepository.update(student);
 
-        // Update cache
         studentCache.put(student.getId(), student);
         studentCache.put("email:" + student.getEmail(), student);
 
-        // Remove old email key if email changed
-        if (oldStudent != null && !oldStudent.getEmail().equals(student.getEmail())) {
+        if (!oldStudent.getEmail().equals(student.getEmail())) {
             studentCache.remove("email:" + oldStudent.getEmail());
         }
 
-        // Invalidate list caches
         listCache.clear();
         logger.debug("Updated student and invalidated list caches");
     }
@@ -140,20 +133,15 @@ public class CachedStudentRepository implements IStudentRepository {
         Student student = findById(id);
         actualRepository.delete(id);
 
-        // Remove from cache
         studentCache.remove(id);
-        if (student != null) {
-            studentCache.remove("email:" + student.getEmail());
-        }
+        studentCache.remove("email:" + student.getEmail());
 
-        // Invalidate list caches
         listCache.clear();
         logger.debug("Deleted student and invalidated caches");
     }
 
     @Override
     public boolean emailExists(String email) {
-        // Don't cache this as it's a boolean check
         return actualRepository.emailExists(email);
     }
 }
