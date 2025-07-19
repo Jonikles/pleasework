@@ -3,7 +3,6 @@ package com.tutoringplatform.file;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 public class FileRepository implements IFileRepository {
@@ -17,13 +16,6 @@ public class FileRepository implements IFileRepository {
     @Override
     public List<FileMetaData> findAll() {
         return new ArrayList<>(files.values());
-    }
-
-    @Override
-    public List<FileMetaData> findByUserId(String userId) {
-        return files.values().stream()
-                .filter(f -> f.getUserId().equals(userId))
-                .collect(Collectors.toList());
     }
 
     @Override
