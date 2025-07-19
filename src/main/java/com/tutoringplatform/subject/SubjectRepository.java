@@ -1,5 +1,6 @@
 package com.tutoringplatform.subject;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Repository
+@Qualifier("subjectRepository")
 public class SubjectRepository implements ISubjectRepository {
     private Map<String, Subject> subjects = new HashMap<>();
 
